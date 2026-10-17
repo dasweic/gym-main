@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="description" content="Manage gym membership plans, pricing, subscribers and promotional offers.">
+  <title>Membership Plans | Forge Admin</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: "#0A0A0A",
+            panel: "#171717",
+            accent: "#FF6B00",
+            muted: "#A3A3A3",
+            line: "#2A2A2A"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            display: ["Oswald", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0A0A0A;
+      --panel: #171717;
+      --accent: #FF6B00;
+      --muted: #A3A3A3;
+      --border: #2A2A2A;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: #fff;
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .display-font { font-family: "Oswald", sans-serif; }
+    .muted { color: var(--muted); }
+    .border-line { border-color: var(--border); }
+
+    .app-shell { min-height: 100vh; }
+
+    .sidebar {
+      width: 252px;
+      background: #111;
+      border-right: 1px solid var(--border);
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      transition: transform .25s ease;
+    }
+
+    .main-area {
+      margin-left: 252px;
+      min-width: 0;
+      min-height: 100vh;
+    }
+
+    .brand-mark {
+      width: 39px;
+      height: 39px;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      border-radius: 10px;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 43px;
+      padding: 0 13px;
+      color: #A3A3A3;
+      text-decoration: none;
+      border-radius: 7px;
+      font-weight: 500;
+      transition: background .2s, color .2s;
+    }
+
+    .nav-link:hover { background: #222; color: white; }
+
+    .nav-link.active {
+      background: rgba(255,107,0,.12);
+      color: var(--accent);
+      border: 1px solid rgba(255,107,0,.15);
+    }
+
+    .nav-link.active svg { color: var(--accent); }
+
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 55;
+      background: rgba(0,0,0,.72);
+      display: none;
+    }
+
+    .topbar {
+      height: 72px;
+      background: rgba(10,10,10,.94);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      gap: 20px;
+    }
+
+    .page-content {
+      width: 100%;
+      max-width: 1600px;
+      padding: 30px 32px 45px;
+      margin: 0 auto;
+    }
+
+    .surface {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .stat-card {
+      padding: 19px;
+      min-width: 0;
+      transition: border-color .2s;
+    }
+
+    .stat-card:hover { border-color: #414141; }
+
+    .stat-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: #242424;
+      color: var(--accent);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 39px;
+      padding: 0 14px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      font-size: 12px;
+      transition: background .18s, border-color .18s, transform .18s;
+      white-space: nowrap;
+    }
+
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: #e96000; }
+    .btn-secondary { background: #242424; border-color: #333; color: white; }
+    .btn-secondary:hover { background: #303030; }
+    .btn-ghost { background: transparent; border-color: var(--border); color: #c7c7c7; }
+    .btn-ghost:hover { background: #222; color: white; }
+    .btn-danger { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.2); color: #f87171; }
+    .btn-danger:hover { background: rgba(239,68,68,.18); }
+    .btn-sm { min-height: 32px; padding: 0 10px; font-size: 11px; }
+    .icon-btn {
+      display: inline-grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: #a3a3a3;
+    }
+    .icon-btn:hover { background: #292929; color: white; border-color: #383838; }
+
+    .field-label {
+      display: block;
+      margin-bottom: 7px;
+      color: #D4D4D4;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .field {
+      width: 100%;
+      min-height: 41px;
+      background: #101010;
+      border: 1px solid #353535;
+      border-radius: 7px;
+      color: white;
+      padding: 10px 12px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .field:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255,107,0,.12);
+    }
+
+    .field::placeholder { color: #737373; }
+    textarea.field { min-height: 85px; resize: vertical; }
+    select.field { cursor: pointer; }
+    .field-error { border-color: #f87171 !important; }
+    .error-text { color: #fca5a5; font-size: 11px; margin-top: 5px; }
+    .helper-text { color: #858585; font-size: 11px; margin-top: 6px; line-height: 1.5; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .025em;
+      white-space: nowrap;
+    }
+
+    .badge-active { background: rgba(34,197,94,.10); color: #4ade80; border: 1px solid rgba(34,197,94,.15); }
+    .badge-inactive { background: #262626; color: #a3a3a3; border: 1px solid #353535; }
+    .badge-orange { background: rgba(255,107,0,.12); color: #ff914d; border: 1px solid rgba(255,107,0,.22); }
+    .badge-warning { background: rgba(250,204,21,.09); color: #facc15; border: 1px solid rgba(250,204,21,.15); }
+
+    .plan-card {
+      position: relative;
+      padding: 22px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      transition: border-color .2s, transform .2s;
+    }
+
+    .plan-card:hover { border-color: #454545; transform: translateY(-2px); }
+
+    .plan-card.recommended {
+      border-color: rgba(255,107,0,.65);
+      box-shadow: inset 0 0 0 1px rgba(255,107,0,.07);
+    }
+
+    .plan-card.recommended::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 0 0 3px 3px;
+    }
+
+    .plan-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      color: #c9c9c9;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .plan-feature svg { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+    .feature-editor-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .feature-editor-row .field { min-width: 0; }
+
+    .table-wrap { width: 100%; overflow-x: auto; }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: #1b1b1b;
+      padding: 13px 16px;
+      color: #8f8f8f;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 15px 16px;
+      border-top: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .data-table tbody tr:hover { background: rgba(255,255,255,.015); }
+
+    .offer-card {
+      background: #141414;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .search-wrap { position: relative; min-width: 0; }
+    .search-wrap > svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #737373;
+      pointer-events: none;
+    }
+    .search-wrap .field { padding-left: 38px; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.78);
+      backdrop-filter: blur(4px);
+      overflow-y: auto;
+    }
+
+    .modal-panel {
+      width: 100%;
+      max-width: 600px;
+      max-height: calc(100dvh - 40px);
+      overflow-y: auto;
+      background: #171717;
+      border: 1px solid #363636;
+      border-radius: 13px;
+      box-shadow: 0 24px 90px rgba(0,0,0,.55);
+      margin: auto;
+    }
+
+    .modal-panel.modal-small { max-width: 440px; }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 21px 23px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-body { padding: 22px 23px; }
+    .modal-footer {
+      padding: 15px 23px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    .demo-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      background: rgba(255,107,0,.06);
+      border: 1px solid rgba(255,107,0,.2);
+      border-radius: 8px;
+      color: #c8b4a5;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .demo-notice svg { color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+
+    .toast-region {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 200;
+      width: min(380px, calc(100vw - 40px));
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #202020;
+      border: 1px solid #393939;
+      border-radius: 9px;
+      padding: 13px 15px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.35);
+      animation: toast-in .2s ease-out;
+      pointer-events: auto;
+    }
+
+    .toast svg { flex-shrink: 0; margin-top: 1px; }
+    .toast-success svg { color: #4ade80; }
+    .toast-error svg { color: #f87171; }
+    .toast-info svg { color: var(--accent); }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .empty-state {
+      padding: 38px 18px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      width: 49px;
+      height: 49px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 13px;
+      background: #232323;
+      border-radius: 12px;
+      color: #a3a3a3;
+    }
+
+    .divider { height: 1px; background: var(--border); }
+    .offer-discount { font-family: "Oswald", sans-serif; font-size: 27px; font-weight: 500; }
+
+    .mobile-only { display: none; }
+
+    @media (max-width: 1100px) {
+      .sidebar { width: 225px; }
+      .main-area { margin-left: 225px; }
+      .topbar { padding: 0 23px; }
+      .page-content { padding: 25px 23px 38px; }
+      .plan-card { padding: 18px; }
+    }
+
+    @media (max-width: 850px) {
+      .sidebar { width: 252px; transform: translateX(-100%); }
+      .sidebar.sidebar-open { transform: translateX(0); }
+      .sidebar-overlay.overlay-open { display: block; }
+      .main-area { margin-left: 0; }
+      .mobile-only { display: inline-grid; }
+      .topbar { padding: 0 20px; }
+      .page-content { padding: 23px 20px 35px; }
+    }
+
+    @media (max-width: 600px) {
+      .topbar { height: 63px; padding: 0 14px; gap: 10px; }
+      .page-content { padding: 20px 14px 30px; }
+      .page-title { font-size: 27px !important; }
+      .stat-card { padding: 14px; }
+      .stat-icon { width: 32px; height: 32px; }
+      .plan-card { padding: 18px; }
+      .modal-backdrop { padding: 10px; align-items: flex-end; }
+      .modal-panel { max-height: calc(100dvh - 20px); border-radius: 12px; }
+      .modal-header, .modal-body { padding: 18px; }
+      .modal-footer { padding: 14px 18px; }
+      .modal-footer .btn { flex: 1; }
+      .hide-mobile { display: none !important; }
+      .section-header { align-items: flex-start !important; }
+      .filters-row { align-items: stretch; }
+      .filters-row > * { width: 100%; }
+      .toast-region { right: 12px; bottom: 12px; width: calc(100vw - 24px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-shell">
+
+  <div id="sidebarOverlay" class="sidebar-overlay" aria-hidden="true"></div>
+
+  <aside id="sidebar" class="sidebar" aria-label="Main navigation">
+    <div class="flex items-center gap-3 px-5 py-5 border-b border-line">
+      <div class="brand-mark" aria-hidden="true">
+        <i data-lucide="dumbbell" width="22" height="22"></i>
+      </div>
+      <div class="min-w-0">
+        <div class="display-font text-xl font-semibold tracking-wide leading-tight">FORGE<span class="text-accent">FIT</span></div>
+        <div class="text-[10px] text-neutral-500 tracking-[.18em] mt-1">GYM MANAGEMENT</div>
+      </div>
+      <button id="closeSidebar" class="icon-btn ml-auto mobile-only" aria-label="Close navigation">
+        <i data-lucide="x" width="18"></i>
+      </button>
+    </div>
+
+    <div class="px-4 pt-7 pb-2">
+      <p class="text-[10px] font-bold uppercase tracking-[.17em] text-neutral-600 px-3 mb-3">Workspace</p>
+      <nav class="space-y-1">
+        <a href="dashboard.html" class="nav-link">
+          <i data-lucide="layout-dashboard" width="18"></i><span>Dashboard</span>
+        </a>
+        <a href="members.html" class="nav-link">
+          <i data-lucide="users" width="18"></i><span>Members</span>
+        </a>
+        <a href="payments.html" class="nav-link">
+          <i data-lucide="wallet" width="18"></i><span>Payments</span>
+        </a>
+        <a href="plans.html" class="nav-link active" aria-current="page">
+          <i data-lucide="layers" width="18"></i><span>Membership Plans</span>
+          <span class="ml-auto w-1.5 h-1.5 rounded-full bg-accent"></span>
+        </a>
+        <a href="trainers.html" class="nav-link">
+          <i data-lucide="user-round-check" width="18"></i><span>Trainers</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="px-4 pt-6">
+      <p class="text-[10px] font-bold uppercase tracking-[.17em] text-neutral-600 px-3 mb-3">Preferences</p>
+      <nav>
+        <a href="settings.html" class="nav-link">
+          <i data-lucide="settings-2" width="18"></i><span>Settings</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="mt-auto p-4">
+      <div class="rounded-lg border border-line bg-[#171717] p-4">
+        <div class="flex items-center gap-2 text-xs font-semibold">
+          <i data-lucide="flask-conical" class="text-accent" width="16"></i>
+          Demo environment
+        </div>
+        <p class="text-[11px] text-neutral-500 leading-relaxed mt-2">
+          Sample plans and offers only. Changes remain in memory for this page session.
+        </p>
+        <div class="flex items-center gap-2 mt-3">
+          <span class="w-2 h-2 rounded-full bg-green-500"></span>
+          <span class="text-[10px] text-neutral-500">Backend not connected</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 px-2 pt-5">
+        <div class="w-9 h-9 rounded-full bg-[#292929] border border-[#3a3a3a] grid place-items-center text-accent font-bold text-xs">AD</div>
+        <div class="min-w-0">
+          <div class="text-xs font-semibold text-neutral-200">Gym Administrator</div>
+          <div class="text-[10px] text-neutral-500 mt-1">Demo workspace</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="flex items-center gap-3 min-w-0">
+        <button id="openSidebar" class="icon-btn mobile-only" aria-label="Open navigation">
+          <i data-lucide="menu" width="20"></i>
+        </button>
+        <div class="min-w-0">
+          <div class="text-xs text-neutral-500">Workspace <span class="mx-1">/</span> <span class="text-neutral-300">Membership Plans</span></div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="hidden sm:inline-flex items-center gap-2 rounded-full border border-[#343434] bg-[#171717] px-3 py-2 text-[10px] font-semibold text-neutral-400">
+          <span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+          DEMO MODE
+        </span>
+        <div class="w-9 h-9 rounded-full bg-[#222] border border-[#393939] grid place-items-center text-xs font-bold text-accent" aria-label="Demo administrator">AD</div>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <section aria-labelledby="pageTitle">
+        <div class="flex items-start justify-between gap-4 flex-wrap mb-7">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-1 h-5 bg-accent rounded-full"></span>
+              <span class="text-[10px] text-accent font-bold uppercase tracking-[.17em]">Membership management</span>
+            </div>
+            <h1 id="pageTitle" class="display-font page-title text-3xl font-medium tracking-wide">Membership Plans</h1>
+            <p class="text-sm text-neutral-500 mt-2">Build, organize and manage your gym membership offerings.</p>
+          </div>
+          <button id="addPlanBtn" class="btn btn-primary">
+            <i data-lucide="plus" width="16"></i>
+            Add New Plan
+          </button>
+        </div>
+
+        <div class="demo-notice mb-7" role="note">
+          <i data-lucide="info" width="16"></i>
+          <div>
+            <strong class="text-orange-300">Sample data — demonstration only.</strong>
+            Prices, subscribers, offers and plan details below are illustrative, not actual gym records.
+            Edits and deletions affect only this page's in-memory dataset. Reloading restores the original examples.
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="Membership statistics" class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-8">
+        <article class="surface stat-card">
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <p class="text-xs text-neutral-400">Total Plans</p>
+              <p id="statTotalPlans" class="display-font text-3xl mt-3">03</p>
+            </div>
+            <div class="stat-icon"><i data-lucide="layers" width="19"></i></div>
+          </div>
+          <p class="text-[10px] text-neutral-600 mt-4">Sample plan records</p>
+        </article>
+
+        <article class="surface stat-card">
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <p class="text-xs text-neutral-400">Active Plans</p>
+              <p id="statActivePlans" class="display-font text-3xl mt-3">03</p>
+            </div>
+            <div class="stat-icon"><i data-lucide="check-circle-2" width="19"></i></div>
+          </div>
+          <p class="text-[10px] text-neutral-600 mt-4">Available in this demo</p>
+        </article>
+
+        <article class="surface stat-card">
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <p class="text-xs text-neutral-400">Total Subscribers</p>
+              <p id="statSubscribers" class="display-font text-3xl mt-3">248</p>
+            </div>
+            <div class="stat-icon"><i data-lucide="users" width="19"></i></div>
+          </div>
+          <p class="text-[10px] text-neutral-600 mt-4">Illustrative enrollment count</p>
+        </article>
+
+        <article class="surface stat-card">
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <p class="text-xs text-neutral-400">Active Offers</p>
+              <p id="statActiveOffers" class="display-font text-3xl mt-3">02</p>
+            </div>
+            <div class="stat-icon"><i data-lucide="tag" width="19"></i></div>
+          </div>
+          <p class="text-[10px] text-neutral-600 mt-4">Sample promotional offers</p>
+        </article>
+      </section>
+
+      <section aria-labelledby="plansHeading" class="mb-10">
+        <div class="flex items-center justify-between gap-4 flex-wrap mb-5 section-header">
+          <div>
+            <h2 id="plansHeading" class="text-base font-semibold">Your Plans</h2>
+            <p class="text-xs text-neutral-500 mt-1">Manage pricing, benefits and plan availability.</p>
+          </div>
+          <span id="planCountLabel" class="text-xs text-neutral-500">3 plans</span>
+        </div>
+
+        <div class="surface p-4 mb-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 filters-row">
+            <div class="search-wrap">
+              <i data-lucide="search" width="17"></i>
+              <input id="planSearch" type="search" class="field" placeholder="Search plans by name..." aria-label="Search plans by name">
+            </div>
+            <div class="flex items-center gap-2">
+              <label for="planStatusFilter" class="text-xs text-neutral-400 shrink-0">Status</label>
+              <select id="planStatusFilter" class="field">
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button id="clearFiltersBtn" class="btn btn-ghost shrink-0" type="button">
+                <i data-lucide="rotate-ccw" width="14"></i>
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="planGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" aria-live="polite"></div>
+      </section>
+
+      <section aria-labelledby="offersHeading">
+        <div class="flex items-center justify-between gap-4 flex-wrap mb-5 section-header">
+          <div>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-[#252019] grid place-items-center text-accent">
+                <i data-lucide="badge-percent" width="17"></i>
+              </div>
+              <h2 id="offersHeading" class="text-base font-semibold">Offers & Discounts</h2>
+            </div>
+            <p class="text-xs text-neutral-500 mt-2">Create and manage promotional offers for your plans.</p>
+          </div>
+          <button id="addOfferBtn" class="btn btn-secondary">
+            <i data-lucide="plus" width="15"></i>
+            Add Offer
+          </button>
+        </div>
+
+        <div class="surface overflow-hidden">
+          <div class="flex items-center justify-between gap-3 flex-wrap px-5 py-4 border-b border-line">
+            <div>
+              <h3 class="text-sm font-semibold">Promotional campaigns</h3>
+              <p class="text-[11px] text-neutral-500 mt-1">Illustrative dates and discount values</p>
+            </div>
+            <span id="offerCountLabel" class="text-xs text-neutral-500">2 offers</span>
+          </div>
+
+          <div id="offerGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-3 p-4" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <footer class="mt-8 pt-5 border-t border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <p class="text-[10px] text-neutral-600">FORGEFIT ADMIN <span class="mx-1">·</span> MEMBERSHIP MANAGEMENT</p>
+        <p class="text-[10px] text-neutral-600">Frontend demo only · No backend connected</p>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+
+<div id="toastRegion" class="toast-region" role="status" aria-live="polite" aria-atomic="false"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  /*
+   * FRONTEND DEMO DATA
+   *
+   * These objects intentionally live only in JavaScript memory.
+   * No localStorage, credentials, API endpoints, or real subscription
+   * operations are used. Replace the repository functions with authorized
+   * FastAPI calls when the backend is ready.
+   *
+   * Server-side pricing, permissions, subscription eligibility and deletion
+   * safeguards must be enforced by the backend.
+   */
+
+  const initialPlans = [
+    {
+      id: "plan-basic",
+      name: "Basic",
+      price: 999,
+      durationValue: 1,
+      durationUnit: "months",
+      description: "A straightforward way to get started with your fitness journey.",
+      features: [
+        "Access to standard gym equipment",
+        "Locker room access",
+        "Basic fitness assessment",
+        "Gym floor orientation"
+      ],
+      members: 86,
+      active: true,
+      recommended: false
+    },
+    {
+      id: "plan-standard",
+      name: "Standard",
+      price: 2499,
+      durationValue: 3,
+      durationUnit: "months",
+      description: "A balanced membership for consistent training and steady progress.",
+      features: [
+        "Everything in Basic",
+        "Group fitness classes",
+        "Monthly progress review",
+        "Access to cardio zone",
+        "Complimentary fitness consultation"
+      ],
+      members: 112,
+      active: true,
+      recommended: false
+    },
+    {
+      id: "plan-premium",
+      name: "Premium",
+      price: 7999,
+      durationValue: 12,
+      durationUnit: "months",
+      description: "A comprehensive training experience with additional guidance and flexibility.",
+      features: [
+        "Everything in Standard",
+        "Priority class booking",
+        "Personal training consultation",
+        "Monthly body composition review",
+        "Guest pass allowance"
+      ],
+      members: 50,
+      active: true,
+      recommended: true
+    }
+  ];
+
+  const initialOffers = [
+    {
+      id: "offer-welcome",
+      name: "Welcome Offer",
+      planId: "plan-basic",
+      discountType: "percentage",
+      discountValue: 10,
+      startDate: "2026-10-01",
+      endDate: "2026-12-31",
+      active: true
+    },
+    {
+      id: "offer-premium",
+      name: "Premium Savings",
+      planId: "plan-premium",
+      discountType: "fixed",
+      discountValue: 500,
+      startDate: "2026-10-01",
+      endDate: "2026-10-31",
+      active: true
+    }
+  ];
+
+  let plans = cloneData(initialPlans);
+  let offers = cloneData(initialOffers);
+  let lastFocusedElement = null;
+  let toastSequence = 0;
+  let toastTimers = [];
+  let activeModalCleanup = null;
+
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+  function cloneData(data) {
+    return data.map(item => ({
+      ...item,
+      ...(Array.isArray(item.features) ? { features: [...item.features] } : {})
+    }));
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[char]);
+  }
+
+  function icon(name, size = 16) {
+    const paths = {
+      check: '<path d="m5 12 4 4L19 6"/>',
+      plus: '<path d="M12 5v14M5 12h14"/>',
+      edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/>',
+      trash: '<path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6"/>',
+      users: '<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+      calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
+      close: '<path d="m18 6-12 12M6 6l12 12"/>',
+      info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/>',
+      tag: '<path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L3 13V3h10l7.59 7.59a2 2 0 0 1 0 2.82Z"/><circle cx="7.5" cy="7.5" r=".5"/>',
+      checkCircle: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+      alert: '<path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4m0 4h.01"/>',
+      percent: '<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>'
+    };
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.info}</svg>`;
+  }
+
+  function money(value) {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2
+    }).format(Number(value) || 0);
+  }
+
+  function integer(value) {
+    return new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(value);
+  }
+
+  function durationText(value, unit) {
+    const units = { days: "day", months: "month", years: "year" };
+    const label = units[unit] || "month";
+    return `${value} ${label}${Number(value) === 1 ? "" : "s"}`;
+  }
+
+  function statusBadge(active) {
+    return active
+      ? '<span class="badge badge-active"><span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>Active</span>'
+      : '<span class="badge badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>Inactive</span>';
+  }
+
+  function showToast(message, type = "info") {
+    const region = $("#toastRegion");
+    const id = ++toastSequence;
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${type}`;
+    toast.dataset.toastId = String(id);
+
+    const iconName = type === "success" ? "checkCircle" :
+      type === "error" ? "alert" : "info";
+
+    const iconColor = type === "success" ? "#4ade80" :
+      type === "error" ? "#f87171" : "#FF6B00";
+
+    toast.innerHTML = `
+      <span style="color:${iconColor}">${icon(iconName, 18)}</span>
+      <p class="text-xs text-neutral-200 leading-relaxed flex-1">${escapeHTML(message)}</p>
+      <button class="icon-btn shrink-0" aria-label="Dismiss notification">${icon("close", 14)}</button>
+    `;
+
+    toast.querySelector("button").addEventListener("click", () => toast.remove());
+    region.appendChild(toast);
+
+    const timer = setTimeout(() => toast.remove(), 4500);
+    toastTimers.push(timer);
+  }
+
+  function updateIcons() {
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
+  }
+
+  function activeSubscribers() {
+    return plans.reduce((sum, plan) => sum + plan.members, 0);
+  }
+
+  function isOfferCurrentlyActive(offer) {
+    const today = new Date().toISOString().slice(0, 10);
+    return offer.active &&
+      offer.startDate <= today &&
+      offer.endDate >= today &&
+      plans.some(plan => plan.id === offer.planId && plan.active);
+  }
+
+  function renderStats() {
+    $("#statTotalPlans").textContent = String(plans.length).padStart(2, "0");
+    $("#statActivePlans").textContent = String(plans.filter(p => p.active).length).padStart(2, "0");
+    $("#statSubscribers").textContent = integer(activeSubscribers());
+    $("#statActiveOffers").textContent = String(offers.filter(isOfferCurrentlyActive).length).padStart(2, "0");
+  }
+
+  function renderPlans() {
+    const grid = $("#planGrid");
+    const query = $("#planSearch").value.trim().toLowerCase();
+    const status = $("#planStatusFilter").value;
+
+    const filtered = plans.filter(plan => {
+      const matchesName = plan.name.toLowerCase().includes(query);
+      const matchesStatus = status === "all" ||
+        (status === "active" ? plan.active : !plan.active);
+      return matchesName && matchesStatus;
+    });
+
+    $("#planCountLabel").textContent =
+      `${filtered.length} ${filtered.length === 1 ? "plan" : "plans"} shown`;
+
+    if (!filtered.length) {
+      grid.innerHTML = `
+        <div class="surface empty-state md:col-span-2 xl:col-span-3">
+          <div class="empty-icon">${icon("tag", 23)}</div>
+          <h3 class="text-sm font-semibold text-neutral-200">No plans found</h3>
+          <p class="text-xs mt-2 mb-4">Try a different search or clear your filters.</p>
+          <button class="btn btn-secondary" id="emptyClearFilters">${icon("close", 14)} Clear filters</button>
+        </div>`;
+      $("#emptyClearFilters").addEventListener("click", clearFilters);
+      updateIcons();
+      return;
+    }
+
+    grid.innerHTML = filtered.map(plan => {
+      const featureList = plan.features.length
+        ? plan.features.map(feature => `
+            <li class="plan-feature">${icon("check", 15)}<span>${escapeHTML(feature)}</span></li>
+          `).join("")
+        : '<li class="text-xs text-neutral-600">No features listed.</li>';
+
+      const subscriberNote = plan.members > 0
+        ? `<span class="text-xs text-neutral-300">${integer(plan.members)} sample members</span>`
+        : '<span class="text-xs text-neutral-500">No sample members assigned</span>';
+
+      return `
+        <article class="surface plan-card ${plan.recommended ? "recommended" : ""}" aria-labelledby="plan-${escapeHTML(plan.id)}">
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-lg bg-[#242424] grid place-items-center text-accent shrink-0">
+                ${icon("tag", 20)}
+              </div>
+              <div class="min-w-0">
+                <h3 id="plan-${escapeHTML(plan.id)}" class="font-semibold text-base break-words">${escapeHTML(plan.name)}</h3>
+                <p class="text-[10px] text-neutral-500 mt-1">Membership plan</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              ${plan.recommended ? `<span class="badge badge-orange">${icon("check", 11)} TOP PICK</span>` : ""}
+            </div>
+          </div>
+
+          <div class="flex items-end gap-2 mb-2 flex-wrap">
+            <span class="display-font text-4xl font-medium leading-none">${escapeHTML(money(plan.price))}</span>
+          </div>
+          <div class="text-xs text-neutral-500 mb-4">per ${escapeHTML(durationText(plan.durationValue, plan.durationUnit))}</div>
+
+          <div class="mb-4">${statusBadge(plan.active)}</div>
+
+          <p class="text-xs text-neutral-400 leading-relaxed min-h-[38px] mb-5">${escapeHTML(plan.description || "No description provided.")}</p>
+
+          <div class="divider mb-4"></div>
+          <h4 class="text-[10px] uppercase tracking-[.13em] font-bold text-neutral-500 mb-4">What's included</h4>
+          <ul class="space-y-3 mb-5">${featureList}</ul>
+
+          <div class="mt-auto">
+            <div class="flex items-center gap-2 py-3 border-t border-line mb-3">
+              <div class="w-7 h-7 rounded-full bg-[#252525] grid place-items-center text-neutral-400">${icon("users", 14)}</div>
+              ${subscriberNote}
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" class="btn btn-secondary" data-edit-plan="${escapeHTML(plan.id)}" aria-label="Edit ${escapeHTML(plan.name)} plan">
+                ${icon("edit", 14)} Edit
+              </button>
+              <button type="button" class="btn btn-ghost" data-delete-plan="${escapeHTML(plan.id)}" aria-label="Delete ${escapeHTML(plan.name)} plan">
+                ${icon("trash", 14)} Delete
+              </button>
+            </div>
+            ${plan.members > 0 ? `<p class="text-[10px] text-neutral-600 mt-3">${integer(plan.members)} demonstration subscriber assignments; not live records.</p>` : ""}
+          </div>
+        </article>`;
+    }).join("");
+
+    $$("[data-edit-plan]", grid).forEach(button => {
+      button.addEventListener("click", () => openPlanModal(button.dataset.editPlan));
+    });
+    $$("[data-delete-plan]", grid).forEach(button => {
+      button.addEventListener("click", () => openDeletePlanModal(button.dataset.deletePlan));
+    });
+
+    updateIcons();
+  }
+
+  function formatDate(date) {
+    if (!date) return "—";
+    const parsed = new Date(`${date}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return escapeHTML(date);
+    return new Intl.DateTimeFormat("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }).format(parsed);
+  }
+
+  function discountLabel(offer) {
+    return offer.discountType === "percentage"
+      ? `${integer(offer.discountValue)}%`
+      : money(offer.discountValue);
+  }
+
+  function renderOffers() {
+    const grid = $("#offerGrid");
+    $("#offerCountLabel").textContent =
+      `${offers.length} ${offers.length === 1 ? "offer" : "offers"}`;
+
+    if (!offers.length) {
+      grid.innerHTML = `
+        <div class="empty-state lg:col-span-2">
+          <div class="empty-icon">${icon("tag", 22)}</div>
+          <h3 class="text-sm text-neutral-200 font-semibold">No offers yet</h3>
+          <p class="text-xs mt-2 mb-4">Create a sample offer to see it here.</p>
+          <button type="button" id="emptyAddOffer" class="btn btn-secondary">${icon("plus", 14)} Add offer</button>
+        </div>`;
+      $("#emptyAddOffer").addEventListener("click", () => openOfferModal());
+      updateIcons();
+      return;
+    }
+
+    grid.innerHTML = offers.map(offer => {
+      const plan = plans.find(item => item.id === offer.planId);
+      const state = offer.active && plan && plan.active;
+      const expired = offer.endDate < new Date().toISOString().slice(0, 10);
+      const label = !offer.active ? "Inactive" :
+        !plan ? "Plan unavailable" :
+        !plan.active ? "Plan inactive" :
+        expired ? "Expired" : "Active";
+
+      const badge = label === "Active"
+        ? statusBadge(true)
+        : label === "Expired"
+          ? '<span class="badge badge-warning">Expired</span>'
+          : '<span class="badge badge-inactive">' + escapeHTML(label) + '</span>';
+
+      return `
+        <article class="offer-card" aria-labelledby="offer-${escapeHTML(offer.id)}">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-lg bg-[#282019] border border-[#3c2b1d] text-accent grid place-items-center shrink-0">
+              ${icon("percent", 20)}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start justify-between gap-2 flex-wrap">
+                <div class="min-w-0">
+                  <h3 id="offer-${escapeHTML(offer.id)}" class="font-semibold text-sm break-words">${escapeHTML(offer.name)}</h3>
+                  <p class="text-[11px] text-neutral-500 mt-1">${escapeHTML(plan ? plan.name : "Unavailable plan")}</p>
+                </div>
+                ${badge}
+              </div>
+              <div class="flex items-baseline gap-2 mt-4">
+                <span class="offer-discount">${escapeHTML(discountLabel(offer))}</span>
+                <span class="text-[10px] uppercase tracking-wider text-neutral-500">${offer.discountType === "percentage" ? "discount" : "off"}</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-line">
+                <div>
+                  <p class="text-[10px] text-neutral-500 mb-1">Starts</p>
+                  <p class="text-xs text-neutral-300">${formatDate(offer.startDate)}</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-neutral-500 mb-1">Ends</p>
+                  <p class="text-xs text-neutral-300">${formatDate(offer.endDate)}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 mt-4">
+                <button type="button" class="btn btn-secondary btn-sm flex-1" data-edit-offer="${escapeHTML(offer.id)}">${icon("edit", 13)} Edit</button>
+                <button type="button" class="btn btn-ghost btn-sm flex-1" data-delete-offer="${escapeHTML(offer.id)}">${icon("trash", 13)} Delete</button>
+              </div>
+              ${state && !expired ? '<p class="text-[10px] text-neutral-600 mt-3">Sample offer only. No payment or membership pricing is changed.</p>' : ""}
+            </div>
+          </div>
+        </article>`;
+    }).join("");
+
+    $$("[data-edit-offer]", grid).forEach(button => {
+      button.addEventListener("click", () => openOfferModal(button.dataset.editOffer));
+    });
+    $$("[data-delete-offer]", grid).forEach(button => {
+      button.addEventListener("click", () => openDeleteOfferModal(button.dataset.deleteOffer));
+    });
+
+    updateIcons();
+  }
+
+  function renderAll() {
+    renderStats();
+    renderPlans();
+    renderOffers();
+    updateIcons();
+  }
+
+  function clearFilters() {
+    $("#planSearch").value = "";
+    $("#planStatusFilter").value = "all";
+    renderPlans();
+  }
+
+  function openModal(markup, { small = false, onSubmit = null, focusSelector = null } = {}) {
+    closeModal(false);
+    lastFocusedElement = document.activeElement;
+
+    const root = $("#modalRoot");
+    root.innerHTML = `
+      <div class="modal-backdrop" data-modal-backdrop>
+        <section class="modal-panel ${small ? "modal-small" : ""}" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
+          ${markup}
+        </section>
+      </div>`;
+
+    const backdrop = root.querySelector("[data-modal-backdrop]");
+    const panel = backdrop.querySelector(".modal-panel");
+
+    const onKeyDown = event => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeModal();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusable = $$(
+        'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])',
+        panel
+      ).filter(element => element.getClientRects().length > 0);
+
+      if (!focusable.length) {
+        event.preventDefault();
+        panel.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    const onBackdropClick = event => {
+      if (event.target === backdrop) closeModal();
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    backdrop.addEventListener("click", onBackdropClick);
+
+    activeModalCleanup = () => {
+      document.removeEventListener("keydown", onKeyDown);
+      backdrop.removeEventListener("click", onBackdropClick);
+    };
+
+    const closeButton = $('[data-close-modal]', panel);
+    if (closeButton) closeButton.addEventListener("click", () => closeModal());
+
+    if (onSubmit) {
+      const form = $("form[data-modal-form]", panel);
+      if (form) {
+        form.addEventListener("submit", event => {
+          event.preventDefault();
+          onSubmit(form);
+        });
+      }
+    }
+
+    updateIcons();
+
+    requestAnimationFrame(() => {
+      const target = focusSelector ? $(focusSelector, panel) : $('[data-initial-focus]', panel);
+      (target || panel).focus();
+    });
+
+    return panel;
+  }
+
+  function closeModal(restoreFocus = true) {
+    if (activeModalCleanup) {
+      activeModalCleanup();
+      activeModalCleanup = null;
+    }
+
+    $("#modalRoot").innerHTML = "";
+
+    if (restoreFocus && lastFocusedElement && document.contains(lastFocusedElement)) {
+      lastFocusedElement.focus();
+    }
+  }
+
+  function addFieldError(form, fieldName, message) {
+    const field = form.elements.namedItem(fieldName);
+    if (!field) return;
+
+    field.classList.add("field-error");
+    field.setAttribute("aria-invalid", "true");
+
+    const error = $(`[data-error-for="${fieldName}"]`, form);
+    if (error) {
+      error.textContent = message;
+      error.hidden = false;
+    }
+  }
+
+  function clearFieldError(field) {
+    if (!field || !field.name) return;
+    field.classList.remove("field-error");
+    field.removeAttribute("aria-invalid");
+
+    const error = $(`[data-error-for="${field.name}"]`, field.form);
+    if (error) {
+      error.textContent = "";
+      error.hidden = true;
+    }
+  }
+
+  function clearFormErrors(form) {
+    $$("[data-error-for]", form).forEach(error => {
+      error.textContent = "";
+      error.hidden = true;
+    });
+
+    $$(".field-error", form).forEach(field => {
+      field.classList.remove("field-error");
+      field.removeAttribute("aria-invalid");
+    });
+
+    const summary = $("[data-error-summary]", form);
+    if (summary) {
+      summary.hidden = true;
+      summary.textContent = "";
+    }
+  }
+
+  function showFormErrorSummary(form, messages) {
+    const summary = $("[data-error-summary]", form);
+    if (summary) {
+      summary.textContent = messages.join(" ");
+      summary.hidden = false;
+      summary.focus();
+    }
+  }
+
+  function bindFieldValidation(form) {
+    $$("input,select,textarea", form).forEach(field => {
+      field.addEventListener("input", () => clearFieldError(field));
+      field.addEventListener("change", () => clearFieldError(field));
+    });
+  }
+
+  function openPlanModal(planId = null) {
+    const existing = planId ? plans.find(plan => plan.id === planId) : null;
+    if (planId && !existing) {
+      showToast("That demonstration plan could not be found.", "error");
+      return;
+    }
+
+    const editing = Boolean(existing);
+    const plan = existing || {
+      name: "",
+      price: "",
+      durationValue: 1,
+      durationUnit: "months",
+      description: "",
+      features: [""],
+      active: true
+    };
+
+    const markup = `
+      <div class="modal-header">
+        <div>
+          <div class="text-[10px] uppercase tracking-[.15em] text-accent font-bold mb-2">${editing ? "Update offering" : "Create offering"}</div>
+          <h2 id="modalTitle" class="display-font text-2xl font-medium">${editing ? "Edit Membership Plan" : "Add New Plan"}</h2>
+          <p class="text-xs text-neutral-500 mt-2">Configure the plan's details and included benefits.</p>
+        </div>
+        <button type="button" data-close-modal class="icon-btn shrink-0" aria-label="Close dialog">${icon("close", 18)}</button>
+      </div>
+
+      <form data-modal-form novalidate>
+        <div class="modal-body space-y-5">
+          <div class="demo-notice">
+            ${icon("info", 16)}
+            <p>Demo mode: changes stay in memory. They are not sent to a backend or applied to real subscriptions.</p>
+          </div>
+
+          <div data-error-summary class="rounded-lg border border-red-900 bg-red-950/30 p-3 text-xs text-red-300" role="alert" tabindex="-1" hidden></div>
+
+          <div>
+            <label class="field-label" for="planName">Plan name <span class="text-red-400">*</span></label>
+            <input class="field" id="planName" name="name" type="text" maxlength="60" required placeholder="e.g. Gold Membership" value="${escapeHTML(plan.name)}" data-initial-focus>
+            <p class="error-text" data-error-for="name" hidden></p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="field-label" for="planPrice">Price (INR) <span class="text-red-400">*</span></label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">₹</span>
+                <input class="field" style="padding-left:29px" id="planPrice" name="price" type="number" min="0" max="100000000" step="0.01" required placeholder="0.00" value="${escapeHTML(plan.price)}">
+              </div>
+              <p class="helper-text">Must be zero or greater.</p>
+              <p class="error-text" data-error-for="price" hidden></p>
+            </div>
+
+            <div>
+              <label class="field-label" for="planStatus">Plan status</label>
+              <select class="field" id="planStatus" name="active">
+                <option value="true" ${plan.active ? "selected" : ""}>Active</option>
+                <option value="false" ${!plan.active ? "selected" : ""}>Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="field-label">Membership duration <span class="text-red-400">*</span></label>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <input class="field" id="durationValue" name="durationValue" type="number" min="1" max="10000" step="1" required aria-label="Duration value" value="${escapeHTML(plan.durationValue)}">
+                <p class="error-text" data-error-for="durationValue" hidden></p>
+              </div>
+              <div>
+                <select class="field" id="durationUnit" name="durationUnit" aria-label="Duration unit">
+                  <option value="days" ${plan.durationUnit === "days" ? "selected" : ""}>Days</option>
+                  <option value="months" ${plan.durationUnit === "months" ? "selected" : ""}>Months</option>
+                  <option value="years" ${plan.durationUnit === "years" ? "selected" : ""}>Years</option>
+                </select>
+              </div>
+            </div>
+            <p class="helper-text">Enter a whole number greater than zero.</p>
+          </div>
+
+          <div>
+            <label class="field-label" for="planDescription">Description</label>
+            <textarea class="field" id="planDescription" name="description" maxlength="300" placeholder="Briefly describe this membership...">${escapeHTML(plan.description)}</textarea>
+            <p class="text-[10px] text-neutral-600 mt-1">Optional · Maximum 300 characters</p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <div>
+                <label class="field-label mb-0" for="featureInput0">Included features</label>
+                <p class="helper-text mt-1">Add or remove individual benefits.</p>
+              </div>
+              <button type="button" id="addFeatureBtn" class="btn btn-secondary btn-sm shrink-0">${icon("plus", 13)} Add feature</button>
+            </div>
+            <div id="featureEditor" class="space-y-2"></div>
+            <p class="error-text" data-error-for="features" hidden></p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" data-close-modal class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-primary">${icon(editing ? "edit" : "plus", 15)} ${editing ? "Save Changes" : "Create Plan"}</button>
+        </div>
+      </form>`;
+
+    const panel = openModal(markup, {
+      onSubmit: form => savePlan(form, existing),
+      focusSelector: "#planName"
+    });
+
+    const form = $("form[data-modal-form]", panel);
+    bindFieldValidation(form);
+
+    const featureEditor = $("#featureEditor", panel);
+
+    function addFeatureRow(value = "") {
+      const currentRows = $$(".feature-editor-row", featureEditor);
+      if (currentRows.length >= 20) {
+        showToast("A plan can contain at most 20 features in this demo.", "info");
+        return;
+      }
+
+      const index = currentRows.length;
+      const row = document.createElement("div");
+      row.className = "feature-editor-row";
+      row.innerHTML = `
+        <div class="flex-1 min-w-0">
+          <input class="field feature-input" id="featureInput${index}" type="text" maxlength="120" aria-label="Feature ${index + 1}" placeholder="e.g. Access to cardio equipment" value="${escapeHTML(value)}">
+        </div>
+        <button type="button" class="icon-btn border border-line shrink-0 remove-feature" aria-label="Remove feature ${index + 1}">${icon("trash", 15)}</button>
+      `;
+
+      row.querySelector(".remove-feature").addEventListener("click", () => {
+        row.remove();
+        refreshFeatureLabels();
+      });
+
+      featureEditor.appendChild(row);
+      refreshFeatureLabels();
+      updateIcons();
+    }
+
+    function refreshFeatureLabels() {
+      $$(".feature-editor-row", featureEditor).forEach((row, index) => {
+        const input = $(".feature-input", row);
+        input.id = `featureInput${index}`;
+        input.setAttribute("aria-label", `Feature ${index + 1}`);
+        const button = $(".remove-feature", row);
+        button.setAttribute("aria-label", `Remove feature ${index + 1}`);
+      });
+    }
+
+    (plan.features.length ? plan.features : [""]).forEach(feature => addFeatureRow(feature));
+    $("#addFeatureBtn", panel).addEventListener("click", () => addFeatureRow());
+    updateIcons();
+  }
+
+  function savePlan(form, existing) {
+    clearFormErrors(form);
+    const messages = [];
+
+    const name = form.elements.name.value.trim();
+    const rawPrice = form.elements.price.value.trim();
+    const rawDuration = form.elements.durationValue.value.trim();
+    const durationUnit = form.elements.durationUnit.value;
+    const description = form.elements.description.value.trim();
+    const active = form.elements.active.value === "true";
+
+    const price = Number(rawPrice);
+    const durationValue = Number(rawDuration);
+
+    if (!name) {
+      addFieldError(form, "name", "Enter a plan name.");
+      messages.push("Plan name is required.");
+    } else if (name.length > 60) {
+      addFieldError(form, "name", "Plan name cannot exceed 60 characters.");
+      messages.push("Plan name is too long.");
+    }
+
+    if (plans.some(plan => plan.name.toLowerCase() === name.toLowerCase() && plan.id !== (existing && existing.id))) {
+      addFieldError(form, "name", "A plan with this name already exists.");
+      messages.push("Plan names must be unique in this demo.");
+    }
+
+    if (rawPrice === "" || !Number.isFinite(price)) {
+      addFieldError(form, "price", "Enter a valid price.");
+      messages.push("Price is required.");
+    } else if (price < 0) {
+      addFieldError(form, "price", "Price cannot be negative.");
+      messages.push("Price cannot be negative.");
+    } else if (price > 100000000) {
+      addFieldError(form, "price", "Price exceeds the demonstration limit.");
+      messages.push("Price is above the allowed demo limit.");
+    }
+
+    if (rawDuration === "" || !Number.isFinite(durationValue)) {
+      addFieldError(form, "durationValue", "Enter a valid duration.");
+      messages.push("Duration is required.");
+    } else if (!Number.isInteger(durationValue) || durationValue <= 0 || durationValue > 10000) {
+      addFieldError(form, "durationValue", "Duration must be a whole number from 1 to 10,000.");
+      messages.push("Duration must be a positive whole number.");
+    }
+
+    if (!["days", "months", "years"].includes(durationUnit)) {
+      messages.push("Select a valid duration unit.");
+    }
+
+    if (description.length > 300) {
+      messages.push("Description cannot exceed 300 characters.");
+    }
+
+    const featureInputs = $$(".feature-input", form);
+    const features = featureInputs.map(input => input.value.trim()).filter(Boolean);
+
+    if (featureInputs.some(input => input.value.trim().length > 120)) {
+      messages.push("Each feature must be 120 characters or fewer.");
+      const featureError = $(`[data-error-for="features"]`, form);
+      featureError.textContent = "Each feature must be 120 characters or fewer.";
+      featureError.hidden = false;
+    }
+
+    if (features.length > 20) {
+      messages.push("A plan can have at most 20 features.");
+    }
+
+    if (messages.length) {
+      showFormErrorSummary(form, messages);
+      const firstInvalid = $(".field-error", form);
+      if (firstInvalid) firstInvalid.focus();
+      return;
+    }
+
+    const newPlan = {
+      id: existing ? existing.id : createId("plan"),
+      name,
+      price,
+      durationValue,
+      durationUnit,
+      description,
+      features,
+      active,
+      members: existing ? existing.members : 0,
+      recommended: existing ? existing.recommended : false
+    };
+
+    if (existing) {
+      plans = plans.map(plan => plan.id === existing.id ? newPlan : plan);
+    } else {
+      plans.push(newPlan);
+    }
+
+    closeModal();
+    renderAll();
+
+    showToast(
+      existing
+        ? "Plan updated in the in-memory demo. Nothing was saved to a backend."
+        : "Plan added to the in-memory demo. Nothing was saved to a backend.",
+      "success"
+    );
+  }
+
+  function createId(prefix) {
+    return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  function openDeletePlanModal(planId) {
+    const plan = plans.find(item => item.id === planId);
+    if (!plan) {
+      showToast("That demonstration plan could not be found.", "error");
+      return;
+    }
+
+    const hasMembers = plan.members > 0;
+    const offerCount = offers.filter(offer => offer.planId === planId).length;
+
+    const markup = `
+      <div class="modal-header">
+        <div>
+          <div class="text-[10px] uppercase tracking-[.15em] text-red-400 font-bold mb-2">Destructive demo action</div>
+          <h2 id="modalTitle" class="display-font text-2xl font-medium">Delete Plan?</h2>
+          <p class="text-xs text-neutral-500 mt-2">Review the demonstration impact before continuing.</p>
+        </div>
+        <button type="button" data-close-modal class="icon-btn" aria-label="Close dialog">${icon("close", 18)}</button>
+      </div>
+      <div class="modal-body space-y-4">
+        <div class="rounded-lg border border-red-900/70 bg-red-950/20 p-4">
+          <div class="flex gap-3">
+            <div class="text-red-400 shrink-0">${icon("alert", 22)}</div>
+            <div>
+              <h3 class="font-semibold text-sm text-red-200">${escapeHTML(plan.name)}</h3>
+              <p class="text-xs text-neutral-400 mt-2 leading-relaxed">
+                Deleting a membership plan could affect members with existing subscriptions, historical pricing references and associated promotions in a real system.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="surface p-4 space-y-3">
+          <div class="flex justify-between gap-3 text-xs">
+            <span class="text-neutral-500">Demonstration subscribers</span>
+            <span class="text-neutral-200 font-semibold">${integer(plan.members)}</span>
+          </div>
+          <div class="flex justify-between gap-3 text-xs">
+            <span class="text-neutral-500">Associated sample offers</span>
+            <span class="text-neutral-200 font-semibold">${offerCount}</span>
+          </div>
+        </div>
+
+        ${hasMembers ? `
+          <div class="demo-notice">
+            ${icon("info", 16)}
+            <p><strong class="text-orange-300">Deletion is blocked by default.</strong> This sample plan has subscriber assignments. To continue, explicitly choose the safe demo action below. This does not cancel real subscriptions or remove database records.</p>
+          </div>
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input id="safeDeleteAcknowledgement" type="checkbox" class="mt-0.5 accent-orange-500 w-4 h-4 shrink-0">
+            <span class="text-xs text-neutral-300 leading-relaxed">I understand this is a demo-only action and explicitly authorize removing the sample plan and its sample subscriber assignments from this page session.</span>
+          </label>
+        ` : `
+          <p class="text-xs text-neutral-400 leading-relaxed">This plan has no sample subscriber assignments. You can remove it from the in-memory demonstration dataset.</p>
+        `}
+
+        <div data-error-summary class="text-xs text-red-300" role="alert" tabindex="-1" hidden></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" data-close-modal class="btn btn-ghost">Cancel</button>
+        <button type="button" id="confirmDeletePlan" class="btn btn-danger" ${hasMembers ? "disabled" : ""}>${icon("trash", 14)} Delete demo plan</button>
+      </div>`;
+
+    const panel = openModal(markup, { small: true });
+    const checkbox = $("#safeDeleteAcknowledgement", panel);
+    const confirm = $("#confirmDeletePlan", panel);
+
+    if (checkbox) {
+      checkbox.addEventListener("change", () => {
+        confirm.disabled = !checkbox.checked;
+      });
+    }
+
+    confirm.addEventListener("click", () => {
+      if (plan.members > 0 && !checkbox?.checked) {
+        const summary = $("[data-error-summary]", panel);
+        summary.textContent = "Explicit acknowledgement is required before this demo-only action.";
+        summary.hidden = false;
+        summary.focus();
+        return;
+      }
+
+      // Only sample data is modified. No API call or real record deletion occurs.
+      plans = plans.filter(item => item.id !== planId);
+      offers = offers.filter(offer => offer.planId !== planId);
+
+      closeModal();
+      renderAll();
+
+      showToast(
+        `Removed "${plan.name}" from the in-memory demo. ${hasMembers ? "Its sample subscriber assignments were discarded with it." : ""} No backend records were deleted.`,
+        "success"
+      );
+    });
+
+    updateIcons();
+  }
+
+  function openOfferModal(offerId = null) {
+    const existing = offerId ? offers.find(offer => offer.id === offerId) : null;
+    if (offerId && !existing) {
+      showToast("That demonstration offer could not be found.", "error");
+      return;
+    }
+
+    if (!plans.length) {
+      showToast("Create a plan before adding an offer.", "info");
+      return;
+    }
+
+    const editing = Boolean(existing);
+    const offer = existing || {
+      name: "",
+      planId: plans[0].id,
+      discountType: "percentage",
+      discountValue: "",
+      startDate: "",
+      endDate: "",
+      active: true
+    };
+
+    const planOptions = plans.map(plan =>
+      `<option value="${escapeHTML(plan.id)}" ${plan.id === offer.planId ? "selected" : ""}>${escapeHTML(plan.name)}${plan.active ? "" : " (inactive)"}</option>`
+    ).join("");
+
+    const markup = `
+      <div class="modal-header">
+        <div>
+          <div class="text-[10px] uppercase tracking-[.15em] text-accent font-bold mb-2">Promotional campaign</div>
+          <h2 id="modalTitle" class="display-font text-2xl font-medium">${editing ? "Edit Offer" : "Add New Offer"}</h2>
+          <p class="text-xs text-neutral-500 mt-2">Configure a sample discount and its validity period.</p>
+        </div>
+        <button type="button" data-close-modal class="icon-btn" aria-label="Close dialog">${icon("close", 18)}</button>
+      </div>
+
+      <form data-modal-form novalidate>
+        <div class="modal-body space-y-5">
+          <div class="demo-notice">
+            ${icon("info", 16)}
+            <p>Offers are illustrative only. This form does not alter real checkout prices, member eligibility or payments.</p>
+          </div>
+
+          <div data-error-summary class="rounded-lg border border-red-900 bg-red-950/30 p-3 text-xs text-red-300" role="alert" tabindex="-1" hidden></div>
+
+          <div>
+            <label class="field-label" for="offerName">Offer name <span class="text-red-400">*</span></label>
+            <input class="field" id="offerName" name="name" type="text" maxlength="80" required placeholder="e.g. Festive Fitness Deal" value="${escapeHTML(offer.name)}" data-initial-focus>
+            <p class="error-text" data-error-for="name" hidden></p>
+          </div>
+
+          <div>
+            <label class="field-label" for="offerPlan">Associated plan <span class="text-red-400">*</span></label>
+            <select class="field" id="offerPlan" name="planId" required>${planOptions}</select>
+            <p class="error-text" data-error-for="planId" hidden></p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="field-label" for="discountType">Discount type <span class="text-red-400">*</span></label>
+              <select class="field" id="discountType" name="discountType">
+                <option value="percentage" ${offer.discountType === "percentage" ? "selected" : ""}>Percentage (%)</option>
+                <option value="fixed" ${offer.discountType === "fixed" ? "selected" : ""}>Fixed amount (₹)</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="discountValue">Discount value <span class="text-red-400">*</span></label>
+              <input class="field" id="discountValue" name="discountValue" type="number" min="0" max="100000000" step="0.01" required placeholder="e.g. 10" value="${escapeHTML(offer.discountValue)}">
+              <p class="helper-text" id="discountHelp">Percentage discounts cannot exceed 100%.</p>
+              <p class="error-text" data-error-for="discountValue" hidden></p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="field-label" for="offerStart">Start date <span class="text-red-400">*</span></label>
+              <input class="field" id="offerStart" name="startDate" type="date" required value="${escapeHTML(offer.startDate)}">
+              <p class="error-text" data-error-for="startDate" hidden></p>
+            </div>
+            <div>
+              <label class="field-label" for="offerEnd">End date <span class="text-red-400">*</span></label>
+              <input class="field" id="offerEnd" name="endDate" type="date" required value="${escapeHTML(offer.endDate)}">
+              <p class="error-text" data-error-for="endDate" hidden></p>
+            </div>
+          </div>
+
+          <div>
+            <label class="field-label" for="offerStatus">Offer status</label>
+            <select class="field" id="offerStatus" name="active">
+              <option value="true" ${offer.active ? "selected" : ""}>Active</option>
+              <option value="false" ${!offer.active ? "selected" : ""}>Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" data-close-modal class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-primary">${icon(editing ? "edit" : "plus", 15)} ${editing ? "Save Offer" : "Create Offer"}</button>
+        </div>
+      </form>`;
+
+    const panel = openModal(markup, {
+      onSubmit: form => saveOffer(form, existing),
+      focusSelector: "#offerName"
+    });
+
+    const form = $("form[data-modal-form]", panel);
+    bindFieldValidation(form);
+
+    const typeSelect = $("#discountType", panel);
+    const valueInput = $("#discountValue", panel);
+    const discountHelp = $("#discountHelp", panel);
+    const startInput = $("#offerStart", panel);
+    const endInput = $("#offerEnd", panel);
+
+    function updateDiscountUI() {
+      const percentage = typeSelect.value === "percentage";
+      valueInput.max = percentage ? "100" : "100000000";
+      valueInput.step = percentage ? "0.01" : "0.01";
+      discountHelp.textContent = percentage
+        ? "Percentage discounts must be between 0 and 100."
+        : "Fixed discounts are in INR and cannot exceed the associated plan price.";
+      valueInput.setAttribute("aria-describedby", "discountHelp");
+    }
+
+    function updateDateLimits() {
+      if (startInput.value) endInput.min = startInput.value;
+      else endInput.removeAttribute("min");
+      if (endInput.value) startInput.max = endInput.value;
+      else startInput.removeAttribute("max");
+    }
+
+    typeSelect.addEventListener("change", updateDiscountUI);
+    startInput.addEventListener("change", updateDateLimits);
+    endInput.addEventListener("change", updateDateLimits);
+    updateDiscountUI();
+    updateDateLimits();
+  }
+
+  function saveOffer(form, existing) {
+    clearFormErrors(form);
+    const messages = [];
+
+    const name = form.elements.name.value.trim();
+    const planId = form.elements.planId.value;
+    const discountType = form.elements.discountType.value;
+    const rawDiscount = form.elements.discountValue.value.trim();
+    const discountValue = Number(rawDiscount);
+    const startDate = form.elements.startDate.value;
+    const endDate = form.elements.endDate.value;
+    const active = form.elements.active.value === "true";
+    const plan = plans.find(item => item.id === planId);
+
+    if (!name) {
+      addFieldError(form, "name", "Enter an offer name.");
+      messages.push("Offer name is required.");
+    }
+
+    if (offers.some(offer =>
+      offer.name.toLowerCase() === name.toLowerCase() &&
+      offer.id !== (existing && existing.id)
+    )) {
+      addFieldError(form, "name", "An offer with this name already exists.");
+      messages.push("Offer names must be unique in this demo.");
+    }
+
+    if (!plan) {
+      addFieldError(form, "planId", "Choose an existing plan.");
+      messages.push("Choose a valid associated plan.");
+    }
+
+    if (!["percentage", "fixed"].includes(discountType)) {
+      messages.push("Select a valid discount type.");
+    }
+
+    if (rawDiscount === "" || !Number.isFinite(discountValue)) {
+      addFieldError(form, "discountValue", "Enter a valid discount value.");
+      messages.push("Discount value is required.");
+    } else if (discountValue < 0) {
+      addFieldError(form, "discountValue", "Discount cannot be negative.");
+      messages.push("Discount cannot be negative.");
+    } else if (discountType === "percentage" && discountValue > 100) {
+      addFieldError(form, "discountValue", "Percentage discount cannot exceed 100%.");
+      messages.push("Percentage discount cannot exceed 100%.");
+    } else if (discountValue > 100000000) {
+      addFieldError(form, "discountValue", "Discount exceeds the demo limit.");
+      messages.push("Discount is above the allowed demo limit.");
+    } else if (discountType === "fixed" && plan && discountValue > plan.price) {
+      addFieldError(form, "discountValue", "Fixed discount cannot exceed the associated plan's sample price.");
+      messages.push("Fixed discount cannot exceed the sample plan price.");
+    }
+
+    if (!startDate) {
+      addFieldError(form, "startDate", "Select a start date.");
+      messages.push("Offer start date is required.");
+    } else if (!isValidDateString(startDate)) {
+      addFieldError(form, "startDate", "Enter a valid calendar date.");
+      messages.push("Offer start date is invalid.");
+    }
+
+    if (!endDate) {
+      addFieldError(form, "endDate", "Select an end date.");
+      messages.push("Offer end date is required.");
+    } else if (!isValidDateString(endDate)) {
+      addFieldError(form, "endDate", "Enter a valid calendar date.");
+      messages.push("Offer end date is invalid.");
+    }
+
+    if (startDate && endDate && isValidDateString(startDate) && isValidDateString(endDate) && endDate < startDate) {
+      addFieldError(form, "endDate", "End date must be on or after the start date.");
+      messages.push("Offer end date cannot be before its start date.");
+    }
+
+    if (messages.length) {
+      showFormErrorSummary(form, messages);
+      const firstInvalid = $(".field-error", form);
+      if (firstInvalid) firstInvalid.focus();
+      return;
+    }
+
+    const newOffer = {
+      id: existing ? existing.id : createId("offer"),
+      name,
+      planId,
+      discountType,
+      discountValue,
+      startDate,
+      endDate,
+      active
+    };
+
+    if (existing) {
+      offers = offers.map(offer => offer.id === existing.id ? newOffer : offer);
+    } else {
+      offers.push(newOffer);
+    }
+
+    closeModal();
+    renderAll();
+    showToast(
+      existing
+        ? "Offer updated in the in-memory demo. No real pricing changed."
+        : "Offer added to the in-memory demo. No real pricing changed.",
+      "success"
+    );
+  }
+
+  function isValidDateString(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  }
+
+  function openDeleteOfferModal(offerId) {
+    const offer = offers.find(item => item.id === offerId);
+    if (!offer) {
+      showToast("That demonstration offer could not be found.", "error");
+      return;
+    }
+
+    const markup = `
+      <div class="modal-header">
+        <div>
+          <div class="text-[10px] uppercase tracking-[.15em] text-red-400 font-bold mb-2">Confirmation required</div>
+          <h2 id="modalTitle" class="display-font text-2xl font-medium">Delete Offer?</h2>
+        </div>
+        <button type="button" data-close-modal class="icon-btn" aria-label="Close dialog">${icon("close", 18)}</button>
+      </div>
+      <div class="modal-body space-y-4">
+        <div class="surface p-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-[#282019] text-accent grid place-items-center">${icon("tag", 20)}</div>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold break-words">${escapeHTML(offer.name)}</p>
+              <p class="text-xs text-neutral-500 mt-1">${escapeHTML(discountLabel(offer))} · ${escapeHTML((plans.find(p => p.id === offer.planId) || {}).name || "Unavailable plan")}</p>
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-neutral-400 leading-relaxed">This removes the sample offer from the current page session only. No real promotion, membership, price or payment will change.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" data-close-modal class="btn btn-ghost">Cancel</button>
+        <button type="button" id="confirmDeleteOffer" class="btn btn-danger">${icon("trash", 14)} Delete demo offer</button>
+      </div>`;
+
+    const panel = openModal(markup, { small: true });
+
+    $("#confirmDeleteOffer", panel).addEventListener("click", () => {
+      offers = offers.filter(item => item.id !== offerId);
+      closeModal();
+      renderAll();
+      showToast("Offer removed from the in-memory demo. No backend records were deleted.", "success");
+    });
+
+    updateIcons();
+  }
+
+  // Navigation drawer for mobile and small tablet screens.
+  const sidebar = $("#sidebar");
+  const overlay = $("#sidebarOverlay");
+
+  function openSidebar() {
+    sidebar.classList.add("sidebar-open");
+    overlay.classList.add("overlay-open");
+    overlay.setAttribute("aria-hidden", "false");
+    $("#closeSidebar").focus();
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove("sidebar-open");
+    overlay.classList.remove("overlay-open");
+    overlay.setAttribute("aria-hidden", "true");
+    $("#openSidebar").focus();
+  }
+
+  $("#openSidebar").addEventListener("click", openSidebar);
+  $("#closeSidebar").addEventListener("click", closeSidebar);
+  overlay.addEventListener("click", closeSidebar);
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && sidebar.classList.contains("sidebar-open")) {
+      closeSidebar();
+    }
+  });
+
+  $$(".nav-link").forEach(link => {
+    link.addEventListener("click", () => {
+      if (window.innerWidth <= 850) {
+        sidebar.classList.remove("sidebar-open");
+        overlay.classList.remove("overlay-open");
+        overlay.setAttribute("aria-hidden", "true");
+      }
+    });
+  });
+
+  $("#addPlanBtn").addEventListener("click", () => openPlanModal());
+  $("#addOfferBtn").addEventListener("click", () => openOfferModal());
+  $("#planSearch").addEventListener("input", renderPlans);
+  $("#planStatusFilter").addEventListener("change", renderPlans);
+  $("#clearFiltersBtn").addEventListener("click", clearFilters);
+
+  // The example data is reset on a full reload; no persistent storage is used.
+  window.addEventListener("beforeunload", () => {
+    toastTimers.forEach(clearTimeout);
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

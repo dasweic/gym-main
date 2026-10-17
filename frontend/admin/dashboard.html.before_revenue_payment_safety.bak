@@ -1,0 +1,2020 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="description" content="Premium Gym Owner Admin Dashboard for membership management, revenue analytics, attendance, payments, and expiry alerts.">
+  <title>Dashboard | IRONCORE Gym Management</title>
+
+  <!-- External dependencies: Tailwind CSS, Google Fonts, Chart.js, Lucide -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#0A0A0A',
+            panel: '#171717',
+            accent: '#FF6B00',
+            muted: '#A3A3A3',
+            line: '#292929'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Oswald', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0A0A0A;
+      --panel: #171717;
+      --accent: #FF6B00;
+      --text: #FFFFFF;
+      --muted: #A3A3A3;
+      --line: #292929;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scrollbar-color: #3A3A3A #0A0A0A;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      overflow-x: hidden;
+    }
+
+    button, input, select { font: inherit; }
+
+    button, a, input, select {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    ::selection {
+      color: white;
+      background: #B94B00;
+    }
+
+    .display-font { font-family: 'Oswald', sans-serif; }
+
+    .sidebar {
+      width: 252px;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      transition: transform .25s ease;
+    }
+
+    .main-content {
+      margin-left: 252px;
+      min-height: 100vh;
+      min-width: 0;
+    }
+
+    .surface {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .surface-hover {
+      transition: border-color .2s ease, transform .2s ease, background .2s ease;
+    }
+
+    .surface-hover:hover {
+      border-color: #454545;
+      transform: translateY(-2px);
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 43px;
+      padding: 0 13px;
+      border-radius: 7px;
+      color: #A3A3A3;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background .2s ease, color .2s ease;
+    }
+
+    .nav-link:hover {
+      background: #242424;
+      color: white;
+    }
+
+    .nav-link.active {
+      background: rgba(255, 107, 0, .12);
+      color: var(--accent);
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .nav-link svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .icon-box {
+      width: 39px;
+      height: 39px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      flex-shrink: 0;
+    }
+
+    .icon-box svg { width: 19px; height: 19px; }
+
+    .kpi-value {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(23px, 2vw, 29px);
+      line-height: 1.2;
+      font-weight: 500;
+      letter-spacing: .2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .muted { color: var(--muted); }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -.2px;
+    }
+
+    .section-subtitle {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .period-btn {
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 7px 10px;
+      white-space: nowrap;
+      font-size: 11px;
+      color: #A3A3A3;
+      transition: all .2s ease;
+    }
+
+    .period-btn:hover { color: white; background: #252525; }
+
+    .period-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      min-width: 0;
+      height: 275px;
+    }
+
+    .donut-wrap {
+      position: relative;
+      height: 220px;
+      width: 100%;
+      max-width: 280px;
+      margin-inline: auto;
+    }
+
+    .attendance-chart-wrap {
+      position: relative;
+      height: 195px;
+      width: 100%;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status-paid, .status-active {
+      color: #4ADE80;
+      background: rgba(74, 222, 128, .09);
+    }
+
+    .status-pending {
+      color: #FBBF24;
+      background: rgba(251, 191, 36, .09);
+    }
+
+    .status-danger {
+      color: #F87171;
+      background: rgba(248, 113, 113, .09);
+    }
+
+    .status-warning {
+      color: #FBBF24;
+      background: rgba(251, 191, 36, .09);
+    }
+
+    .table-wrap { width: 100%; overflow-x: auto; }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .data-table th {
+      padding: 12px 16px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .65px;
+      color: #888;
+      font-weight: 600;
+      background: #191919;
+    }
+
+    .data-table td {
+      padding: 14px 16px;
+      border-top: 1px solid #262626;
+      font-size: 11px;
+      vertical-align: middle;
+    }
+
+    .data-table tbody tr { transition: background .15s ease; }
+    .data-table tbody tr:hover { background: #202020; }
+
+    .avatar {
+      display: grid;
+      place-items: center;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: #2D241D;
+      color: #FFB17C;
+      font-weight: 700;
+      font-size: 11px;
+      flex-shrink: 0;
+      border: 1px solid #443024;
+    }
+
+    .avatar-lg {
+      width: 39px;
+      height: 39px;
+      font-size: 12px;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      min-height: 29px;
+      border: 1px solid #353535;
+      padding: 5px 8px;
+      border-radius: 5px;
+      color: #DDD;
+      background: #202020;
+      font-size: 10px;
+      transition: all .2s ease;
+    }
+
+    .action-btn:hover {
+      background: #303030;
+      border-color: #555;
+      color: white;
+    }
+
+    .action-primary {
+      background: rgba(255,107,0,.12);
+      border-color: rgba(255,107,0,.35);
+      color: #FF9A55;
+    }
+
+    .action-primary:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .form-control {
+      background: #202020;
+      border: 1px solid #333;
+      border-radius: 7px;
+      color: white;
+      padding: 9px 11px;
+      outline: none;
+    }
+
+    .form-control:focus { border-color: var(--accent); }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 100;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      max-width: min(390px, calc(100vw - 32px));
+      padding: 15px 17px;
+      background: #202020;
+      border: 1px solid #414141;
+      border-left: 3px solid var(--accent);
+      border-radius: 9px;
+      box-shadow: 0 16px 50px rgba(0,0,0,.4);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      z-index: 70;
+      width: 290px;
+      padding: 12px;
+      background: #1B1B1B;
+      border: 1px solid #353535;
+      border-radius: 10px;
+      box-shadow: 0 16px 50px rgba(0,0,0,.4);
+    }
+
+    .dropdown[hidden] { display: none; }
+
+    .mobile-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 39;
+      background: rgba(0,0,0,.65);
+      backdrop-filter: blur(2px);
+    }
+
+    .mobile-overlay[hidden] { display: none; }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 5px;
+      background: #303030;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 16px;
+      text-align: center;
+      color: #888;
+    }
+
+    .empty-state svg { width: 27px; height: 27px; margin-bottom: 10px; }
+
+    @media (min-width: 1500px) {
+      .dashboard-inner { max-width: 1800px; margin-inline: auto; }
+    }
+
+    @media (max-width: 1100px) {
+      .sidebar { width: 225px; }
+      .main-content { margin-left: 225px; }
+      .kpi-value { font-size: 25px; }
+      .data-table th, .data-table td { padding-inline: 12px; }
+    }
+
+    @media (max-width: 767px) {
+      .sidebar {
+        position: fixed;
+        z-index: 40;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 270px;
+        transform: translateX(-105%);
+        box-shadow: 15px 0 50px rgba(0,0,0,.3);
+      }
+
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .header-inner { padding-inline: 16px !important; }
+      .dashboard-inner { padding: 18px 16px 28px !important; }
+      .chart-wrap { height: 245px; }
+      .dropdown { right: -40px; width: min(290px, calc(100vw - 32px)); }
+      .toast { right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 420px) {
+      .kpi-value { font-size: 23px; }
+      .period-btn { padding: 7px 8px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!--
+    IRONCORE GYM ADMIN DASHBOARD
+    All member, payment, attendance, and revenue values in this page are
+    illustrative demonstration data. No backend API is connected.
+    For production, replace DEMO_DATA with validated FastAPI responses.
+    Frontend interactions are demonstrations and are not authorization controls.
+  -->
+
+  <div id="mobileOverlay" class="mobile-overlay" hidden></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-40 flex flex-col" aria-label="Main navigation">
+    <div class="flex items-center justify-between gap-3 px-5 py-6">
+      <a href="dashboard.html" class="flex items-center gap-3 min-w-0" aria-label="IRONCORE dashboard">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent text-white">
+          <i data-lucide="dumbbell" class="h-6 w-6"></i>
+        </div>
+        <div class="min-w-0">
+          <p id="gymNameDisplay" class="display-font truncate text-xl font-semibold tracking-wide text-white">IRONCORE</p>
+          <p class="mt-0.5 text-[9px] font-semibold uppercase tracking-[2.2px] text-neutral-500">Gym Management</p>
+        </div>
+      </a>
+      <button id="closeSidebar" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-neutral-400 hover:bg-neutral-800 md:hidden" aria-label="Close navigation">
+        <i data-lucide="x" class="h-5 w-5"></i>
+      </button>
+    </div>
+
+    <div class="px-5 pb-3">
+      <div class="flex items-center gap-2 rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2">
+        <span class="h-2 w-2 rounded-full bg-green-400"></span>
+        <span class="text-[10px] text-neutral-400">Owner workspace</span>
+        <span class="ml-auto text-[9px] font-semibold text-neutral-500">DEMO</span>
+      </div>
+    </div>
+
+    <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Dashboard sections">
+      <p class="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[1.5px] text-neutral-600">Workspace</p>
+
+      <a href="dashboard.html" class="nav-link active" aria-current="page">
+        <i data-lucide="layout-dashboard"></i><span>Dashboard</span>
+      </a>
+      <a href="members.html" class="nav-link">
+        <i data-lucide="users"></i><span>Members</span>
+      </a>
+      <a href="payments.html" class="nav-link">
+        <i data-lucide="wallet"></i><span>Payments</span>
+      </a>
+      <a href="plans.html" class="nav-link">
+        <i data-lucide="layers"></i><span>Membership Plans</span>
+      </a>
+      <a href="trainers.html" class="nav-link">
+        <i data-lucide="user-round-check"></i><span>Trainers</span>
+      </a>
+
+      <div class="my-5 border-t border-neutral-800"></div>
+      <p class="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[1.5px] text-neutral-600">Preferences</p>
+
+      <a href="settings.html" class="nav-link">
+        <i data-lucide="settings-2"></i><span>Settings</span>
+      </a>
+    </nav>
+
+    <div class="border-t border-neutral-800 p-4">
+      <div class="rounded-lg border border-neutral-800 bg-neutral-900 p-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shield-check" class="h-4 w-4 shrink-0 text-accent"></i>
+          <span class="text-[11px] font-semibold">Workspace status</span>
+        </div>
+        <p class="mt-2 text-[10px] leading-5 text-neutral-500">Demo mode · No live data connected.</p>
+      </div>
+      <button id="editGymName" class="mt-4 flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[11px] text-neutral-400 hover:bg-neutral-800 hover:text-white">
+        <i data-lucide="pencil" class="h-4 w-4"></i>
+        Edit gym name
+      </button>
+      <p class="mt-2 px-2 text-[10px] text-neutral-600">© <span id="copyrightYear">2026</span> IRONCORE</p>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="sticky top-0 z-30 border-b border-neutral-800 bg-[#0A0A0A]/95 backdrop-blur-md">
+      <div class="header-inner flex min-h-[76px] items-center justify-between gap-4 px-7">
+        <div class="flex min-w-0 items-center gap-3">
+          <button id="openSidebar" class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 md:hidden" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">
+            <i data-lucide="menu" class="h-5 w-5"></i>
+          </button>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h1 class="display-font text-2xl font-medium tracking-wide sm:text-[28px]">Dashboard</h1>
+              <span class="hidden rounded border border-neutral-800 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-neutral-500 sm:inline-block">Admin</span>
+            </div>
+            <p id="currentDate" class="mt-1 text-[10px] text-neutral-500">Loading date…</p>
+          </div>
+        </div>
+
+        <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+          <form id="searchForm" class="relative hidden lg:block" role="search">
+            <label for="globalSearch" class="sr-only">Search dashboard data</label>
+            <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"></i>
+            <input id="globalSearch" type="search" placeholder="Search members, payments..." autocomplete="off" class="form-control w-[245px] pl-9 pr-3 text-[11px]" aria-describedby="searchHelp">
+            <span id="searchHelp" class="sr-only">Search the demonstration tables on this page.</span>
+          </form>
+
+          <div class="relative">
+            <button id="notificationBtn" class="relative grid h-10 w-10 place-items-center rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800" aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel">
+              <i data-lucide="bell" class="h-[18px] w-[18px]"></i>
+              <span class="absolute right-[9px] top-[8px] h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+            </button>
+            <div id="notificationPanel" class="dropdown" hidden>
+              <div class="flex items-center justify-between border-b border-neutral-800 pb-3">
+                <p class="text-xs font-semibold">Notifications</p>
+                <span class="text-[10px] text-neutral-500">Demo alerts</span>
+              </div>
+              <div class="space-y-1 py-2">
+                <button class="notification-item flex w-full gap-3 rounded-md p-2 text-left hover:bg-neutral-800" data-message="Rahul Sharma's membership expires in 2 days.">
+                  <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-red-500/10 text-red-400"><i data-lucide="calendar-clock" class="h-4 w-4"></i></span>
+                  <span><span class="block text-[11px] font-medium">Membership expiring</span><span class="mt-1 block text-[10px] text-neutral-500">Rahul Sharma · 2 days left</span></span>
+                </button>
+                <button class="notification-item flex w-full gap-3 rounded-md p-2 text-left hover:bg-neutral-800" data-message="One illustrative payment is marked pending. No live payment records are connected.">
+                  <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-amber-500/10 text-amber-400"><i data-lucide="wallet" class="h-4 w-4"></i></span>
+                  <span><span class="block text-[11px] font-medium">Payment pending</span><span class="mt-1 block text-[10px] text-neutral-500">Priya Verma · ₹2,999</span></span>
+                </button>
+              </div>
+              <p class="border-t border-neutral-800 pt-3 text-[10px] text-neutral-600">Illustrative alerts only. No live notifications.</p>
+            </div>
+          </div>
+
+          <div class="hidden h-8 w-px bg-neutral-800 sm:block"></div>
+          <button id="profileBtn" class="flex items-center gap-2 rounded-lg p-1.5 text-left hover:bg-neutral-900" aria-label="Admin profile" title="Demo administrator profile">
+            <span class="avatar avatar-lg border-0 bg-[#3D2415] text-accent">AD</span>
+            <span class="hidden min-w-0 sm:block">
+              <span class="block text-[11px] font-semibold">Admin</span>
+              <span class="mt-1 block text-[10px] text-neutral-500">Gym Owner</span>
+            </span>
+            <i data-lucide="chevron-down" class="hidden h-3.5 w-3.5 text-neutral-500 sm:block"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-inner space-y-6 px-7 py-7">
+      <!-- Demo notice and page introduction -->
+      <section class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <p class="text-[11px] font-medium uppercase tracking-[1.8px] text-accent">Performance overview</p>
+          <h2 class="mt-2 text-lg font-semibold tracking-tight">Welcome back, Admin <span aria-hidden="true">✦</span></h2>
+          <p class="mt-1 text-xs text-neutral-500">Here's an overview of your gym's performance.</p>
+        </div>
+        <div class="inline-flex w-fit items-center gap-2 rounded-md border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2 text-[10px] text-amber-300" role="status">
+          <i data-lucide="info" class="h-3.5 w-3.5 shrink-0"></i>
+          Illustrative demo data · Not live
+        </div>
+      </section>
+
+      <!-- KPI cards -->
+      <section aria-labelledby="kpiHeading">
+        <div class="mb-3 flex items-center justify-between">
+          <h2 id="kpiHeading" class="text-xs font-semibold uppercase tracking-[1.4px] text-neutral-500">Key metrics</h2>
+          <span class="text-[10px] text-neutral-600">Sample figures</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          <article class="surface surface-hover p-4">
+            <div class="flex items-start justify-between gap-2">
+              <span class="text-[11px] text-neutral-400">Total Members</span>
+              <span class="icon-box bg-orange-500/10 text-accent"><i data-lucide="users"></i></span>
+            </div>
+            <p id="kpiTotalMembers" class="kpi-value mt-4">—</p>
+            <div class="mt-3 flex items-center gap-1.5 text-[10px]">
+              <span class="flex items-center gap-1 text-green-400"><i data-lucide="trending-up" class="h-3 w-3"></i> 8.2%</span>
+              <span class="text-neutral-600">vs. previous period</span>
+            </div>
+          </article>
+
+          <article class="surface surface-hover p-4">
+            <div class="flex items-start justify-between gap-2">
+              <span class="text-[11px] text-neutral-400">Active Memberships</span>
+              <span class="icon-box bg-green-500/10 text-green-400"><i data-lucide="user-check"></i></span>
+            </div>
+            <p id="kpiActiveMembers" class="kpi-value mt-4">—</p>
+            <div class="mt-3 flex items-center gap-1.5 text-[10px]">
+              <span class="flex items-center gap-1 text-green-400"><i data-lucide="trending-up" class="h-3 w-3"></i> 5.6%</span>
+              <span class="text-neutral-600">vs. previous period</span>
+            </div>
+          </article>
+
+          <article class="surface surface-hover p-4">
+            <div class="flex items-start justify-between gap-2">
+              <span class="text-[11px] text-neutral-400">Expiring Soon</span>
+              <span class="icon-box bg-amber-500/10 text-amber-400"><i data-lucide="calendar-clock"></i></span>
+            </div>
+            <p id="kpiExpiringSoon" class="kpi-value mt-4">—</p>
+            <div class="mt-3 flex items-center gap-1.5 text-[10px]">
+              <span class="flex items-center gap-1 text-amber-400"><i data-lucide="alert-circle" class="h-3 w-3"></i> Attention</span>
+              <span class="text-neutral-600">renewals due</span>
+            </div>
+          </article>
+
+          <article class="surface surface-hover p-4">
+            <div class="flex items-start justify-between gap-2">
+              <span class="text-[11px] text-neutral-400">Verified Revenue</span>
+              <span class="icon-box bg-blue-500/10 text-blue-400"><i data-lucide="indian-rupee"></i></span>
+            </div>
+            <p id="kpiVerifiedRevenue" class="kpi-value mt-4">—</p>
+            <div class="mt-3 flex items-center gap-1.5 text-[10px]">
+              <span class="flex items-center gap-1 text-green-400"><i data-lucide="trending-up" class="h-3 w-3"></i> 12.4%</span>
+              <span class="text-neutral-600">vs. last month</span>
+            </div>
+          </article>
+
+          <article class="surface surface-hover p-4">
+            <div class="flex items-start justify-between gap-2">
+              <span class="text-[11px] text-neutral-400">Pending Payments</span>
+              <span class="icon-box bg-purple-500/10 text-purple-400"><i data-lucide="chart-no-axes-combined"></i></span>
+            </div>
+            <p id="kpiPendingPayments" class="kpi-value mt-4">—</p>
+            <div class="mt-3 flex items-center gap-1.5 text-[10px]">
+              <span class="text-neutral-500">Month over month</span>
+            </div>
+          </article>
+
+          <article class="surface surface-hover p-4">
+            <div class="flex items-start justify-between gap-2">
+              <span class="text-[11px] text-neutral-400">Today's Attendance</span>
+              <span class="icon-box bg-cyan-500/10 text-cyan-400"><i data-lucide="activity"></i></span>
+            </div>
+            <p id="kpiAttendanceToday" class="kpi-value mt-4">—</p>
+            <div class="mt-3 flex items-center gap-1.5 text-[10px]">
+              <span class="flex items-center gap-1 text-green-400"><i data-lucide="trending-up" class="h-3 w-3"></i> 58%</span>
+              <span class="text-neutral-600">of daily capacity</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Revenue analytics -->
+      <section class="surface overflow-hidden" aria-labelledby="revenueHeading">
+        <div class="flex flex-col justify-between gap-4 border-b border-neutral-800 p-5 sm:flex-row sm:items-center">
+          <div>
+            <h2 id="revenueHeading" class="section-title">Revenue Overview</h2>
+            <p class="section-subtitle">Income trends by transaction category</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-1 rounded-lg border border-neutral-800 bg-[#101010] p-1" role="group" aria-label="Revenue chart time period">
+            <button class="period-btn" data-period="7d" aria-pressed="false">7 Days</button>
+            <button class="period-btn active" data-period="30d" aria-pressed="true">30 Days</button>
+            <button class="period-btn" data-period="3m" aria-pressed="false">3 Months</button>
+            <button class="period-btn" data-period="6m" aria-pressed="false">6 Months</button>
+            <button class="period-btn" data-period="1y" aria-pressed="false">1 Year</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)_235px]">
+          <div class="min-w-0 p-4 sm:p-5">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="text-[10px] text-neutral-500">Selected period revenue</p>
+                <p id="selectedRevenue" class="display-font mt-1 text-2xl font-medium">₹4,82,500</p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 rounded-md bg-green-500/10 px-2.5 py-1.5 text-[10px] font-medium text-green-400">
+                <i data-lucide="trending-up" class="h-3.5 w-3.5"></i> +12.4% monthly growth
+              </span>
+            </div>
+
+            <div class="chart-wrap">
+              <canvas id="revenueChart" role="img" aria-label="Illustrative revenue line chart with membership payments, renewals, new memberships, and refunds."></canvas>
+            </div>
+            <p id="revenueChartSummary" class="mt-3 text-[10px] leading-5 text-neutral-500" aria-live="polite">Showing illustrative daily revenue for the last 30 days. Values are in Indian rupees.</p>
+          </div>
+
+          <aside class="flex flex-col border-t border-neutral-800 bg-[#131313] xl:border-l xl:border-t-0">
+            <div class="border-b border-neutral-800 p-5">
+              <p class="text-[10px] font-medium uppercase tracking-wider text-neutral-500">Revenue breakdown</p>
+              <div class="mt-4 space-y-4">
+                <div>
+                  <div class="mb-2 flex items-center gap-2">
+                    <span class="legend-dot bg-orange-500"></span>
+                    <span class="text-[11px] text-neutral-400">Membership payments</span>
+                  </div>
+                  <p class="display-font text-xl">₹2,45,000</p>
+                </div>
+                <div>
+                  <div class="mb-2 flex items-center gap-2">
+                    <span class="legend-dot bg-blue-400"></span>
+                    <span class="text-[11px] text-neutral-400">Renewals</span>
+                  </div>
+                  <p class="display-font text-xl">₹1,42,000</p>
+                </div>
+                <div>
+                  <div class="mb-2 flex items-center gap-2">
+                    <span class="legend-dot bg-green-400"></span>
+                    <span class="text-[11px] text-neutral-400">New memberships</span>
+                  </div>
+                  <p class="display-font text-xl">₹1,05,500</p>
+                </div>
+                <div>
+                  <div class="mb-2 flex items-center gap-2">
+                    <span class="legend-dot bg-red-400"></span>
+                    <span class="text-[11px] text-neutral-400">Refunds</span>
+                  </div>
+                  <p class="display-font text-xl text-red-400">−₹10,000</p>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-4 p-5">
+              <div>
+                <p class="text-[10px] text-neutral-500">This Month</p>
+                <p class="mt-1 text-sm font-semibold">₹4,82,500</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-neutral-500">Last Month</p>
+                <p class="mt-1 text-sm font-semibold">₹4,29,800</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-neutral-500">Monthly Growth</p>
+                <p class="mt-1 text-sm font-semibold text-green-400">+12.4%</p>
+              </div>
+              <p class="border-t border-neutral-800 pt-3 text-[10px] leading-5 text-neutral-600">Summary cards show the illustrative current-month comparison. Chart periods use separate sample datasets.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Membership analytics and attendance -->
+      <section class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <!-- Membership analytics -->
+        <article class="surface min-w-0 overflow-hidden" aria-labelledby="membershipHeading">
+          <div class="flex items-center justify-between gap-3 border-b border-neutral-800 p-5">
+            <div>
+              <h2 id="membershipHeading" class="section-title">Membership Analytics</h2>
+              <p class="section-subtitle">Member distribution by plan</p>
+            </div>
+            <span class="rounded-md border border-neutral-800 px-2 py-1 text-[10px] text-neutral-500">1,248 total</span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
+            <div class="donut-wrap">
+              <canvas id="membershipChart" role="img" aria-label="Illustrative membership distribution: Premium 42 percent, Standard 35 percent, Basic 18 percent, Other 5 percent."></canvas>
+              <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-[10px] text-neutral-500">Total members</span>
+                <span class="display-font mt-1 text-3xl font-medium">1,248</span>
+                <span class="mt-1 text-[9px] text-neutral-600">All plans</span>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <span class="flex items-center gap-2 text-[11px] text-neutral-300"><span class="legend-dot bg-orange-500"></span>Premium</span>
+                  <span class="text-[11px] font-semibold">42%</span>
+                </div>
+                <div class="progress-track"><div class="progress-fill" style="width:42%"></div></div>
+              </div>
+              <div>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <span class="flex items-center gap-2 text-[11px] text-neutral-300"><span class="legend-dot bg-blue-400"></span>Standard</span>
+                  <span class="text-[11px] font-semibold">35%</span>
+                </div>
+                <div class="progress-track"><div class="progress-fill bg-blue-400" style="width:35%;background:#60A5FA"></div></div>
+              </div>
+              <div>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <span class="flex items-center gap-2 text-[11px] text-neutral-300"><span class="legend-dot bg-green-400"></span>Basic</span>
+                  <span class="text-[11px] font-semibold">18%</span>
+                </div>
+                <div class="progress-track"><div class="progress-fill" style="width:18%;background:#4ADE80"></div></div>
+              </div>
+              <div>
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <span class="flex items-center gap-2 text-[11px] text-neutral-300"><span class="legend-dot bg-purple-400"></span>Other</span>
+                  <span class="text-[11px] font-semibold">5%</span>
+                </div>
+                <div class="progress-track"><div class="progress-fill" style="width:5%;background:#C084FC"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="border-t border-neutral-800">
+            <div class="flex items-center justify-between px-5 pb-2 pt-4">
+              <h3 class="text-xs font-semibold">Plan performance</h3>
+              <span class="text-[10px] text-neutral-500">Illustrative data</span>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table" aria-label="Membership plan performance">
+                <thead>
+                  <tr><th scope="col">Plan</th><th scope="col">Members</th><th scope="col">Revenue</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="flex items-center gap-2"><span class="legend-dot bg-orange-500"></span>Premium</span></td>
+                    <td>524</td><td class="font-semibold">₹3.1L</td>
+                  </tr>
+                  <tr>
+                    <td><span class="flex items-center gap-2"><span class="legend-dot bg-blue-400"></span>Standard</span></td>
+                    <td>436</td><td class="font-semibold">₹1.2L</td>
+                  </tr>
+                  <tr>
+                    <td><span class="flex items-center gap-2"><span class="legend-dot bg-green-400"></span>Basic</span></td>
+                    <td>226</td><td class="font-semibold">₹42K</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="px-5 py-3 text-[10px] leading-5 text-neutral-600">The Other category accounts for the remaining illustrative members.</p>
+          </div>
+        </article>
+
+        <!-- Attendance -->
+        <article class="surface min-w-0 overflow-hidden" aria-labelledby="attendanceHeading">
+          <div class="flex items-center justify-between gap-3 border-b border-neutral-800 p-5">
+            <div>
+              <h2 id="attendanceHeading" class="section-title">Today's Attendance</h2>
+              <p class="section-subtitle">Gym traffic throughout the day</p>
+            </div>
+            <span class="inline-flex items-center gap-1.5 rounded-md bg-green-500/10 px-2.5 py-1.5 text-[10px] text-green-400">
+              <span class="h-1.5 w-1.5 rounded-full bg-green-400"></span> Demo overview
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 p-5 sm:grid-cols-4">
+            <div class="rounded-lg border border-neutral-800 bg-[#131313] p-3">
+              <p class="text-[10px] text-neutral-500">Attendance</p>
+              <p class="display-font mt-2 text-xl">—</p>
+              <div class="mt-2 progress-track"><div class="progress-fill" style="width:0%"></div></div>
+            </div>
+            <div class="rounded-lg border border-neutral-800 bg-[#131313] p-3">
+              <p class="text-[10px] text-neutral-500">Attendance rate</p>
+              <p class="display-font mt-2 text-xl">—</p>
+              <p class="mt-2 text-[9px] text-neutral-600">Of daily capacity</p>
+            </div>
+            <div class="rounded-lg border border-neutral-800 bg-[#131313] p-3">
+              <p class="text-[10px] text-neutral-500">Inside gym</p>
+              <p class="display-font mt-2 text-xl text-green-400">—</p>
+              <p class="mt-2 text-[9px] text-neutral-600">Illustrative count</p>
+            </div>
+            <div class="rounded-lg border border-neutral-800 bg-[#131313] p-3">
+              <p class="text-[10px] text-neutral-500">Peak hour</p>
+              <p class="display-font mt-2 text-xl">—</p>
+              <p class="mt-2 text-[9px] text-neutral-600">Highest traffic</p>
+            </div>
+          </div>
+
+          <div class="px-5 pb-5">
+            <div class="mb-3 flex items-center justify-between gap-3">
+              <h3 class="text-xs font-semibold">Hourly attendance</h3>
+              <span class="flex items-center gap-1.5 text-[10px] text-neutral-500"><span class="legend-dot bg-orange-500"></span> Check-ins</span>
+            </div>
+            <div class="attendance-chart-wrap">
+              <canvas id="attendanceChart" role="img" aria-label="Hourly attendance based on recorded check-in timestamps."></canvas>
+            </div>
+            <p id="attendanceSummary" class="mt-3 text-[10px] text-neutral-500" aria-live="polite">Attendance summary is based on recorded check-ins. Hourly traffic and check-outs are not available yet.</p>
+          </div>
+
+          <div class="grid grid-cols-2 border-t border-neutral-800">
+            <div class="flex items-center gap-3 p-5">
+              <span class="icon-box h-9 w-9 bg-green-500/10 text-green-400"><i data-lucide="log-in"></i></span>
+              <div><p class="text-[10px] text-neutral-500">Check-ins</p><p class="mt-1 text-lg font-semibold">—</p></div>
+            </div>
+            <div class="flex items-center gap-3 border-l border-neutral-800 p-5">
+              <span class="icon-box h-9 w-9 bg-red-500/10 text-red-400"><i data-lucide="log-out"></i></span>
+              <div><p class="text-[10px] text-neutral-500">Check-outs</p><p class="mt-1 text-lg font-semibold">—</p></div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Expiry alerts -->
+      <section class="surface overflow-hidden" aria-labelledby="expiryHeading">
+        <div class="flex flex-col justify-between gap-3 border-b border-neutral-800 p-5 sm:flex-row sm:items-center">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 id="expiryHeading" class="section-title">Membership Expiry Alerts</h2>
+              <span class="rounded bg-red-500/10 px-2 py-1 text-[9px] font-semibold text-red-400">4 sample alerts</span>
+            </div>
+            <p class="section-subtitle">Follow up with members before their plans expire.</p>
+          </div>
+          <a href="members.html" class="inline-flex items-center gap-2 self-start rounded-md border border-neutral-800 px-3 py-2 text-[10px] font-medium text-neutral-300 transition hover:border-accent hover:text-accent sm:self-auto">
+            View all members <i data-lucide="arrow-up-right" class="h-3.5 w-3.5"></i>
+          </a>
+        </div>
+
+        <div class="table-wrap">
+          \1<tr><td colspan="4" class="py-6 text-center text-xs text-neutral-500">Loading live records…</td></tr>\2
+          </table>
+          <div id="expiryEmpty" class="empty-state" hidden>
+            <i data-lucide="search-x"></i><p class="text-xs font-medium">No matching expiry alerts</p><p class="mt-1 text-[10px]">Try another search term.</p>
+          </div>
+        </div>
+        <p class="border-t border-neutral-800 px-5 py-3 text-[10px] leading-5 text-neutral-600">Demo mode: View shows sample details, Renew opens a confirmation-style demo notice, and Send Reminder previews a message. No records or messages are changed or sent.</p>
+      </section>
+
+      <!-- Recent payments -->
+      <section class="surface overflow-hidden" aria-labelledby="paymentsHeading">
+        <div class="flex flex-col justify-between gap-3 border-b border-neutral-800 p-5 sm:flex-row sm:items-center">
+          <div>
+            <h2 id="paymentsHeading" class="section-title">Recent Payments</h2>
+            <p class="section-subtitle">Latest illustrative payment activity</p>
+          </div>
+          <a href="payments.html" class="inline-flex items-center gap-2 self-start rounded-md border border-neutral-800 px-3 py-2 text-[10px] font-medium text-neutral-300 transition hover:border-accent hover:text-accent sm:self-auto">
+            All payments <i data-lucide="arrow-up-right" class="h-3.5 w-3.5"></i>
+          </a>
+        </div>
+
+        <div class="table-wrap">
+          \1<tr><td colspan="6" class="py-6 text-center text-xs text-neutral-500">Loading live records…</td></tr>\2
+          </table>
+          <div id="paymentsEmpty" class="empty-state" hidden>
+            <i data-lucide="search-x"></i><p class="text-xs font-medium">No matching payments</p><p class="mt-1 text-[10px]">Try another search term.</p>
+          </div>
+        </div>
+        <p class="border-t border-neutral-800 px-5 py-3 text-[10px] text-neutral-600">Sample transactions only. No payment processor or database is connected.</p>
+      </section>
+
+      <!-- Recent members -->
+      <section class="surface overflow-hidden" aria-labelledby="membersHeading">
+        <div class="flex items-center justify-between gap-3 border-b border-neutral-800 p-5">
+          <div>
+            <h2 id="membersHeading" class="section-title">Recent Members</h2>
+            <p class="section-subtitle">Latest illustrative member registrations</p>
+          </div>
+          <a href="members.html" class="inline-flex items-center gap-1.5 text-[10px] font-semibold text-accent hover:text-orange-300">
+            View All Members <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+          </a>
+        </div>
+        <div class="table-wrap">
+          \1<tr><td colspan="4" class="py-6 text-center text-xs text-neutral-500">Loading live records…</td></tr>\2
+          </table>
+          <div id="membersEmpty" class="empty-state" hidden>
+            <i data-lucide="search-x"></i><p class="text-xs font-medium">No matching members</p><p class="mt-1 text-[10px]">Try another search term.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="flex flex-col justify-between gap-2 border-t border-neutral-800 pt-5 text-[10px] text-neutral-600 sm:flex-row sm:items-center">
+        <p>© <span id="footerYear">2026</span> <span id="footerGymName">IRONCORE</span> Gym Management. All rights reserved.</p>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span> Demo mode</span>
+          <a href="settings.html" class="transition hover:text-neutral-300">Settings</a>
+          <span>Frontend preview · No live backend</span>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <!-- Gym name dialog -->
+  <dialog id="gymNameDialog" class="w-[min(420px,calc(100vw-32px))] rounded-xl border border-neutral-700 bg-[#171717] p-0 text-white backdrop:bg-black/70">
+    <form id="gymNameForm" class="space-y-5 p-5">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold">Edit gym name</h2>
+        <button type="button" id="closeGymDialog" class="grid h-8 w-8 place-items-center rounded-md text-neutral-400 hover:bg-neutral-800" aria-label="Close dialog">
+          <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+      </div>
+      <p class="text-[11px] leading-5 text-neutral-400">Change the name displayed in this dashboard preview. This demo does not save settings to a server.</p>
+      <div>
+        <label for="gymNameInput" class="mb-2 block text-[11px] font-medium text-neutral-300">Gym name</label>
+        <input id="gymNameInput" class="form-control w-full" type="text" maxlength="40" required value="IRONCORE" placeholder="Enter gym name">
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" id="cancelGymDialog" class="action-btn px-4 py-2">Cancel</button>
+        <button type="submit" class="action-btn action-primary px-4 py-2">Apply preview</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Demo feedback toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+    <i data-lucide="info" class="mt-0.5 h-4 w-4 shrink-0 text-accent"></i>
+    <div class="min-w-0 flex-1">
+      <p id="toastTitle" class="text-xs font-semibold">Demo action</p>
+      <p id="toastMessage" class="mt-1 text-[11px] leading-5 text-neutral-400"></p>
+    </div>
+    <button id="closeToast" class="grid h-7 w-7 shrink-0 place-items-center rounded text-neutral-500 hover:bg-neutral-800 hover:text-white" aria-label="Dismiss notification">
+      <i data-lucide="x" class="h-4 w-4"></i>
+    </button>
+  </div>
+
+  <script>
+    'use strict';
+
+    /*
+     * FRONTEND DEMO DATA
+     * Keep the sample data isolated here so a future integration can replace
+     * it with normalized responses from FastAPI/PostgreSQL.
+     *
+     * Do not use these values as real business records.
+     * No fetch calls, credentials, endpoints, or backend writes are used.
+     */
+    const API_BASE_URL = "http://127.0.0.1:8000";
+
+    function getAuthToken() {
+      return sessionStorage.getItem("access_token");
+    }
+
+    async function apiRequest(endpoint, options = {}) {
+      const token = getAuthToken();
+
+      if (!token) {
+        window.location.href = "../public/login.html";
+        throw new Error("Login required");
+      }
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...options.headers,
+        },
+      });
+
+      if (response.status === 401) {
+        sessionStorage.removeItem("access_token");
+        window.location.href = "../public/login.html";
+        throw new Error("Session expired. Please log in again.");
+      }
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(`API error ${response.status}: ${message}`);
+      }
+
+      return response.json();
+    }
+
+
+
+
+
+
+
+    // Demo dataset removed; dashboard uses live API data.
+;
+
+    const currencyFormatter = new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    });
+
+    function formatINR(value) {
+      return currencyFormatter.format(value);
+    }
+
+    function formatCompactINR(value) {
+      const abs = Math.abs(value);
+      if (abs >= 10000000) return (value / 10000000).toFixed(1) + 'Cr';
+      if (abs >= 100000) return (value / 100000).toFixed(1) + 'L';
+      if (abs >= 1000) return (value / 1000).toFixed(0) + 'K';
+      return String(value);
+    }
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
+
+    // Initialize Lucide icons with graceful fallback if the CDN is unavailable.
+    function initializeIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }
+
+    // Date display uses the browser's local date, not a hardcoded current date.
+    function initializeDates() {
+      const now = new Date();
+      document.getElementById('currentDate').textContent = new Intl.DateTimeFormat('en-IN', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(now);
+
+      document.getElementById('copyrightYear').textContent = now.getFullYear();
+      document.getElementById('footerYear').textContent = now.getFullYear();
+    }
+
+    // Toast feedback is explicit about demo-only behavior.
+    let toastTimeout = null;
+
+    function showToast(title, message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastMessage').textContent = message;
+      toast.classList.add('show');
+
+      if (toastTimeout) window.clearTimeout(toastTimeout);
+      toastTimeout = window.setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4800);
+    }
+
+    function closeToast() {
+      document.getElementById('toast').classList.remove('show');
+      if (toastTimeout) {
+        window.clearTimeout(toastTimeout);
+        toastTimeout = null;
+      }
+    }
+
+    document.getElementById('closeToast').addEventListener('click', closeToast);
+
+    // Responsive sidebar.
+    const sidebar = document.getElementById('sidebar');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+    const openSidebarBtn = document.getElementById('openSidebar');
+    const closeSidebarBtn = document.getElementById('closeSidebar');
+
+    function setSidebarOpen(open) {
+      sidebar.classList.toggle('open', open);
+      mobileOverlay.hidden = !open;
+      openSidebarBtn.setAttribute('aria-expanded', String(open));
+      document.body.style.overflow = open ? 'hidden' : '';
+
+      if (open) {
+        closeSidebarBtn.focus();
+      } else if (window.innerWidth < 768) {
+        openSidebarBtn.focus();
+      }
+    }
+
+    openSidebarBtn.addEventListener('click', () => setSidebarOpen(true));
+    closeSidebarBtn.addEventListener('click', () => setSidebarOpen(false));
+    mobileOverlay.addEventListener('click', () => setSidebarOpen(false));
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        if (sidebar.classList.contains('open')) setSidebarOpen(false);
+        closeDropdowns();
+        closeToast();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 768) {
+        sidebar.classList.remove('open');
+        mobileOverlay.hidden = true;
+        document.body.style.overflow = '';
+        openSidebarBtn.setAttribute('aria-expanded', 'false');
+      }
+
+      Object.values(charts).forEach(chart => {
+        if (chart && typeof chart.resize === 'function') chart.resize();
+      });
+    });
+
+    // Gym name editing is a local preview only. It is not persisted.
+    const gymDialog = document.getElementById('gymNameDialog');
+    const gymNameInput = document.getElementById('gymNameInput');
+
+    function openGymNameDialog() {
+      gymNameInput.value = document.getElementById('gymNameDisplay').textContent;
+      if (typeof gymDialog.showModal === 'function') {
+        gymDialog.showModal();
+        gymNameInput.focus();
+      } else {
+        showToast('Unsupported browser', 'This browser does not support the demo name editor.');
+      }
+    }
+
+    document.getElementById('editGymName').addEventListener('click', openGymNameDialog);
+
+    document.getElementById('closeGymDialog').addEventListener('click', () => gymDialog.close());
+    document.getElementById('cancelGymDialog').addEventListener('click', () => gymDialog.close());
+
+    document.getElementById('gymNameForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const name = gymNameInput.value.trim();
+
+      if (!name) {
+        gymNameInput.focus();
+        return;
+      }
+
+      document.getElementById('gymNameDisplay').textContent = name;
+      document.getElementById('footerGymName').textContent = name;
+      gymDialog.close();
+      showToast('Preview updated', 'The gym name has been updated in this page only. It has not been saved to a backend.');
+    });
+
+    // Dropdowns: notifications and profile.
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationPanel = document.getElementById('notificationPanel');
+
+    function closeDropdowns() {
+      notificationPanel.hidden = true;
+      notificationBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    notificationBtn.addEventListener('click', event => {
+      event.stopPropagation();
+      const willOpen = notificationPanel.hidden;
+      closeDropdowns();
+      notificationPanel.hidden = !willOpen;
+      notificationBtn.setAttribute('aria-expanded', String(willOpen));
+    });
+
+    document.querySelectorAll('.notification-item').forEach(button => {
+      button.addEventListener('click', () => {
+        closeDropdowns();
+        showToast('Illustrative notification', button.dataset.message);
+      });
+    });
+
+    document.getElementById('profileBtn').addEventListener('click', () => {
+      showToast('Demo administrator', 'This is a sample owner profile. Account settings and authentication are not connected.');
+    });
+
+    document.addEventListener('click', event => {
+      if (!notificationPanel.hidden &&
+          !notificationPanel.contains(event.target) &&
+          !notificationBtn.contains(event.target)) {
+        closeDropdowns();
+      }
+    });
+
+    // Chart configuration. Chart data is entirely local to this demonstration.
+    Chart.defaults.color = '#858585';
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.font.size = 10;
+    Chart.defaults.animation.duration = 350;
+
+    const gridColor = 'rgba(255,255,255,0.055)';
+    const charts = {
+      revenue: null,
+      memberships: null,
+      attendance: null
+    };
+
+    function getRevenueTotal(periodData) {
+      const sum = key => periodData[key].reduce((total, value) => total + value, 0);
+      return sum('membershipPayments') + sum('renewals') + sum('newMemberships') + sum('refunds');
+    }
+
+    function makeRevenueDataset(label, data, color, fill = false) {
+      return {
+        label,
+        data,
+        borderColor: color,
+        backgroundColor: fill ? color + '20' : color,
+        borderWidth: 2,
+        pointRadius: data.length > 10 ? 0 : 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: color,
+        pointBorderColor: '#171717',
+        pointBorderWidth: 2,
+        tension: 0.35,
+        fill,
+        spanGaps: false
+      };
+    }
+
+    function initializeRevenueChart() {
+      const canvas = document.getElementById('revenueChart');
+
+      if (!window.Chart || !canvas) {
+        document.getElementById('revenueChartSummary').textContent =
+          'Chart library unavailable. The revenue figures and category summaries above remain available.';
+        return;
+      }
+
+      const data = { labels: [], membershipPayments: [], renewals: [], newMemberships: [], refunds: [] };
+
+      charts.revenue = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: [
+            makeRevenueDataset('Membership payments', data.membershipPayments, '#FF6B00', true),
+            makeRevenueDataset('Renewals', data.renewals, '#60A5FA'),
+            makeRevenueDataset('New memberships', data.newMemberships, '#4ADE80'),
+            makeRevenueDataset('Refunds', data.refunds, '#F87171')
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#222222',
+              titleColor: '#FFFFFF',
+              bodyColor: '#D4D4D4',
+              borderColor: '#414141',
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                label: context => `${context.dataset.label}: ${formatINR(context.parsed.y)}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              border: { display: false },
+              ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: gridColor },
+              border: { display: false },
+              ticks: {
+                maxTicksLimit: 6,
+                callback: value => formatCompactINR(value)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    const periodLabels = {
+      '7d': 'last 7 days',
+      '30d': 'last 30 days',
+      '3m': 'last 3 months',
+      '6m': 'last 6 months',
+      '1y': 'last 1 year'
+    };
+
+    function updateRevenueChart(period) {
+      renderLiveRevenue(period);
+    }
+
+    document.querySelectorAll('[data-period]').forEach(button => {
+      button.addEventListener('click', () => renderLiveRevenue(button.dataset.period));
+    });
+
+    function initializeMembershipChart() {
+      const canvas = document.getElementById('membershipChart');
+
+      if (!window.Chart || !canvas) return;
+
+      charts.memberships = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            backgroundColor: ['#FF6B00', '#60A5FA', '#4ADE80', '#C084FC'],
+            borderColor: '#171717',
+            borderWidth: 4,
+            hoverOffset: 5,
+            spacing: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '77%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#222222',
+              titleColor: '#FFFFFF',
+              bodyColor: '#D4D4D4',
+              borderColor: '#414141',
+              borderWidth: 1,
+              padding: 10,
+              callbacks: {
+                label: context => `${context.label}: ${context.parsed}%`
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function initializeAttendanceChart() {
+      const canvas = document.getElementById('attendanceChart');
+
+      if (!window.Chart || !canvas) {
+        document.getElementById('attendanceSummary').textContent =
+          'Chart library unavailable. Recorded attendance totals may still be shown.';
+        return;
+      }
+
+      charts.attendance = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Check-ins',
+            data: [],
+            backgroundColor: [
+              'rgba(255,107,0,0.60)',
+              'rgba(255,107,0,0.70)',
+              'rgba(255,107,0,0.65)',
+              'rgba(255,107,0,0.55)',
+              'rgba(255,107,0,0.78)',
+              '#FF6B00',
+              'rgba(255,107,0,0.60)'
+            ],
+            hoverBackgroundColor: '#FF8A38',
+            borderRadius: 5,
+            borderSkipped: false,
+            maxBarThickness: 35
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#222222',
+              titleColor: '#FFFFFF',
+              bodyColor: '#D4D4D4',
+              borderColor: '#414141',
+              borderWidth: 1,
+              callbacks: {
+                label: context => `${context.parsed.y} illustrative check-ins`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              border: { display: false },
+              ticks: { maxRotation: 0, autoSkip: false }
+            },
+            y: {
+              beginAtZero: true,
+              suggestedMax: 55,
+              grid: { color: gridColor },
+              border: { display: false },
+              ticks: { stepSize: 10, precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    // Search filters demonstration rows on this page; it never queries a backend.
+    const searchInput = document.getElementById('globalSearch');
+    const searchForm = document.getElementById('searchForm');
+
+    const searchableTables = [
+      { table: 'expiryTable', empty: 'expiryEmpty' },
+      { table: 'paymentsTable', empty: 'paymentsEmpty' },
+      { table: 'membersTable', empty: 'membersEmpty' }
+    ];
+
+    function applySearch(query) {
+      const normalizedQuery = query.trim().toLocaleLowerCase('en-IN');
+
+      searchableTables.forEach(({ table, empty }) => {
+        const tableElement = document.getElementById(table);
+        const rows = Array.from(tableElement.querySelectorAll('tbody tr'));
+        let visibleRows = 0;
+
+        rows.forEach(row => {
+          const searchableText = (row.dataset.searchable || row.textContent).toLocaleLowerCase('en-IN');
+          const matches = !normalizedQuery || searchableText.includes(normalizedQuery);
+          row.hidden = !matches;
+          if (matches) visibleRows++;
+        });
+
+        document.getElementById(empty).hidden = visibleRows !== 0;
+        tableElement.querySelector('tbody').hidden = visibleRows === 0;
+      });
+    }
+
+    searchInput.addEventListener('input', () => applySearch(searchInput.value));
+
+    searchForm.addEventListener('submit', event => {
+      event.preventDefault();
+      applySearch(searchInput.value);
+
+      if (window.innerWidth < 1024) {
+        const query = searchInput.value.trim();
+        showToast(
+          query ? 'Demo search applied' : 'Search cleared',
+          query ? `Showing matching sample table rows for "${query}".` : 'All sample table rows are visible.'
+        );
+      }
+    });
+
+    // Expiry action handlers: display safe preview feedback without mutations.
+    document.getElementById('expiryTable').addEventListener('click', event => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+
+      const member = button.dataset.member;
+      const action = button.dataset.action;
+
+      if (action === 'view') {
+        showToast(
+          `Sample member: ${member}`,
+          'This row contains illustrative membership information only. Open Members for the future member detail page; no live profile is available.'
+        );
+      } else if (action === 'renew') {
+        showToast(
+          'Renewal demo only',
+          `A renewal preview was requested for ${member}. No subscription was renewed, no payment was taken, and no database record was changed.`
+        );
+      } else if (action === 'remind') {
+        showToast(
+          'Reminder preview only',
+          `A reminder preview was prepared for ${member}. No email, SMS, WhatsApp message, or other notification was sent.`
+        );
+      }
+    });
+
+    // Provide visible feedback for links while keeping normal page navigation.
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth < 768) setSidebarOpen(false);
+      });
+    });
+
+    // Chart.js CDN failure: preserve readable summaries and avoid uncaught errors.
+    function showChartFallbackIfNeeded() {
+      if (window.Chart) return;
+
+      const fallbackMessages = {
+        revenueChart: 'Revenue chart is unavailable because the Chart.js library could not load. Revenue summary figures above are illustrative.',
+        membershipChart: 'Membership donut chart is unavailable because the Chart.js library could not load. Plan percentages and counts remain visible in the surrounding text and table.',
+        attendanceChart: 'Hourly chart is unavailable because the Chart.js library could not load. The attendance totals and hourly data are available in the demonstration configuration.'
+      };
+
+      Object.entries(fallbackMessages).forEach(([id, message]) => {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+
+        const fallback = document.createElement('div');
+        fallback.className = 'empty-state h-full';
+        fallback.setAttribute('role', 'status');
+
+        const icon = document.createElement('span');
+        icon.className = 'mb-3 text-accent';
+        icon.textContent = '!';
+        icon.setAttribute('aria-hidden', 'true');
+
+        const textElement = document.createElement('p');
+        textElement.className = 'max-w-sm text-[11px] leading-5';
+        textElement.textContent = message;
+
+        fallback.append(icon, textElement);
+        canvas.replaceWith(fallback);
+      });
+    }
+
+    async function loadDashboardSummary() {
+      try {
+        const data = await apiRequest("/dashboard/summary");
+
+        console.log("Live dashboard summary:", data);
+
+        const setMetric = (id, value) => {
+          const element = document.getElementById(id);
+          if (element) element.textContent = value;
+        };
+
+        const formatINR = (value) =>
+          new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 0
+          }).format(Number(value || 0));
+
+        setMetric("kpiTotalMembers", data.total_members ?? 0);
+        setMetric("kpiActiveMembers", data.active_subscriptions ?? 0);
+        setMetric(
+          "kpiExpiringSoon",
+          data.memberships_expiring_in_7_days ?? 0
+        );
+        setMetric("kpiVerifiedRevenue", formatINR(data.verified_revenue));
+        setMetric("kpiPendingPayments", data.pending_payments ?? 0);
+        setMetric("kpiAttendanceToday", data.attendance_today ?? 0);
+
+        return data;
+      } catch (error) {
+        console.error("Dashboard summary failed:", error);
+        showToast("Unable to load live dashboard data.");
+        return null;
+      }
+    }
+
+
+
+
+
+    // LIVE_DASHBOARD_PATCH_V1
+    const LIVE_DASHBOARD = {
+      payments: [], members: [], plans: [], subscriptions: [], expiring: []
+    };
+
+    function liveRows(data) {
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.items)) return data.items;
+      if (Array.isArray(data?.results)) return data.results;
+      return [];
+    }
+
+    function liveText(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
+
+    function liveDate(value) {
+      if (!value) return null;
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+
+    function liveDateText(value) {
+      const d = liveDate(value);
+      return d ? d.toLocaleDateString("en-IN", {
+        day: "2-digit", month: "short", year: "numeric"
+      }) : "—";
+    }
+
+    function liveName(list, id, fallback) {
+      return list.find(x => Number(x.id) === Number(id))?.name || `${fallback} #${id ?? "—"}`;
+    }
+
+    function liveInitials(name) {
+      return String(name || "?").trim().split(/\s+/).slice(0, 2)
+        .map(x => x[0] || "").join("").toUpperCase();
+    }
+
+    function liveStatus(status) {
+      const s = String(status || "unknown").toLowerCase();
+      const label = s === "completed" ? "Paid" : s.charAt(0).toUpperCase() + s.slice(1);
+      const cls = ["completed", "paid", "active", "present"].includes(s)
+        ? "status-active"
+        : s === "pending" ? "status-pending"
+        : ["failed", "expired", "cancelled", "inactive"].includes(s)
+          ? "status-danger" : "status-warning";
+      return { label, cls };
+    }
+
+    function liveMoney(value) {
+      return formatINR(Number(value || 0));
+    }
+
+    function liveRowEmpty(columns, message) {
+      return `<tr><td colspan="${columns}" class="py-8 text-center text-xs text-neutral-500">${escapeHTML(message)}</td></tr>`;
+    }
+
+    function renderLiveTables() {
+      const expBody = document.querySelector("#expiryTable tbody");
+      const payBody = document.querySelector("#paymentsTable tbody");
+      const memBody = document.querySelector("#membersTable tbody");
+
+      if (expBody) {
+        expBody.innerHTML = LIVE_DASHBOARD.expiring.length
+          ? LIVE_DASHBOARD.expiring.map(sub => {
+              const name = liveName(LIVE_DASHBOARD.members, sub.member_id, "Member");
+              const plan = liveName(LIVE_DASHBOARD.plans, sub.plan_id, "Plan");
+              const end = liveDate(sub.end_date);
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const expiry = end ? new Date(end) : null;
+              if (expiry) expiry.setHours(0, 0, 0, 0);
+              const days = expiry ? Math.ceil((expiry - today) / 86400000) : null;
+              const st = liveStatus(days !== null && days < 0 ? "expired" : days !== null && days <= 3 ? "failed" : "pending");
+              return `<tr data-searchable="${escapeHTML(name + " " + plan)}">
+                <td><div class="flex items-center gap-3"><span class="avatar">${escapeHTML(liveInitials(name))}</span><div><p class="font-semibold">${escapeHTML(name)}</p><p class="mt-1 text-[10px] text-neutral-500">${escapeHTML(plan)}</p></div></div></td>
+                <td><span class="status ${st.cls}">${days !== null && days < 0 ? "Expired" : days !== null && days <= 3 ? "Expiring soon" : "Upcoming expiry"}</span></td>
+                <td class="font-semibold">${days === null ? "—" : days < 0 ? `${Math.abs(days)} days overdue` : `${days} days left`}</td>
+                <td><a class="action-btn" href="members.html">View</a></td></tr>`;
+            }).join("")
+          : liveRowEmpty(4, "No memberships expiring soon.");
+      }
+
+      if (payBody) {
+        const list = [...LIVE_DASHBOARD.payments]
+          .sort((a,b) => (liveDate(b.created_at)?.getTime() || 0) - (liveDate(a.created_at)?.getTime() || 0))
+          .slice(0, 5);
+        payBody.innerHTML = list.length ? list.map(payment => {
+          const name = liveName(LIVE_DASHBOARD.members, payment.member_id, "Member");
+          const plan = liveName(LIVE_DASHBOARD.plans, payment.plan_id, "Plan");
+          const st = liveStatus(payment.status);
+          return `<tr data-searchable="${escapeHTML(name + " " + plan + " " + payment.status)}">
+            <td><div class="flex items-center gap-3"><span class="avatar">${escapeHTML(liveInitials(name))}</span><span class="font-semibold">${escapeHTML(name)}</span></div></td>
+            <td>${escapeHTML(plan)}</td><td class="font-semibold">${escapeHTML(liveMoney(payment.amount))}</td>
+            <td class="text-neutral-400">${escapeHTML(liveDateText(payment.created_at))}</td>
+            <td class="text-neutral-400">${escapeHTML(payment.payment_method || "—")}</td>
+            <td><span class="status ${st.cls}">${escapeHTML(st.label)}</span></td></tr>`;
+        }).join("") : liveRowEmpty(6, "No payment records found.");
+      }
+
+      if (memBody) {
+        const list = [...LIVE_DASHBOARD.members]
+          .sort((a,b) => (liveDate(b.created_at)?.getTime() || 0) - (liveDate(a.created_at)?.getTime() || 0))
+          .slice(0, 5);
+        memBody.innerHTML = list.length ? list.map(member => {
+          const sub = LIVE_DASHBOARD.subscriptions.find(x =>
+            Number(x.member_id) === Number(member.id) && String(x.status).toLowerCase() === "active"
+          );
+          const st = liveStatus(sub ? "active" : "inactive");
+          return `<tr data-searchable="${escapeHTML(member.name || "")}">
+            <td><div class="flex items-center gap-3"><span class="avatar">${escapeHTML(liveInitials(member.name))}</span><span class="font-semibold">${escapeHTML(member.name || "Unnamed")}</span></div></td>
+            <td>${escapeHTML(sub ? liveName(LIVE_DASHBOARD.plans, sub.plan_id, "Plan") : "—")}</td>
+            <td class="text-neutral-400">${escapeHTML(liveDateText(member.created_at))}</td>
+            <td><span class="status ${st.cls}">${st.label}</span></td></tr>`;
+        }).join("") : liveRowEmpty(4, "No members registered yet.");
+      }
+
+      ["expiryEmpty", "paymentsEmpty", "membersEmpty"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.hidden = true;
+      });
+      [expBody, payBody, memBody].forEach(body => {
+        if (body) body.hidden = false;
+      });
+
+      const search = document.getElementById("globalSearch");
+      if (search?.value && typeof applySearch === "function") applySearch(search.value);
+    }
+
+    function renderLiveRevenue(period = "30d") {
+      const days = period === "7d" ? 7 : period === "30d" ? 30 :
+        period === "3m" ? 90 : period === "6m" ? 180 : 365;
+      const start = new Date();
+      start.setDate(start.getDate() - days + 1);
+      start.setHours(0, 0, 0, 0);
+
+      const count = period === "7d" ? 7 : period === "30d" ? 10 :
+        period === "3m" ? 12 : period === "6m" ? 6 : 12;
+      const buckets = Array.from({length: count}, (_, i) => {
+        const date = new Date(start);
+        date.setTime(start.getTime() + (Date.now() - start.getTime()) * i / Math.max(1, count - 1));
+        return {date, label: date.toLocaleDateString("en-IN", {day:"2-digit", month:"short"}), value:0};
+      });
+
+      LIVE_DASHBOARD.payments.forEach(payment => {
+        if (String(payment.status).toLowerCase() !== "completed") return;
+        const date = liveDate(payment.created_at);
+        if (!date || date < start || date > new Date()) return;
+        let closest = buckets[0];
+        buckets.forEach(bucket => {
+          if (Math.abs(bucket.date - date) < Math.abs(closest.date - date)) closest = bucket;
+        });
+        closest.value += Number(payment.amount || 0);
+      });
+
+      if (charts.revenue) {
+        charts.revenue.data.labels = buckets.map(x => x.label);
+        charts.revenue.data.datasets = [{
+          label: "Completed payments",
+          data: buckets.map(x => x.value),
+          borderColor: "#FF6B00",
+          backgroundColor: "rgba(255,107,0,0.12)",
+          fill: true,
+          tension: 0.35
+        }];
+        charts.revenue.update();
+      }
+      const total = buckets.reduce((sum, x) => sum + x.value, 0);
+      liveText("selectedRevenue", liveMoney(total));
+      liveText("revenueChartSummary", `Recorded completed payments for this period: ${liveMoney(total)}.`);
+      document.querySelectorAll("[data-period]").forEach(button => {
+        const active = button.dataset.period === period;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    function renderLiveMemberships() {
+      const counts = LIVE_DASHBOARD.plans.map(plan => ({
+        name: plan.name,
+        count: LIVE_DASHBOARD.subscriptions.filter(sub =>
+          Number(sub.plan_id) === Number(plan.id) && String(sub.status).toLowerCase() === "active"
+        ).length,
+        price: Number(plan.price || 0)
+      })).filter(x => x.count > 0);
+
+      if (charts.memberships) {
+        charts.memberships.data.labels = counts.map(x => x.name);
+        charts.memberships.data.datasets[0].data = counts.map(x => x.count);
+        charts.memberships.update();
+      }
+
+      const canvas = document.getElementById("membershipChart");
+      const article = canvas?.closest("article");
+      if (article) {
+        const tableBody = article.querySelector("table tbody");
+        if (tableBody) tableBody.innerHTML = counts.length
+          ? counts.map(x => `<tr><td>${escapeHTML(x.name)}</td><td>${x.count}</td><td class="font-semibold">${escapeHTML(liveMoney(x.price * x.count))}</td></tr>`).join("")
+          : liveRowEmpty(3, "No active subscriptions to display.");
+        const labels = article.querySelectorAll(".text-neutral-500");
+        labels.forEach(el => {
+          if (/illustrative data/i.test(el.textContent)) el.textContent = "Live subscription data";
+        });
+        const note = article.querySelector("table")?.parentElement?.parentElement?.querySelector("p");
+        if (note) note.textContent = "Active subscription counts. Revenue is estimated from plan prices, not verified collections.";
+        if (!counts.length && canvas?.parentElement) {
+          canvas.hidden = true;
+          let empty = canvas.parentElement.querySelector(".live-membership-empty");
+          if (!empty) {
+            empty = document.createElement("p");
+            empty.className = "live-membership-empty py-8 text-center text-xs text-neutral-500";
+            canvas.parentElement.appendChild(empty);
+          }
+          empty.textContent = "No active subscriptions yet.";
+        }
+      }
+    }
+
+    async function loadDashboardLiveSections() {
+      const endpoints = [
+        ["payments", "/payments"],
+        ["members", "/members"],
+        ["plans", "/plans"],
+        ["subscriptions", "/subscriptions"],
+        ["expiring", "/subscriptions/expiring?days=7"]
+      ];
+
+      const results = await Promise.allSettled(
+        endpoints.map(([, path]) => apiRequest(path))
+      );
+
+      results.forEach((result, i) => {
+        if (result.status === "fulfilled") {
+          LIVE_DASHBOARD[endpoints[i][0]] = liveRows(result.value);
+        } else {
+          console.error("Dashboard live endpoint failed:", endpoints[i][1], result.reason);
+        }
+      });
+
+      renderLiveTables();
+      renderLiveMemberships();
+      renderLiveRevenue("30d");
+
+      const article = document.getElementById("attendanceChart")?.closest("article");
+      const canvas = document.getElementById("attendanceChart");
+      const wrap = canvas?.parentElement;
+      const summary = document.getElementById("attendanceSummary");
+
+      try {
+        const data = await apiRequest("/attendance/summary/today");
+        const total = Number(data.total_check_ins || 0);
+        const hourly = Array.isArray(data.hourly) ? data.hourly : [];
+
+        if (article) {
+          const cards = article.querySelectorAll(".grid.grid-cols-2.gap-3 > div");
+          if (cards[0]) {
+            const value = cards[0].querySelector(".display-font");
+            if (value) value.textContent = String(total);
+            const progress = cards[0].querySelector(".progress-fill");
+            if (progress) progress.style.width = "0%";
+          }
+          if (cards[1]) {
+            const value = cards[1].querySelector(".display-font");
+            if (value) value.textContent = "—";
+          }
+          if (cards[2]) {
+            const value = cards[2].querySelector(".display-font");
+            if (value) value.textContent = "—";
+          }
+          if (cards[3]) {
+            const value = cards[3].querySelector(".display-font");
+            if (value) value.textContent = data.peak_hour || "—";
+          }
+
+          const footerValues = article.querySelectorAll(".grid.grid-cols-2.border-t .text-lg");
+          if (footerValues[0]) footerValues[0].textContent = String(total);
+          if (footerValues[1]) footerValues[1].textContent = "—";
+        }
+
+        if (charts.attendance) {
+          charts.attendance.data.labels = hourly.map(item => item.hour);
+          charts.attendance.data.datasets[0].data = hourly.map(item => Number(item.count || 0));
+          charts.attendance.update();
+        }
+
+        if (canvas) canvas.hidden = hourly.length === 0;
+        if (wrap) {
+          let empty = wrap.querySelector(".live-attendance-empty");
+          if (hourly.length === 0) {
+            if (!empty) {
+              empty = document.createElement("p");
+              empty.className = "live-attendance-empty py-10 text-center text-xs text-neutral-500";
+              wrap.appendChild(empty);
+            }
+            empty.textContent = "No check-ins recorded today.";
+          } else if (empty) {
+            empty.remove();
+          }
+        }
+
+        if (summary) {
+          summary.textContent = total === 0
+            ? "No check-ins recorded today. Check-out tracking is not available."
+            : `${total} recorded check-in${total === 1 ? "" : "s"} today. Check-out tracking is not available.`;
+        }
+      } catch (error) {
+        console.error("Today's attendance summary failed:", error);
+        if (canvas) canvas.hidden = true;
+        if (wrap) {
+          let empty = wrap.querySelector(".live-attendance-empty");
+          if (!empty) {
+            empty = document.createElement("p");
+            empty.className = "live-attendance-empty py-10 text-center text-xs text-neutral-500";
+            wrap.appendChild(empty);
+          }
+          empty.textContent = "Attendance summary could not be loaded.";
+        }
+        liveText("attendanceSummary", "Attendance data unavailable. Check the API connection and admin session.");
+      }
+    }
+
+    async function initializeDashboard() {
+      initializeDates();
+      await loadDashboardSummary();
+
+      if (!window.Chart) {
+        showChartFallbackIfNeeded();
+      } else {
+        try {
+          initializeRevenueChart();
+          initializeMembershipChart();
+          initializeAttendanceChart();
+        } catch (error) {
+          console.error("Dashboard chart initialization failed:", error);
+          showToast("One or more charts could not be initialized.");
+        }
+      }
+
+      await loadDashboardLiveSections();
+      initializeIcons();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeDashboard, { once: true });
+    } else {
+      initializeDashboard();
+    }
+  </script>
+</body>
+</html>

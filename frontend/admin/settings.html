@@ -1,0 +1,2051 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="description" content="Manage gym information, weekly operating hours, and public website appearance.">
+  <title>Gym Settings | IronCore Admin</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gym: {
+              bg: '#0A0A0A',
+              panel: '#171717',
+              elevated: '#202020',
+              orange: '#FF6B00',
+              muted: '#A3A3A3',
+              border: '#303030'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Oswald', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0A0A0A;
+      --panel: #171717;
+      --elevated: #202020;
+      --orange: #FF6B00;
+      --muted: #A3A3A3;
+      --border: #303030;
+      --danger: #F87171;
+      --success: #4ADE80;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scrollbar-color: #444 #0A0A0A;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: #FFFFFF;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+
+    :focus-visible {
+      outline: 2px solid var(--orange);
+      outline-offset: 3px;
+    }
+
+    ::selection {
+      background: rgba(255, 107, 0, .35);
+      color: #FFFFFF;
+    }
+
+    .font-heading { font-family: 'Oswald', sans-serif; }
+
+    .sidebar {
+      width: 252px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      transition: transform .25s ease;
+    }
+
+    .main-area {
+      margin-left: 252px;
+      min-width: 0;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      min-height: 76px;
+      background: rgba(10, 10, 10, .92);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: 7px;
+      color: #A3A3A3;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background .18s, color .18s;
+    }
+
+    .nav-link:hover {
+      background: #252525;
+      color: #FFFFFF;
+    }
+
+    .nav-link.active {
+      color: #FFFFFF;
+      background: rgba(255, 107, 0, .12);
+      box-shadow: inset 3px 0 0 var(--orange);
+    }
+
+    .nav-link.active svg { color: var(--orange); }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      min-width: 0;
+    }
+
+    .section-heading {
+      font-family: 'Oswald', sans-serif;
+      font-size: 19px;
+      font-weight: 500;
+      letter-spacing: .2px;
+    }
+
+    .section-description {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+      margin-top: 5px;
+    }
+
+    .field-label {
+      display: block;
+      color: #D4D4D4;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .required { color: var(--orange); }
+
+    .field-control {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      min-height: 43px;
+      padding: 10px 12px;
+      border: 1px solid #363636;
+      border-radius: 7px;
+      background: #101010;
+      color: #FFFFFF;
+      transition: border-color .18s, box-shadow .18s;
+    }
+
+    .field-control:hover { border-color: #525252; }
+
+    .field-control:focus {
+      outline: none;
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255, 107, 0, .11);
+    }
+
+    .field-control[aria-invalid="true"] {
+      border-color: var(--danger);
+    }
+
+    textarea.field-control {
+      resize: vertical;
+      min-height: 86px;
+    }
+
+    .field-help {
+      display: block;
+      color: #858585;
+      font-size: 11px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    .field-error {
+      color: var(--danger);
+      font-size: 11px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 10px 15px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background .18s, border-color .18s, opacity .18s;
+    }
+
+    .btn-primary {
+      background: var(--orange);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover { background: #E96000; }
+
+    .btn-secondary {
+      background: #202020;
+      border-color: #393939;
+      color: #E5E5E5;
+    }
+
+    .btn-secondary:hover {
+      background: #292929;
+      border-color: #555555;
+    }
+
+    .btn-danger {
+      color: #FCA5A5;
+      background: rgba(239, 68, 68, .08);
+      border-color: rgba(239, 68, 68, .24);
+    }
+
+    .btn-danger:hover { background: rgba(239, 68, 68, .15); }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .unsaved-dot {
+      background: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255, 107, 0, .12);
+    }
+
+    .saved-dot { background: var(--success); }
+
+    .subtle-divider { border-color: var(--border); }
+
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .schedule-table th {
+      text-align: left;
+      color: #929292;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      padding: 12px 10px;
+      background: #121212;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .schedule-table td {
+      padding: 11px 10px;
+      border-bottom: 1px solid #292929;
+      vertical-align: middle;
+    }
+
+    .schedule-table tr:last-child td { border-bottom: 0; }
+
+    .schedule-table .day-cell {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .time-control {
+      width: 100%;
+      min-width: 0;
+      height: 36px;
+      padding: 5px 7px;
+      border: 1px solid #353535;
+      border-radius: 6px;
+      background: #101010;
+      color: #FFFFFF;
+      font-size: 11px;
+    }
+
+    .time-control:focus {
+      outline: none;
+      border-color: var(--orange);
+    }
+
+    .time-control:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+    }
+
+    .closed-control {
+      accent-color: var(--orange);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .schedule-closed {
+      color: #737373;
+      text-decoration: line-through;
+    }
+
+    .schedule-error-row td { padding: 0 10px 10px; }
+
+    .schedule-preview-day {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #292929;
+      font-size: 11px;
+    }
+
+    .schedule-preview-day:last-child { border-bottom: 0; }
+
+    .preview-time {
+      color: #D4D4D4;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .preview-closed { color: #777777; }
+
+    .preview-tab {
+      padding: 9px 12px;
+      border: 1px solid #343434;
+      border-radius: 6px;
+      color: #A3A3A3;
+      background: #111111;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .preview-tab[aria-selected="true"] {
+      background: rgba(255, 107, 0, .13);
+      border-color: rgba(255, 107, 0, .45);
+      color: #FF8C38;
+    }
+
+    .dropzone {
+      border: 1px dashed #484848;
+      border-radius: 10px;
+      background: #111111;
+      transition: border-color .18s, background .18s;
+    }
+
+    .dropzone.dragging {
+      border-color: var(--orange);
+      background: rgba(255, 107, 0, .06);
+    }
+
+    .image-preview {
+      width: 100%;
+      height: 205px;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+      background: #242424;
+    }
+
+    .fallback-preview {
+      background:
+        radial-gradient(ellipse at 75% 35%, rgba(255,107,0,.20), transparent 32%),
+        linear-gradient(130deg, #111111 0%, #252525 52%, #151515 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .fallback-preview::after {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      right: -35px;
+      bottom: -100px;
+      border: 1px solid rgba(255, 107, 0, .45);
+      border-radius: 50%;
+      box-shadow: 0 0 0 22px rgba(255, 107, 0, .05),
+                  0 0 0 44px rgba(255, 107, 0, .04);
+    }
+
+    .image-overlay {
+      background: linear-gradient(0deg, rgba(0,0,0,.78), transparent 70%);
+    }
+
+    .notice {
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .notice-info {
+      color: #C7D9F5;
+      background: rgba(59, 130, 246, .08);
+      border: 1px solid rgba(59, 130, 246, .2);
+    }
+
+    .notice-warning {
+      color: #FCD7AA;
+      background: rgba(255, 107, 0, .07);
+      border: 1px solid rgba(255, 107, 0, .2);
+    }
+
+    .notice-success {
+      color: #BBF7D0;
+      background: rgba(34, 197, 94, .08);
+      border: 1px solid rgba(34, 197, 94, .22);
+    }
+
+    .notice-error {
+      color: #FECACA;
+      background: rgba(239, 68, 68, .08);
+      border: 1px solid rgba(239, 68, 68, .22);
+    }
+
+    .toast-region {
+      position: fixed;
+      top: 88px;
+      right: 20px;
+      z-index: 100;
+      width: min(390px, calc(100vw - 32px));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid #404040;
+      border-radius: 9px;
+      background: #1D1D1D;
+      box-shadow: 0 12px 35px rgba(0,0,0,.45);
+      animation: toast-in .2s ease-out;
+    }
+
+    .toast p { margin: 0; }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(-7px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .mobile-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 39;
+    }
+
+    .mobile-overlay.visible { display: block; }
+
+    .mobile-menu-button {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 39px;
+      height: 39px;
+      border: 1px solid #363636;
+      border-radius: 7px;
+      background: #171717;
+    }
+
+    .sidebar-close { display: none; }
+
+    .save-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background: rgba(15,15,15,.96);
+      border: 1px solid #343434;
+      border-radius: 10px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 -8px 30px rgba(0,0,0,.18);
+    }
+
+    .unsaved-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,107,0,.26);
+      background: rgba(255,107,0,.08);
+      color: #FFB078;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .section-anchor { scroll-margin-top: 96px; }
+
+    @media (max-width: 1023px) {
+      .sidebar {
+        position: fixed;
+        z-index: 40;
+        inset: 0 auto 0 0;
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open { transform: translateX(0); }
+
+      .main-area { margin-left: 0; }
+
+      .mobile-menu-button { display: inline-flex; }
+      .sidebar-close { display: inline-flex; }
+
+      .sidebar { height: 100dvh; overflow-y: auto; }
+    }
+
+    @media (max-width: 640px) {
+      .topbar { min-height: 66px; }
+
+      .page-content { padding: 18px 14px 30px; }
+
+      .page-title { font-size: 27px; }
+
+      .panel { border-radius: 10px; }
+
+      .panel-body { padding: 15px; }
+
+      .section-heading { font-size: 18px; }
+
+      .schedule-table th,
+      .schedule-table td { padding-left: 5px; padding-right: 5px; }
+
+      .schedule-table th { font-size: 9px; letter-spacing: .3px; }
+
+      .schedule-table .day-cell { font-size: 10px; }
+
+      .time-control { padding: 4px 2px; font-size: 10px; }
+
+      .closed-label { font-size: 10px; }
+
+      .save-bar {
+        padding: 12px;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .save-bar .actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .save-bar .btn { padding: 9px 8px; }
+
+      .toast-region { right: 12px; top: 75px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="mobileOverlay" class="mobile-overlay" aria-hidden="true"></div>
+
+  <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-40 flex flex-col" aria-label="Main navigation">
+    <div class="flex items-center justify-between px-5 py-5 border-b subtle-divider">
+      <a href="dashboard.html" class="flex items-center gap-3 min-w-0" aria-label="IronCore dashboard">
+        <span class="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-600 shrink-0" style="background:#FF6B00">
+          <i data-lucide="dumbbell" class="w-6 h-6 text-white"></i>
+        </span>
+        <span class="min-w-0">
+          <span class="font-heading text-xl font-semibold tracking-wide block leading-tight">IRON<span style="color:#FF6B00">CORE</span></span>
+          <span class="text-[10px] text-neutral-500 tracking-[2px] uppercase">Gym Management</span>
+        </span>
+      </a>
+      <button id="closeSidebar" class="sidebar-close p-2 text-neutral-400 hover:text-white rounded-md" aria-label="Close navigation">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="px-5 pt-6 pb-2">
+      <p class="text-[10px] uppercase tracking-[1.7px] font-semibold text-neutral-600">Workspace</p>
+    </div>
+
+    <nav class="px-3 space-y-1" aria-label="Admin pages">
+      <a class="nav-link" href="dashboard.html">
+        <i data-lucide="layout-dashboard" class="w-[18px] h-[18px]"></i>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-link" href="members.html">
+        <i data-lucide="users" class="w-[18px] h-[18px]"></i>
+        <span>Members</span>
+      </a>
+      <a class="nav-link" href="payments.html">
+        <i data-lucide="wallet" class="w-[18px] h-[18px]"></i>
+        <span>Payments</span>
+      </a>
+      <a class="nav-link" href="plans.html">
+        <i data-lucide="layers" class="w-[18px] h-[18px]"></i>
+        <span>Membership Plans</span>
+      </a>
+      <a class="nav-link" href="trainers.html">
+        <i data-lucide="user-round-check" class="w-[18px] h-[18px]"></i>
+        <span>Trainers</span>
+      </a>
+      <a class="nav-link active" href="settings.html" aria-current="page">
+        <i data-lucide="settings-2" class="w-[18px] h-[18px]"></i>
+        <span>Settings</span>
+        <span class="ml-auto w-1.5 h-1.5 rounded-full" style="background:#FF6B00"></span>
+      </a>
+    </nav>
+
+    <div class="mt-auto p-4">
+      <div class="rounded-lg border p-4" style="background:#101010;border-color:#303030">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="status-dot" style="background:#FF6B00"></span>
+          <span class="text-[11px] font-semibold text-neutral-300">Demo workspace</span>
+        </div>
+        <p class="text-[11px] leading-relaxed text-neutral-500">Settings are running locally in this browser session. Backend persistence is not connected.</p>
+      </div>
+      <div class="flex items-center gap-3 px-2 pt-5">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm shrink-0" style="background:#332116;color:#FF8B36">A</div>
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-semibold truncate">Gym Administrator</p>
+          <p class="text-[10px] text-neutral-500 mt-1">Owner account</p>
+        </div>
+        <i data-lucide="chevrons-up-down" class="w-4 h-4 text-neutral-600"></i>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-area">
+    <header class="topbar sticky top-0 z-30 flex items-center justify-between gap-4 px-4 sm:px-7 lg:px-9">
+      <div class="flex items-center gap-3 min-w-0">
+        <button id="openSidebar" class="mobile-menu-button shrink-0" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <div class="min-w-0">
+          <div class="flex items-center flex-wrap gap-2">
+            <span class="text-xs text-neutral-500 hidden sm:inline">Admin</span>
+            <i data-lucide="chevron-right" class="w-3 h-3 text-neutral-700 hidden sm:inline"></i>
+            <span class="text-xs text-neutral-400">Settings</span>
+          </div>
+          <p class="text-[11px] text-neutral-600 mt-1 hidden sm:block">Workspace configuration</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 shrink-0">
+        <span id="headerStatus" class="flex items-center gap-2 text-[11px] text-neutral-500" role="status" aria-live="polite">
+          <span class="status-dot saved-dot"></span>
+          <span id="headerStatusText">Demo settings loaded</span>
+        </span>
+        <div class="w-9 h-9 rounded-full border flex items-center justify-center" style="background:#171717;border-color:#333">
+          <i data-lucide="user-round" class="w-4 h-4 text-neutral-400"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content px-4 sm:px-7 lg:px-9 py-7 max-w-[1550px] mx-auto">
+      <section class="mb-7">
+        <div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-3 mb-2">
+              <span class="w-1 h-8 rounded-full" style="background:#FF6B00"></span>
+              <h1 class="page-title font-heading text-3xl sm:text-4xl font-medium tracking-wide">GYM SETTINGS</h1>
+            </div>
+            <p class="text-sm text-neutral-400 ml-4 pl-0.5">Manage gym information, operating hours and website appearance.</p>
+          </div>
+
+          <div class="flex items-center gap-3 flex-wrap">
+            <span id="pageDirtyBadge" class="unsaved-indicator" hidden>
+              <span class="status-dot unsaved-dot"></span>
+              Unsaved changes
+            </span>
+            <span class="text-[11px] text-neutral-600 flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+              Admin configuration
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <div class="notice notice-warning mb-6" role="note">
+        <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+        <div>
+          <p class="font-semibold mb-1">Demonstration mode</p>
+          <p>Saving applies changes to this page's in-memory demo state only. Settings and uploaded images are not permanently stored and will not be sent to a server. Connect your FastAPI backend and secure file storage to enable persistent settings.</p>
+        </div>
+      </div>
+
+      <form id="settingsForm" novalidate>
+        <div class="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_350px] gap-6 items-start">
+
+          <div class="space-y-6 min-w-0">
+
+            <!-- Gym information -->
+            <section id="gym-information" class="panel section-anchor">
+              <div class="panel-body p-5 sm:p-6">
+                <div class="flex items-start justify-between gap-4 pb-5 border-b subtle-divider">
+                  <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(255,107,0,.12);color:#FF6B00">
+                      <i data-lucide="building-2" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                      <h2 class="section-heading">Gym Information</h2>
+                      <p class="section-description">Your gym's basic identity and contact details.</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] uppercase tracking-wider text-neutral-600 mt-1">01 / 03</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5 pt-6">
+                  <div>
+                    <label for="gymName" class="field-label">Gym name <span class="required">*</span></label>
+                    <input id="gymName" name="gymName" class="field-control" type="text" value="IronCore Fitness" maxlength="100" autocomplete="organization" required aria-describedby="gymNameHelp gymNameError">
+                    <span id="gymNameHelp" class="field-help">The official name displayed across your gym dashboard.</span>
+                    <p id="gymNameError" class="field-error" hidden></p>
+                  </div>
+
+                  <div>
+                    <label for="gymSlogan" class="field-label">Gym slogan</label>
+                    <input id="gymSlogan" name="gymSlogan" class="field-control" type="text" value="Stronger Every Day." maxlength="160" aria-describedby="gymSloganHelp gymSloganError" placeholder="Your gym's tagline">
+                    <span id="gymSloganHelp" class="field-help">A short tagline for your public-facing brand.</span>
+                    <p id="gymSloganError" class="field-error" hidden></p>
+                  </div>
+
+                  <div>
+                    <label for="gymPhone" class="field-label">Contact phone number <span class="required">*</span></label>
+                    <input id="gymPhone" name="gymPhone" class="field-control" type="tel" value="+91 98765 43210" maxlength="20" autocomplete="tel" inputmode="tel" required aria-describedby="gymPhoneHelp gymPhoneError" placeholder="+91 98765 43210">
+                    <span id="gymPhoneHelp" class="field-help">Include your country code, for example +91.</span>
+                    <p id="gymPhoneError" class="field-error" hidden></p>
+                  </div>
+
+                  <div>
+                    <label for="gymAddress" class="field-label">Gym address <span class="required">*</span></label>
+                    <textarea id="gymAddress" name="gymAddress" class="field-control" maxlength="400" autocomplete="street-address" required aria-describedby="gymAddressHelp gymAddressError" placeholder="Street, locality, city, postal code">24 Fitness Avenue, Vaishali Nagar, Jaipur, Rajasthan 302021</textarea>
+                    <span id="gymAddressHelp" class="field-help">The complete physical address of your gym.</span>
+                    <p id="gymAddressError" class="field-error" hidden></p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Operating hours -->
+            <section id="opening-hours" class="panel section-anchor">
+              <div class="panel-body p-5 sm:p-6">
+                <div class="flex items-start justify-between gap-4 pb-5 border-b subtle-divider">
+                  <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(255,107,0,.12);color:#FF6B00">
+                      <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                      <h2 class="section-heading">Opening Hours</h2>
+                      <p class="section-description">Configure separate weekly operating schedules for male and female members.</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] uppercase tracking-wider text-neutral-600 mt-1">02 / 03</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5 mb-6">
+                  <div class="rounded-lg border p-4" style="background:#111;border-color:#303030">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#252525">
+                        <i data-lucide="users" class="w-4 h-4 text-neutral-300"></i>
+                      </span>
+                      <span class="text-xs font-semibold">Male members</span>
+                    </div>
+                    <p class="text-[11px] text-neutral-500 leading-relaxed">Set opening and closing times for male member access, day by day.</p>
+                  </div>
+                  <div class="rounded-lg border p-4" style="background:#111;border-color:#303030">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#252525">
+                        <i data-lucide="users-round" class="w-4 h-4 text-neutral-300"></i>
+                      </span>
+                      <span class="text-xs font-semibold">Female members</span>
+                    </div>
+                    <p class="text-[11px] text-neutral-500 leading-relaxed">Maintain an independent schedule, including different hours and closed days.</p>
+                  </div>
+                </div>
+
+                <div class="space-y-7">
+                  <div>
+                    <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+                      <div>
+                        <h3 class="text-sm font-semibold">Male members schedule</h3>
+                        <p class="text-[11px] text-neutral-500 mt-1">Demonstration hours: 6:00 AM – 10:00 PM</p>
+                      </div>
+                      <button type="button" class="btn btn-secondary !min-h-[34px] !py-2 !px-3" data-copy-schedule="male" aria-label="Copy male member schedule to female members">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        Copy to female
+                      </button>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border" style="border-color:#303030">
+                      <table class="schedule-table" aria-label="Male members weekly opening hours">
+                        <colgroup>
+                          <col style="width:23%">
+                          <col style="width:27%">
+                          <col style="width:27%">
+                          <col style="width:23%">
+                        </colgroup>
+                        <thead>
+                          <tr>
+                            <th scope="col">Day</th>
+                            <th scope="col">Opens</th>
+                            <th scope="col">Closes</th>
+                            <th scope="col">Closed</th>
+                          </tr>
+                        </thead>
+                        <tbody id="maleScheduleBody"></tbody>
+                      </table>
+                    </div>
+                    <p id="maleScheduleError" class="field-error mt-2" hidden></p>
+                  </div>
+
+                  <div>
+                    <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+                      <div>
+                        <h3 class="text-sm font-semibold">Female members schedule</h3>
+                        <p class="text-[11px] text-neutral-500 mt-1">Demonstration hours: 7:00 AM – 9:00 PM</p>
+                      </div>
+                      <button type="button" class="btn btn-secondary !min-h-[34px] !py-2 !px-3" data-copy-schedule="female" aria-label="Copy female member schedule to male members">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        Copy to male
+                      </button>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border" style="border-color:#303030">
+                      <table class="schedule-table" aria-label="Female members weekly opening hours">
+                        <colgroup>
+                          <col style="width:23%">
+                          <col style="width:27%">
+                          <col style="width:27%">
+                          <col style="width:23%">
+                        </colgroup>
+                        <thead>
+                          <tr>
+                            <th scope="col">Day</th>
+                            <th scope="col">Opens</th>
+                            <th scope="col">Closes</th>
+                            <th scope="col">Closed</th>
+                          </tr>
+                        </thead>
+                        <tbody id="femaleScheduleBody"></tbody>
+                      </table>
+                    </div>
+                    <p id="femaleScheduleError" class="field-error mt-2" hidden></p>
+                  </div>
+                </div>
+
+                <div class="notice notice-info mt-5">
+                  <i data-lucide="clock-3" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                  <p>Use the Closed checkbox for days when a member group cannot access the gym. For open days, closing time must be later than opening time on the same day. Overnight hours are not supported by this demo.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Website appearance -->
+            <section id="website-appearance" class="panel section-anchor">
+              <div class="panel-body p-5 sm:p-6">
+                <div class="flex items-start justify-between gap-4 pb-5 border-b subtle-divider">
+                  <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(255,107,0,.12);color:#FF6B00">
+                      <i data-lucide="image" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                      <h2 class="section-heading">Website Appearance</h2>
+                      <p class="section-description">Choose the background image for your public gym homepage.</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] uppercase tracking-wider text-neutral-600 mt-1">03 / 03</span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-6 pt-6">
+                  <div class="min-w-0">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                      <label class="field-label !mb-0" for="backgroundFile">Homepage background</label>
+                      <span class="text-[10px] text-neutral-500">Optional</span>
+                    </div>
+
+                    <div id="dropzone" class="dropzone p-4 sm:p-5">
+                      <div class="flex flex-col items-center text-center py-3">
+                        <span class="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style="background:#252525;color:#FF8A35">
+                          <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                        </span>
+                        <p class="text-sm font-semibold">Upload a background image</p>
+                        <p class="text-[11px] text-neutral-500 mt-2 leading-relaxed">Drag and drop an image here, or browse files on your device.</p>
+                        <button type="button" id="browseImage" class="btn btn-secondary mt-4">
+                          <i data-lucide="folder-open" class="w-4 h-4"></i>
+                          Browse image
+                        </button>
+                        <p class="text-[10px] text-neutral-600 mt-3">JPG, PNG, WEBP or GIF · Maximum 5 MB</p>
+                      </div>
+                      <input id="backgroundFile" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" class="sr-only" aria-describedby="imageHelp imageError">
+                    </div>
+
+                    <p id="imageHelp" class="field-help mt-3">Select an image to preview it locally. Your original file is not overwritten or uploaded anywhere.</p>
+                    <p id="imageError" class="field-error" role="alert" hidden></p>
+
+                    <div class="flex flex-wrap gap-2 mt-4">
+                      <button type="button" id="replaceImage" class="btn btn-secondary">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        Replace image
+                      </button>
+                      <button type="button" id="removeImage" class="btn btn-danger" disabled>
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        Remove image
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="min-w-0">
+                    <div class="flex items-center justify-between mb-3">
+                      <p class="field-label !mb-0">Homepage preview</p>
+                      <span id="previewImageStatus" class="text-[10px] text-neutral-500">Fallback active</span>
+                    </div>
+
+                    <div id="imagePreviewBox" class="relative rounded-lg overflow-hidden border" style="border-color:#353535">
+                      <div id="fallbackPreview" class="image-preview fallback-preview flex flex-col justify-center items-center text-center p-5">
+                        <i data-lucide="dumbbell" class="w-10 h-10 mb-3" style="color:#FF6B00"></i>
+                        <p class="font-heading text-3xl font-semibold tracking-wide">IRON<span style="color:#FF6B00">CORE</span></p>
+                        <p class="text-[10px] uppercase tracking-[3px] text-neutral-400 mt-2">Stronger Every Day</p>
+                        <span class="mt-5 text-[10px] px-3 py-2 rounded border" style="border-color:#484848;color:#C5C5C5;background:rgba(0,0,0,.22)">Default background</span>
+                      </div>
+                      <img id="uploadedPreview" class="image-preview hidden" alt="Selected homepage background preview">
+                      <div class="image-overlay absolute inset-x-0 bottom-0 p-4 pointer-events-none">
+                        <p class="text-[10px] text-white/75 uppercase tracking-widest">Public homepage</p>
+                        <p class="font-heading text-xl mt-1">YOUR FITNESS. YOUR RULES.</p>
+                      </div>
+                    </div>
+
+                    <div class="rounded-lg border p-3 mt-3" style="background:#111;border-color:#303030">
+                      <div class="flex items-start gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-neutral-500 shrink-0 mt-0.5"></i>
+                        <p class="text-[11px] text-neutral-500 leading-relaxed">Only the preview changes in this browser. A future backend should validate the actual file content, size, authorization and storage path before publishing it.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- Sidebar summary -->
+          <aside class="space-y-5 min-w-0" aria-label="Settings overview">
+            <section class="panel p-5">
+              <div class="flex items-center justify-between mb-5">
+                <h2 class="section-heading">Configuration</h2>
+                <i data-lucide="sliders-horizontal" class="w-5 h-5 text-neutral-500"></i>
+              </div>
+
+              <div class="space-y-4">
+                <a href="#gym-information" class="flex items-center gap-3 group rounded-lg p-2 -mx-2 hover:bg-neutral-800">
+                  <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:#252525;color:#FF8A35">
+                    <i data-lucide="building-2" class="w-4 h-4"></i>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold block">Gym information</span>
+                    <span class="text-[10px] text-neutral-500 block mt-1">Identity and contact</span>
+                  </span>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-neutral-600 group-hover:text-white"></i>
+                </a>
+
+                <a href="#opening-hours" class="flex items-center gap-3 group rounded-lg p-2 -mx-2 hover:bg-neutral-800">
+                  <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:#252525;color:#FF8A35">
+                    <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold block">Opening hours</span>
+                    <span class="text-[10px] text-neutral-500 block mt-1">Two weekly schedules</span>
+                  </span>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-neutral-600 group-hover:text-white"></i>
+                </a>
+
+                <a href="#website-appearance" class="flex items-center gap-3 group rounded-lg p-2 -mx-2 hover:bg-neutral-800">
+                  <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:#252525;color:#FF8A35">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold block">Website appearance</span>
+                    <span class="text-[10px] text-neutral-500 block mt-1">Homepage background</span>
+                  </span>
+                  <i data-lucide="chevron-right" class="w-4 h-4 text-neutral-600 group-hover:text-white"></i>
+                </a>
+              </div>
+            </section>
+
+            <section class="panel p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="section-heading">Schedule overview</h2>
+                <i data-lucide="clock" class="w-4 h-4 text-neutral-500"></i>
+              </div>
+
+              <div class="flex gap-2 mb-4" role="tablist" aria-label="Schedule preview member group">
+                <button type="button" class="preview-tab flex-1" role="tab" id="previewMaleTab" aria-selected="true" aria-controls="schedulePreview" data-preview-group="male">Male</button>
+                <button type="button" class="preview-tab flex-1" role="tab" id="previewFemaleTab" aria-selected="false" aria-controls="schedulePreview" data-preview-group="female" tabindex="-1">Female</button>
+              </div>
+
+              <div id="schedulePreview" aria-live="polite">
+                <div id="schedulePreviewTitle" class="text-xs font-semibold mb-1">Male members</div>
+                <p id="schedulePreviewSubtitle" class="text-[10px] text-neutral-500 mb-3">Weekly availability</p>
+                <div id="schedulePreviewContent"></div>
+              </div>
+
+              <div class="border-t subtle-divider mt-4 pt-4 flex items-center justify-between">
+                <span class="text-[11px] text-neutral-500">Open days</span>
+                <span id="openDayCount" class="text-sm font-semibold">7 / 7</span>
+              </div>
+            </section>
+
+            <section class="panel p-5">
+              <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="activity" class="w-4 h-4" style="color:#FF6B00"></i>
+                <h2 class="section-heading">Settings status</h2>
+              </div>
+
+              <div class="space-y-4">
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-[11px] text-neutral-400">Gym details</span>
+                  <span id="detailsStatus" class="text-[10px] text-neutral-500">Ready to edit</span>
+                </div>
+                <div class="h-1 rounded-full overflow-hidden" style="background:#303030">
+                  <div id="detailsProgress" class="h-full rounded-full" style="width:100%;background:#FF6B00"></div>
+                </div>
+
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-[11px] text-neutral-400">Weekly schedules</span>
+                  <span id="scheduleStatus" class="text-[10px] text-neutral-500">14 days configured</span>
+                </div>
+                <div class="h-1 rounded-full overflow-hidden" style="background:#303030">
+                  <div id="scheduleProgress" class="h-full rounded-full" style="width:100%;background:#FF6B00"></div>
+                </div>
+
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-[11px] text-neutral-400">Background image</span>
+                  <span id="backgroundStatus" class="text-[10px] text-neutral-500">Using fallback</span>
+                </div>
+                <div class="h-1 rounded-full overflow-hidden" style="background:#303030">
+                  <div id="backgroundProgress" class="h-full rounded-full" style="width:25%;background:#FF6B00"></div>
+                </div>
+              </div>
+            </section>
+
+            <div class="notice notice-warning">
+              <i data-lucide="database" class="w-4 h-4 shrink-0 mt-0.5"></i>
+              <p><strong>Not connected to a database.</strong> These settings are a frontend demonstration. PostgreSQL persistence and image uploads require backend integration.</p>
+            </div>
+          </aside>
+        </div>
+
+        <!-- Sticky save bar -->
+        <div class="save-bar mt-7 p-4 sm:px-5 flex items-center justify-between gap-4">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span id="saveStateDot" class="status-dot saved-dot"></span>
+              <p id="saveStateTitle" class="text-xs font-semibold">All changes are up to date</p>
+            </div>
+            <p id="saveStateDescription" class="text-[10px] text-neutral-500 mt-1">Demo mode · No server persistence</p>
+          </div>
+
+          <div class="actions flex items-center gap-2 shrink-0">
+            <button type="button" id="resetButton" class="btn btn-secondary">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              <span>Reset changes</span>
+            </button>
+            <button type="submit" id="saveButton" class="btn btn-primary">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>Save settings</span>
+            </button>
+          </div>
+        </div>
+
+        <p class="text-center text-[10px] text-neutral-600 mt-5 mb-2">
+          IronCore Admin · Settings preview · API integration pending
+        </p>
+      </form>
+    </div>
+  </main>
+
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="false"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const MAX_FILE_SIZE = 5 * 1024 * 1024;
+      const ALLOWED_MIME_TYPES = new Set([
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif'
+      ]);
+      const ALLOWED_EXTENSIONS = new Set([
+        'jpg', 'jpeg', 'png', 'webp', 'gif'
+      ]);
+
+      const DAYS = [
+        'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+        'Friday', 'Saturday', 'Sunday'
+      ];
+
+      const DAY_KEYS = [
+        'monday', 'tuesday', 'wednesday', 'thursday',
+        'friday', 'saturday', 'sunday'
+      ];
+
+      const $ = (id) => document.getElementById(id);
+      const form = $('settingsForm');
+
+      let baseline = null;
+      let selectedImage = null;
+      let selectedImageUrl = null;
+      let imageRequestVersion = 0;
+      let toastSequence = 0;
+      let previewGroup = 'male';
+      let dirty = false;
+      let isResetting = false;
+
+      const defaultDetails = {
+        gymName: 'IronCore Fitness',
+        gymSlogan: 'Stronger Every Day.',
+        gymPhone: '+91 98765 43210',
+        gymAddress: '24 Fitness Avenue, Vaishali Nagar, Jaipur, Rajasthan 302021'
+      };
+
+      function defaultSchedule(openTime, closeTime, saturdayOpen, sundayClosed) {
+        return DAYS.map((day, index) => ({
+          day: day,
+          open: index === 5 ? saturdayOpen : openTime,
+          close: closeTime,
+          closed: sundayClosed && index === 6
+        }));
+      }
+
+      function makeDefaultState() {
+        return {
+          details: { ...defaultDetails },
+          schedules: {
+            male: defaultSchedule('06:00', '22:00', '07:00', false),
+            female: defaultSchedule('07:00', '21:00', '08:00', true)
+          },
+          image: null
+        };
+      }
+
+      function cloneState(state) {
+        return {
+          details: { ...state.details },
+          schedules: {
+            male: state.schedules.male.map(day => ({ ...day })),
+            female: state.schedules.female.map(day => ({ ...day }))
+          },
+          image: state.image
+        };
+      }
+
+      function readDetails() {
+        return {
+          gymName: $('gymName').value,
+          gymSlogan: $('gymSlogan').value,
+          gymPhone: $('gymPhone').value,
+          gymAddress: $('gymAddress').value
+        };
+      }
+
+      function readSchedule(group) {
+        return DAYS.map((day, index) => ({
+          day,
+          open: $(`${group}-${DAY_KEYS[index]}-open`).value,
+          close: $(`${group}-${DAY_KEYS[index]}-close`).value,
+          closed: $(`${group}-${DAY_KEYS[index]}-closed`).checked
+        }));
+      }
+
+      function readCurrentState() {
+        return {
+          details: readDetails(),
+          schedules: {
+            male: readSchedule('male'),
+            female: readSchedule('female')
+          },
+          image: selectedImage
+        };
+      }
+
+      function equalState(a, b) {
+        if (!a || !b) return false;
+        return JSON.stringify({
+          details: a.details,
+          schedules: a.schedules,
+          image: a.image ? {
+            name: a.image.name,
+            size: a.image.size,
+            type: a.image.type,
+            lastModified: a.image.lastModified
+          } : null
+        }) === JSON.stringify({
+          details: b.details,
+          schedules: b.schedules,
+          image: b.image ? {
+            name: b.image.name,
+            size: b.image.size,
+            type: b.image.type,
+            lastModified: b.image.lastModified
+          } : null
+        });
+      }
+
+      function escapeHTML(value) {
+        return String(value).replace(/[&<>"']/g, character => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[character]);
+      }
+
+      function buildScheduleTables(state) {
+        ['male', 'female'].forEach(group => {
+          const tbody = $(`${group}ScheduleBody`);
+          tbody.innerHTML = state.schedules[group].map((day, index) => {
+            const dayKey = DAY_KEYS[index];
+            const disabled = day.closed ? 'disabled' : '';
+            const closedClass = day.closed ? 'schedule-closed' : '';
+            return `
+              <tr data-schedule-row="${group}-${dayKey}">
+                <td class="day-cell ${closedClass}" id="${group}-${dayKey}-label">${day.day}</td>
+                <td>
+                  <label class="sr-only" for="${group}-${dayKey}-open">${day.day} opening time for ${group} members</label>
+                  <input type="time" class="time-control" id="${group}-${dayKey}-open" value="${escapeHTML(day.open)}" ${disabled} aria-label="${day.day} opening time, ${group} members" aria-describedby="${group}ScheduleError">
+                </td>
+                <td>
+                  <label class="sr-only" for="${group}-${dayKey}-close">${day.day} closing time for ${group} members</label>
+                  <input type="time" class="time-control" id="${group}-${dayKey}-close" value="${escapeHTML(day.close)}" ${disabled} aria-label="${day.day} closing time, ${group} members" aria-describedby="${group}ScheduleError">
+                </td>
+                <td>
+                  <label class="inline-flex items-center gap-1.5 closed-label">
+                    <input type="checkbox" class="closed-control" id="${group}-${dayKey}-closed" ${day.closed ? 'checked' : ''} aria-label="Close ${day.day} for ${group} members">
+                    <span class="text-neutral-400">Closed</span>
+                  </label>
+                </td>
+              </tr>
+              <tr id="${group}-${dayKey}-error-row" class="schedule-error-row" hidden>
+                <td colspan="4">
+                  <p id="${group}-${dayKey}-error" class="field-error" role="alert"></p>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        });
+
+        updateScheduleControls();
+      }
+
+      function updateScheduleControls() {
+        ['male', 'female'].forEach(group => {
+          DAYS.forEach((day, index) => {
+            const key = DAY_KEYS[index];
+            const isClosed = $(`${group}-${key}-closed`).checked;
+
+            $(`${group}-${key}-open`).disabled = isClosed;
+            $(`${group}-${key}-close`).disabled = isClosed;
+
+            const dayLabel = $(`${group}-${key}-label`);
+            dayLabel.classList.toggle('schedule-closed', isClosed);
+          });
+        });
+      }
+
+      function validateField(id, message) {
+        const field = $(id);
+        const error = $(`${id}Error`);
+        const valid = !message;
+
+        field.setAttribute('aria-invalid', String(!valid));
+        error.hidden = valid;
+        error.textContent = message || '';
+
+        return valid;
+      }
+
+      function validateDetails() {
+        const details = readDetails();
+        let firstInvalid = null;
+        let valid = true;
+
+        const validators = [
+          {
+            id: 'gymName',
+            message: !details.gymName.trim()
+              ? 'Gym name is required.'
+              : details.gymName.trim().length < 2
+                ? 'Gym name must contain at least 2 characters.'
+                : details.gymName.trim().length > 100
+                  ? 'Gym name must be 100 characters or fewer.'
+                  : ''
+          },
+          {
+            id: 'gymSlogan',
+            message: details.gymSlogan.length > 160
+              ? 'Slogan must be 160 characters or fewer.'
+              : ''
+          },
+          {
+            id: 'gymPhone',
+            message: !details.gymPhone.trim()
+              ? 'Contact phone number is required.'
+              : !/^\+?[0-9\s().-]{7,20}$/.test(details.gymPhone.trim()) ||
+                details.gymPhone.replace(/\D/g, '').length < 7 ||
+                details.gymPhone.replace(/\D/g, '').length > 15
+                ? 'Enter a valid phone number with 7–15 digits, optionally including a country code.'
+                : ''
+          },
+          {
+            id: 'gymAddress',
+            message: !details.gymAddress.trim()
+              ? 'Gym address is required.'
+              : details.gymAddress.trim().length < 8
+                ? 'Enter a more complete gym address.'
+                : details.gymAddress.trim().length > 400
+                  ? 'Address must be 400 characters or fewer.'
+                  : ''
+          }
+        ];
+
+        validators.forEach(item => {
+          const fieldValid = validateField(item.id, item.message);
+          if (!fieldValid) {
+            valid = false;
+            if (!firstInvalid) firstInvalid = $(item.id);
+          }
+        });
+
+        updateDetailsStatus(valid);
+        return { valid, firstInvalid };
+      }
+
+      function clearScheduleError(group, index) {
+        const key = DAY_KEYS[index];
+        $(`${group}-${key}-error-row`).hidden = true;
+        $(`${group}-${key}-error`).textContent = '';
+        $(`${group}-${key}-open`).removeAttribute('aria-invalid');
+        $(`${group}-${key}-close`).removeAttribute('aria-invalid');
+      }
+
+      function validateSchedules() {
+        let valid = true;
+        let firstInvalid = null;
+        let openDays = 0;
+        let configuredDays = 0;
+
+        ['male', 'female'].forEach(group => {
+          const overallError = $(`${group}ScheduleError`);
+          overallError.hidden = true;
+          overallError.textContent = '';
+
+          DAYS.forEach((day, index) => {
+            clearScheduleError(group, index);
+
+            const key = DAY_KEYS[index];
+            const isClosed = $(`${group}-${key}-closed`).checked;
+
+            if (isClosed) {
+              configuredDays++;
+              return;
+            }
+
+            const openInput = $(`${group}-${key}-open`);
+            const closeInput = $(`${group}-${key}-close`);
+            const open = openInput.value;
+            const close = closeInput.value;
+
+            let message = '';
+
+            if (!open || !close) {
+              message = 'Select both opening and closing times, or mark this day as closed.';
+            } else if (open >= close) {
+              message = 'Closing time must be later than opening time.';
+            }
+
+            if (message) {
+              valid = false;
+
+              const errorRow = $(`${group}-${key}-error-row`);
+              const errorText = $(`${group}-${key}-error`);
+
+              errorRow.hidden = false;
+              errorText.textContent = message;
+
+              openInput.setAttribute('aria-invalid', String(!open || open >= close));
+              closeInput.setAttribute('aria-invalid', String(!close || open >= close));
+
+              if (!firstInvalid) firstInvalid = !open || open >= close ? openInput : closeInput;
+            } else {
+              openDays++;
+              configuredDays++;
+            }
+          });
+        });
+
+        $('scheduleStatus').textContent = `${configuredDays} / 14 days configured`;
+        $('scheduleProgress').style.width = `${(configuredDays / 14) * 100}%`;
+
+        return { valid, firstInvalid, openDays, configuredDays };
+      }
+
+      function validateImageFile(file) {
+        if (!file) return 'Select an image file first.';
+
+        const filename = file.name || '';
+        const extension = filename.includes('.')
+          ? filename.split('.').pop().toLowerCase()
+          : '';
+
+        if (!ALLOWED_EXTENSIONS.has(extension)) {
+          return 'Unsupported file extension. Choose a JPG, PNG, WEBP or GIF image.';
+        }
+
+        if (!ALLOWED_MIME_TYPES.has(file.type)) {
+          return 'The file MIME type is not supported or could not be verified. Choose a valid JPG, PNG, WEBP or GIF image.';
+        }
+
+        if (file.size <= 0) {
+          return 'The selected file is empty. Choose a different image.';
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+          return `Image is too large (${formatBytes(file.size)}). The maximum allowed size is 5 MB.`;
+        }
+
+        return '';
+      }
+
+      function formatBytes(bytes) {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+      }
+
+      function setImageError(message) {
+        const error = $('imageError');
+        error.hidden = !message;
+        error.textContent = message || '';
+        $('backgroundFile').setAttribute('aria-invalid', String(Boolean(message)));
+      }
+
+      function releaseImageUrl() {
+        if (selectedImageUrl) {
+          URL.revokeObjectURL(selectedImageUrl);
+          selectedImageUrl = null;
+        }
+      }
+
+      function renderImagePreview() {
+        const image = $('uploadedPreview');
+        const fallback = $('fallbackPreview');
+        const removeButton = $('removeImage');
+        const replaceButton = $('replaceImage');
+
+        if (selectedImage && selectedImageUrl) {
+          image.src = selectedImageUrl;
+          image.classList.remove('hidden');
+          fallback.classList.add('hidden');
+
+          $('previewImageStatus').textContent = 'Local preview';
+          $('backgroundStatus').textContent = 'Image selected';
+          $('backgroundProgress').style.width = '100%';
+
+          removeButton.disabled = false;
+          replaceButton.disabled = false;
+
+          image.alt = `Local preview of selected homepage background, ${selectedImage.name}`;
+        } else {
+          image.removeAttribute('src');
+          image.classList.add('hidden');
+          fallback.classList.remove('hidden');
+
+          $('previewImageStatus').textContent = 'Fallback active';
+          $('backgroundStatus').textContent = 'Using fallback';
+          $('backgroundProgress').style.width = '25%';
+
+          removeButton.disabled = true;
+          replaceButton.disabled = false;
+        }
+      }
+
+      function selectImage(file) {
+        if (!file) return;
+
+        const message = validateImageFile(file);
+        if (message) {
+          setImageError(message);
+          toast('Image not selected', message, 'error');
+          return;
+        }
+
+        const version = ++imageRequestVersion;
+        const nextUrl = URL.createObjectURL(file);
+        const probe = new Image();
+
+        probe.onload = () => {
+          if (version !== imageRequestVersion) {
+            URL.revokeObjectURL(nextUrl);
+            return;
+          }
+
+          if (!probe.naturalWidth || !probe.naturalHeight) {
+            URL.revokeObjectURL(nextUrl);
+            setImageError('The selected file is not a readable image. Choose a different file.');
+            toast('Invalid image', 'The browser could not decode this image.', 'error');
+            return;
+          }
+
+          releaseImageUrl();
+          selectedImageUrl = nextUrl;
+          selectedImage = file;
+
+          setImageError('');
+          renderImagePreview();
+          updateDirtyState();
+          updateSettingsStatus();
+
+          toast('Image preview updated', `${file.name} is ready for the demo preview. It has not been uploaded.`, 'success');
+        };
+
+        probe.onerror = () => {
+          URL.revokeObjectURL(nextUrl);
+
+          if (version !== imageRequestVersion) return;
+
+          setImageError('This file could not be decoded as an image. Please choose another file.');
+          toast('Unable to preview image', 'Choose a valid image file and try again.', 'error');
+        };
+
+        probe.src = nextUrl;
+      }
+
+      function removeSelectedImage() {
+        if (!selectedImage) return;
+
+        imageRequestVersion++;
+        releaseImageUrl();
+        selectedImage = null;
+
+        $('backgroundFile').value = '';
+        setImageError('');
+        renderImagePreview();
+        updateDirtyState();
+        updateSettingsStatus();
+
+        toast('Image removed', 'The fallback background is now active in the preview.', 'success');
+      }
+
+      function formatTime(time) {
+        if (!time || !/^\d{2}:\d{2}$/.test(time)) return '—';
+
+        const [hours, minutes] = time.split(':').map(Number);
+        const suffix = hours >= 12 ? 'PM' : 'AM';
+        const formattedHour = hours % 12 || 12;
+
+        return `${formattedHour}:${String(minutes).padStart(2, '0')} ${suffix}`;
+      }
+
+      function renderSchedulePreview() {
+        const schedule = readSchedule(previewGroup);
+        const openDays = schedule.filter(day => !day.closed && day.open && day.close && day.open < day.close).length;
+
+        $('schedulePreviewTitle').textContent =
+          previewGroup === 'male' ? 'Male members' : 'Female members';
+
+        $('schedulePreviewSubtitle').textContent =
+          previewGroup === 'male'
+            ? 'Weekly availability · Male members'
+            : 'Weekly availability · Female members';
+
+        $('schedulePreviewContent').innerHTML = schedule.map(day => {
+          const isValid = day.open && day.close && day.open < day.close;
+          const value = day.closed
+            ? '<span class="preview-closed">Closed</span>'
+            : isValid
+              ? `${formatTime(day.open)} – ${formatTime(day.close)}`
+              : '<span class="text-red-400">Check times</span>';
+
+          return `
+            <div class="schedule-preview-day">
+              <span class="${day.closed ? 'text-neutral-500' : 'text-neutral-300'}">${escapeHTML(day.day)}</span>
+              <span class="preview-time">${value}</span>
+            </div>
+          `;
+        }).join('');
+
+        $('openDayCount').textContent = `${openDays} / 7`;
+        updateSettingsStatus();
+      }
+
+      function setPreviewGroup(group) {
+        previewGroup = group;
+
+        ['male', 'female'].forEach(key => {
+          const button = $(
+            key === 'male' ? 'previewMaleTab' : 'previewFemaleTab'
+          );
+
+          const selected = key === group;
+          button.setAttribute('aria-selected', String(selected));
+          button.tabIndex = selected ? 0 : -1;
+        });
+
+        renderSchedulePreview();
+      }
+
+      function updateDetailsStatus(isValid) {
+        $('detailsStatus').textContent = isValid ? 'Fields valid' : 'Needs attention';
+        $('detailsProgress').style.width = isValid ? '100%' : '55%';
+      }
+
+      function updateSettingsStatus() {
+        const detailsValid = validateDetailsSilently();
+        const scheduleValid = validateSchedulesSilently();
+
+        $('detailsStatus').textContent = detailsValid ? 'Ready' : 'Needs attention';
+        $('detailsProgress').style.width = detailsValid ? '100%' : '55%';
+
+        $('scheduleStatus').textContent = scheduleValid ? '14 days checked' : 'Review timings';
+        $('scheduleProgress').style.width = scheduleValid ? '100%' : '55%';
+
+        $('backgroundStatus').textContent = selectedImage ? 'Image selected' : 'Using fallback';
+      }
+
+      function validateDetailsSilently() {
+        const d = readDetails();
+        const phoneDigits = d.gymPhone.replace(/\D/g, '').length;
+
+        return d.gymName.trim().length >= 2 &&
+          d.gymName.trim().length <= 100 &&
+          d.gymSlogan.length <= 160 &&
+          /^\+?[0-9\s().-]{7,20}$/.test(d.gymPhone.trim()) &&
+          phoneDigits >= 7 && phoneDigits <= 15 &&
+          d.gymAddress.trim().length >= 8 &&
+          d.gymAddress.trim().length <= 400;
+      }
+
+      function validateSchedulesSilently() {
+        return ['male', 'female'].every(group =>
+          readSchedule(group).every(day =>
+            day.closed || (day.open && day.close && day.open < day.close)
+          )
+        );
+      }
+
+      function setHeaderStatus(isDirty) {
+        const dot = $('headerStatus').querySelector('.status-dot');
+
+        dot.className = `status-dot ${isDirty ? 'unsaved-dot' : 'saved-dot'}`;
+        $('headerStatusText').textContent = isDirty ? 'Unsaved changes' : 'Demo settings loaded';
+
+        $('pageDirtyBadge').hidden = !isDirty;
+
+        $('saveStateDot').className = `status-dot ${isDirty ? 'unsaved-dot' : 'saved-dot'}`;
+        $('saveStateTitle').textContent = isDirty
+          ? 'You have unsaved changes'
+          : 'All changes are up to date';
+
+        $('saveStateDescription').textContent = isDirty
+          ? 'Save to update the in-memory demo state.'
+          : 'Demo mode · No server persistence';
+      }
+
+      function updateDirtyState() {
+        if (isResetting) return;
+
+        dirty = !equalState(readCurrentState(), baseline);
+        setHeaderStatus(dirty);
+      }
+
+      function toast(title, message, type = 'info') {
+        const id = ++toastSequence;
+        const colors = {
+          success: '#4ADE80',
+          error: '#F87171',
+          info: '#93C5FD',
+          warning: '#FDBA74'
+        };
+
+        const icons = {
+          success: 'check-circle-2',
+          error: 'alert-circle',
+          info: 'info',
+          warning: 'alert-triangle'
+        };
+
+        const item = document.createElement('div');
+        item.className = 'toast';
+        item.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        item.innerHTML = `
+          <i data-lucide="${icons[type] || icons.info}" class="w-5 h-5 shrink-0" style="color:${colors[type] || colors.info}"></i>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-semibold mb-1">${escapeHTML(title)}</p>
+            <p class="text-[11px] text-neutral-400 leading-relaxed">${escapeHTML(message)}</p>
+          </div>
+          <button type="button" class="p-1 text-neutral-500 hover:text-white" aria-label="Dismiss notification">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        `;
+
+        item.querySelector('button').addEventListener('click', () => item.remove());
+        $('toastRegion').appendChild(item);
+
+        if (window.lucide) {
+          window.lucide.createIcons({ nodes: [item] });
+        }
+
+        window.setTimeout(() => {
+          if (item.isConnected) item.remove();
+        }, 5500);
+
+        return id;
+      }
+
+      function focusFirstInvalid(result) {
+        if (!result.valid && result.firstInvalid) {
+          result.firstInvalid.focus({ preventScroll: true });
+          result.firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+
+      function resetFormFields(state) {
+        isResetting = true;
+
+        Object.entries(state.details).forEach(([id, value]) => {
+          $(id).value = value;
+          validateField(id, '');
+        });
+
+        buildScheduleTables(state);
+
+        releaseImageUrl();
+        selectedImage = null;
+        $('backgroundFile').value = '';
+        setImageError('');
+        renderImagePreview();
+
+        isResetting = false;
+        dirty = false;
+        setHeaderStatus(false);
+
+        validateDetails();
+        validateSchedules();
+        renderSchedulePreview();
+        updateSettingsStatus();
+      }
+
+      function resetUnsavedChanges() {
+        if (!dirty) {
+          toast('Nothing to reset', 'There are no unsaved changes to discard.', 'info');
+          return;
+        }
+
+        const confirmed = window.confirm(
+          'Discard all unsaved changes?\n\nGym details, both weekly schedules, and the selected image preview will return to the last saved demo state.'
+        );
+
+        if (!confirmed) return;
+
+        resetFormFields(baseline);
+        toast('Changes discarded', 'Your last saved in-memory demo settings have been restored.', 'success');
+      }
+
+      function copySchedule(source, target) {
+        const sourceSchedule = readSchedule(source);
+
+        sourceSchedule.forEach((day, index) => {
+          const key = DAY_KEYS[index];
+          $(`${target}-${key}-open`).value = day.open;
+          $(`${target}-${key}-close`).value = day.close;
+          $(`${target}-${key}-closed`).checked = day.closed;
+        });
+
+        updateScheduleControls();
+        validateSchedules();
+        renderSchedulePreview();
+        updateDirtyState();
+
+        toast('Schedule copied', `The ${source} schedule has been copied to ${target} members.`, 'success');
+      }
+
+      function validateAll() {
+        const details = validateDetails();
+        const schedules = validateSchedules();
+
+        const valid = details.valid && schedules.valid;
+
+        if (!details.valid) {
+          focusFirstInvalid(details);
+        } else if (!schedules.valid) {
+          focusFirstInvalid(schedules);
+        }
+
+        return valid;
+      }
+
+      function handleSubmit(event) {
+        event.preventDefault();
+
+        if (!validateAll()) {
+          toast('Check your settings', 'Correct the highlighted fields and schedule errors before saving.', 'error');
+          return;
+        }
+
+        /*
+          BACKEND INTEGRATION POINT
+
+          Replace this demo-only block with the actual documented FastAPI
+          settings operation when an API contract is available.
+
+          Do not invent an endpoint here. A future implementation should:
+          1. Send validated gym details and schedules to the configured API.
+          2. Upload the selected File using the backend's documented upload flow.
+          3. Handle authentication, authorization, server validation, and errors.
+          4. Update the baseline only after the server confirms success.
+
+          This page intentionally performs no network requests and no disk writes.
+        */
+
+        const submittedState = cloneState(readCurrentState());
+
+        baseline = submittedState;
+        dirty = false;
+        setHeaderStatus(false);
+        updateSettingsStatus();
+
+        toast(
+          'Demo settings saved',
+          'Changes are now the current in-memory demo state only. Reloading the page will restore the original examples; no data or image was uploaded.',
+          'success'
+        );
+      }
+
+      function bindEvents() {
+        form.addEventListener('submit', handleSubmit);
+
+        $('resetButton').addEventListener('click', resetUnsavedChanges);
+
+        ['gymName', 'gymSlogan', 'gymPhone', 'gymAddress'].forEach(id => {
+          $(id).addEventListener('input', () => {
+            validateField(id, '');
+            updateDirtyState();
+            updateSettingsStatus();
+          });
+
+          $(id).addEventListener('blur', () => {
+            validateDetails();
+          });
+        });
+
+        ['male', 'female'].forEach(group => {
+          DAYS.forEach((day, index) => {
+            const key = DAY_KEYS[index];
+
+            [`${group}-${key}-open`, `${group}-${key}-close`].forEach(id => {
+              $(id).addEventListener('change', () => {
+                validateSchedules();
+                renderSchedulePreview();
+                updateDirtyState();
+              });
+            });
+
+            $(`${group}-${key}-closed`).addEventListener('change', () => {
+              updateScheduleControls();
+              clearScheduleError(group, index);
+              validateSchedules();
+              renderSchedulePreview();
+              updateDirtyState();
+            });
+          });
+        });
+
+        document.querySelectorAll('[data-copy-schedule]').forEach(button => {
+          button.addEventListener('click', () => {
+            const source = button.dataset.copySchedule;
+            const target = source === 'male' ? 'female' : 'male';
+
+            const confirmed = window.confirm(
+              `Copy all seven ${source} member days and times to the ${target} member schedule?\n\nThe target schedule will be replaced, including its closed days.`
+            );
+
+            if (confirmed) copySchedule(source, target);
+          });
+        });
+
+        document.querySelectorAll('[data-preview-group]').forEach(button => {
+          button.addEventListener('click', () => {
+            setPreviewGroup(button.dataset.previewGroup);
+          });
+
+          button.addEventListener('keydown', event => {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+
+            event.preventDefault();
+            const next = previewGroup === 'male' ? 'female' : 'male';
+            setPreviewGroup(next);
+            $(next === 'male' ? 'previewMaleTab' : 'previewFemaleTab').focus();
+          });
+        });
+
+        $('browseImage').addEventListener('click', () => $('backgroundFile').click());
+        $('replaceImage').addEventListener('click', () => $('backgroundFile').click());
+
+        $('backgroundFile').addEventListener('change', event => {
+          const file = event.target.files && event.target.files[0];
+
+          if (file) selectImage(file);
+
+          // Permit selecting the same file again after a validation failure.
+          // The selected File itself is retained separately after successful selection.
+          if (!file) event.target.value = '';
+        });
+
+        $('removeImage').addEventListener('click', removeSelectedImage);
+
+        const dropzone = $('dropzone');
+
+        ['dragenter', 'dragover'].forEach(type => {
+          dropzone.addEventListener(type, event => {
+            event.preventDefault();
+            dropzone.classList.add('dragging');
+          });
+        });
+
+        ['dragleave', 'drop'].forEach(type => {
+          dropzone.addEventListener(type, event => {
+            event.preventDefault();
+            dropzone.classList.remove('dragging');
+          });
+        });
+
+        dropzone.addEventListener('drop', event => {
+          const files = event.dataTransfer && event.dataTransfer.files;
+
+          if (files && files.length) {
+            selectImage(files[0]);
+          }
+        });
+
+        // Guard against accidental page navigation while edits are pending.
+        window.addEventListener('beforeunload', event => {
+          if (!dirty) return;
+
+          event.preventDefault();
+          event.returnValue = '';
+        });
+
+        // Close the responsive navigation on overlay click or Escape.
+        $('openSidebar').addEventListener('click', openSidebar);
+        $('closeSidebar').addEventListener('click', closeSidebar);
+        $('mobileOverlay').addEventListener('click', closeSidebar);
+
+        document.addEventListener('keydown', event => {
+          if (event.key === 'Escape') closeSidebar();
+        });
+
+        // Internal navigation anchors close the mobile drawer.
+        document.querySelectorAll('#sidebar a').forEach(link => {
+          link.addEventListener('click', closeSidebar);
+        });
+      }
+
+      function openSidebar() {
+        $('sidebar').classList.add('open');
+        $('mobileOverlay').classList.add('visible');
+        $('openSidebar').setAttribute('aria-expanded', 'true');
+        $('mobileOverlay').setAttribute('aria-hidden', 'false');
+        $('closeSidebar').focus();
+      }
+
+      function closeSidebar() {
+        $('sidebar').classList.remove('open');
+        $('mobileOverlay').classList.remove('visible');
+        $('openSidebar').setAttribute('aria-expanded', 'false');
+        $('mobileOverlay').setAttribute('aria-hidden', 'true');
+      }
+
+      function init() {
+        const initial = makeDefaultState();
+
+        Object.entries(initial.details).forEach(([id, value]) => {
+          $(id).value = value;
+        });
+
+        buildScheduleTables(initial);
+        baseline = cloneState(initial);
+
+        renderImagePreview();
+        setPreviewGroup('male');
+        bindEvents();
+
+        validateDetails();
+        validateSchedules();
+        updateSettingsStatus();
+        updateDirtyState();
+
+        if (window.lucide) window.lucide.createIcons();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>

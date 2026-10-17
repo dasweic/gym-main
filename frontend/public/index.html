@@ -1,0 +1,1488 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="description" content="Transform your fitness journey with [GYM NAME]. Explore membership plans, expert trainers, and a premium training experience.">
+  <title>[GYM NAME] | Train Beyond Limits</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gym: {
+              bg: '#0A0A0A',
+              card: '#171717',
+              orange: '#FF6B00',
+              muted: '#A3A3A3',
+              border: '#292929'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Oswald', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0A0A0A;
+      --card: #171717;
+      --orange: #FF6B00;
+      --muted: #A3A3A3;
+      --border: #292929;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 100px;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background: var(--bg);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body.modal-open { overflow: hidden; }
+
+    ::selection { background: var(--orange); color: #fff; }
+
+    a, button { -webkit-tap-highlight-color: transparent; }
+
+    button, a, input { touch-action: manipulation; }
+
+    :focus-visible {
+      outline: 2px solid var(--orange);
+      outline-offset: 4px;
+    }
+
+    .font-display { font-family: 'Oswald', sans-serif; }
+
+    .container-width {
+      width: min(1200px, calc(100% - 40px));
+      margin-inline: auto;
+    }
+
+    .orange-text {
+      color: var(--orange);
+    }
+
+    .orange-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 13px 23px;
+      background: var(--orange);
+      color: white;
+      border: 1px solid var(--orange);
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .035em;
+      transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+      cursor: pointer;
+    }
+
+    .orange-button:hover {
+      background: #e85f00;
+      box-shadow: 0 8px 28px #ff6b002b;
+      transform: translateY(-2px);
+    }
+
+    .outline-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 48px;
+      padding: 12px 22px;
+      border: 1px solid #ffffff50;
+      border-radius: 5px;
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      transition: border-color .2s ease, background .2s ease;
+    }
+
+    .outline-button:hover {
+      border-color: var(--orange);
+      background: #ffffff0b;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--orange);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .19em;
+      text-transform: uppercase;
+    }
+
+    .section-label::before {
+      content: "";
+      width: 23px;
+      height: 2px;
+      background: var(--orange);
+    }
+
+    .section-heading {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(36px, 5vw, 58px);
+      line-height: 1.06;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: -.025em;
+    }
+
+    .glass {
+      background: rgb(16 16 16 / 85%);
+      border: 1px solid rgb(255 255 255 / 9%);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .navbar {
+      position: fixed;
+      z-index: 50;
+      inset: 0 0 auto;
+      border-bottom: 1px solid transparent;
+      transition: background .25s ease, border-color .25s ease;
+    }
+
+    .navbar.scrolled {
+      background: rgb(10 10 10 / 94%);
+      border-bottom-color: var(--border);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-link {
+      position: relative;
+      color: #bdbdbd;
+      font-size: 12px;
+      font-weight: 600;
+      transition: color .2s ease;
+    }
+
+    .nav-link:hover { color: white; }
+
+    .hero {
+      position: relative;
+      isolation: isolate;
+      min-height: 760px;
+      min-height: min(850px, 100svh);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      background: #111;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      z-index: -2;
+      inset: 0;
+      background-image: url("https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=2400&q=85");
+      background-position: center 44%;
+      background-size: cover;
+      animation: heroReveal 1.2s ease-out both;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgb(7 7 7 / 96%) 0%, rgb(7 7 7 / 83%) 34%, rgb(7 7 7 / 40%) 72%, rgb(7 7 7 / 30%) 100%),
+        linear-gradient(0deg, #0a0a0a 0%, transparent 30%, rgb(0 0 0 / 15%) 100%);
+    }
+
+    .hero-content {
+      padding-top: 105px;
+      padding-bottom: 100px;
+    }
+
+    .hero-title {
+      max-width: 900px;
+      margin-top: 23px;
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(60px, 9.3vw, 112px);
+      line-height: .99;
+      font-weight: 600;
+      letter-spacing: -.025em;
+      text-transform: uppercase;
+    }
+
+    .hero-description {
+      max-width: 490px;
+      color: #c1c1c1;
+      font-size: 14px;
+      line-height: 1.9;
+    }
+
+    .hero-bottom {
+      position: absolute;
+      inset: auto 0 0;
+      border-top: 1px solid rgb(255 255 255 / 13%);
+      background: linear-gradient(0deg, rgb(0 0 0 / 30%), transparent);
+    }
+
+    .hero-stat {
+      padding: 22px 28px 22px 0;
+      border-right: 1px solid rgb(255 255 255 / 13%);
+    }
+
+    .hero-stat:last-child { border-right: 0; }
+
+    .stat-number {
+      font-family: 'Oswald', sans-serif;
+      font-size: 30px;
+      line-height: 1.1;
+    }
+
+    .stat-caption {
+      margin-top: 6px;
+      color: #a3a3a3;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .feature-card {
+      background: #141414;
+      border: 1px solid #262626;
+      transition: border-color .25s ease, transform .25s ease;
+    }
+
+    .feature-card:hover {
+      border-color: #ff6b006b;
+      transform: translateY(-4px);
+    }
+
+    .plan-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 450px;
+      padding: 30px;
+      background: var(--card);
+      border: 1px solid #292929;
+      border-radius: 8px;
+      transition: transform .25s ease, border-color .25s ease;
+    }
+
+    .plan-card:hover {
+      transform: translateY(-5px);
+      border-color: #ff6b0080;
+    }
+
+    .plan-card.recommended {
+      border-color: var(--orange);
+      background: linear-gradient(165deg, #24170f 0%, #171717 38%);
+    }
+
+    .recommended-label {
+      position: absolute;
+      top: -13px;
+      right: 20px;
+      padding: 7px 12px;
+      border-radius: 3px;
+      background: var(--orange);
+      color: white;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .plan-price {
+      font-family: 'Oswald', sans-serif;
+      font-size: 43px;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+
+    .plan-features {
+      display: grid;
+      gap: 15px;
+      margin: 26px 0 30px;
+      color: #c5c5c5;
+      font-size: 12px;
+    }
+
+    .plan-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.5;
+    }
+
+    .trainer-card {
+      overflow: hidden;
+      background: #151515;
+      border: 1px solid #282828;
+      border-radius: 6px;
+      transition: border-color .25s ease, transform .25s ease;
+    }
+
+    .trainer-card:hover {
+      transform: translateY(-4px);
+      border-color: #ff6b0070;
+    }
+
+    .trainer-image {
+      position: relative;
+      aspect-ratio: 4 / 4.3;
+      overflow: hidden;
+      background: #252525;
+    }
+
+    .trainer-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .5s ease;
+    }
+
+    .trainer-card:hover .trainer-image img {
+      transform: scale(1.04);
+    }
+
+    .trainer-image::after {
+      content: "";
+      position: absolute;
+      inset: 45% 0 0;
+      background: linear-gradient(transparent, #151515);
+      pointer-events: none;
+    }
+
+    .hours-row {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr 1.2fr;
+      gap: 16px;
+      align-items: center;
+      padding: 17px 20px;
+      border-bottom: 1px solid #292929;
+      font-size: 12px;
+    }
+
+    .hours-row:last-child { border-bottom: 0; }
+
+    .hours-row.header {
+      color: #929292;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 7px;
+      border-radius: 50%;
+      background: var(--orange);
+    }
+
+    .hours-panel {
+      overflow: hidden;
+      border: 1px solid #292929;
+      border-radius: 7px;
+      background: #131313;
+    }
+
+    .payment-dialog {
+      width: min(480px, calc(100% - 32px));
+      max-height: min(90svh, 780px);
+      overflow-y: auto;
+      padding: 0;
+      border: 1px solid #373737;
+      border-radius: 12px;
+      background: #141414;
+      color: white;
+      box-shadow: 0 25px 100px #000a;
+    }
+
+    .payment-dialog::backdrop {
+      background: rgb(0 0 0 / 82%);
+      backdrop-filter: blur(5px);
+    }
+
+    .qr-placeholder {
+      display: grid;
+      place-items: center;
+      width: 200px;
+      aspect-ratio: 1;
+      margin: 0 auto;
+      border: 1px dashed #ff6b00;
+      border-radius: 8px;
+      background:
+        linear-gradient(45deg, #ff6b0008 25%, transparent 25%, transparent 75%, #ff6b0008 75%),
+        linear-gradient(45deg, #ff6b0008 25%, transparent 25%, transparent 75%, #ff6b0008 75%);
+      background-position: 0 0, 8px 8px;
+      background-size: 16px 16px;
+    }
+
+    .qr-placeholder-inner {
+      display: grid;
+      place-items: center;
+      gap: 8px;
+      width: 165px;
+      height: 165px;
+      border: 1px solid #ff6b0066;
+      background: #0a0a0a;
+      text-align: center;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .65s ease, transform .65s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .footer-link {
+      color: #a3a3a3;
+      font-size: 12px;
+      transition: color .2s ease;
+    }
+
+    .footer-link:hover { color: var(--orange); }
+
+    @keyframes heroReveal {
+      from { transform: scale(1.035); opacity: .5; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-hero {
+      animation: slideUp .8s .1s both ease-out;
+    }
+
+    @media (max-width: 767px) {
+      .container-width { width: min(100% - 32px, 600px); }
+
+      .hero {
+        min-height: 800px;
+        min-height: 100svh;
+      }
+
+      .hero::before {
+        background-position: 58% center;
+      }
+
+      .hero::after {
+        background:
+          linear-gradient(90deg, rgb(7 7 7 / 87%), rgb(7 7 7 / 54%)),
+          linear-gradient(0deg, #0a0a0a 0%, transparent 52%, rgb(0 0 0 / 20%));
+      }
+
+      .hero-content {
+        padding-top: 120px;
+        padding-bottom: 245px;
+      }
+
+      .hero-title { font-size: clamp(56px, 15vw, 84px); }
+
+      .hero-bottom .container-width { width: calc(100% - 32px); }
+
+      .hero-stat { padding: 14px 10px 14px 0; }
+
+      .stat-number { font-size: 24px; }
+
+      .stat-caption {
+        font-size: 8px;
+        letter-spacing: .07em;
+      }
+
+      .plan-card { min-height: auto; padding: 25px; }
+
+      .hours-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 15px 13px;
+        font-size: 11px;
+      }
+
+      .hours-row > :last-child { grid-column: 1 / -1; }
+
+      .hours-row.header > :last-child { display: none; }
+
+      .hours-row.header { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVIGATION -->
+  <header class="navbar" id="navbar">
+    <div class="container-width flex h-[76px] items-center justify-between gap-4">
+      <a href="#home" class="flex min-w-0 items-center gap-3" aria-label="[GYM NAME] home">
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded bg-gym-orange">
+          <i data-lucide="dumbbell" class="h-5 w-5 text-white" aria-hidden="true"></i>
+        </span>
+        <span class="min-w-0">
+          <span class="block truncate font-display text-xl font-bold uppercase tracking-wide">[GYM NAME]</span>
+          <span class="block text-[9px] font-bold uppercase tracking-[.24em] text-gym-orange">Train Beyond Limits</span>
+        </span>
+      </a>
+
+      <nav class="hidden items-center gap-8 md:flex" aria-label="Main navigation">
+        <a class="nav-link" href="#home">Home</a>
+        <a class="nav-link" href="#plans">Membership Plans</a>
+        <a class="nav-link" href="#trainers">Trainers</a>
+        <a class="nav-link" href="#hours">Opening Hours</a>
+      </nav>
+
+      <div class="hidden shrink-0 items-center gap-5 md:flex">
+        <a href="login.html" class="nav-link">Login</a>
+        <a href="#plans" class="orange-button !min-h-[42px] !px-5 !py-2">
+          Join Now <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <button id="mobile-menu-button"
+        class="grid h-11 w-11 shrink-0 place-items-center rounded border border-white/15 md:hidden"
+        type="button" aria-label="Open navigation menu" aria-controls="mobile-menu" aria-expanded="false">
+        <i data-lucide="menu" class="h-5 w-5" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <nav id="mobile-menu" class="glass hidden border-t border-white/10 px-5 py-5 md:hidden"
+      aria-label="Mobile navigation">
+      <div class="container-width grid gap-5">
+        <a class="nav-link mobile-nav-link" href="#home">Home</a>
+        <a class="nav-link mobile-nav-link" href="#plans">Membership Plans</a>
+        <a class="nav-link mobile-nav-link" href="#trainers">Trainers</a>
+        <a class="nav-link mobile-nav-link" href="#hours">Opening Hours</a>
+        <a class="nav-link" href="login.html">Login / Sign Up</a>
+        <a href="#plans" class="orange-button w-full">Join Now <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i></a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="home" aria-labelledby="hero-heading">
+      <div class="container-width hero-content">
+        <div class="animate-hero">
+          <div class="mb-7 flex items-center gap-3">
+            <span class="h-px w-9 bg-gym-orange"></span>
+            <span class="text-[10px] font-extrabold uppercase tracking-[.25em] text-white/80">
+              Your journey starts here
+            </span>
+          </div>
+
+          <p class="mb-3 font-display text-xl font-medium uppercase tracking-wider text-gym-orange md:text-2xl">
+            Welcome to [GYM NAME]
+          </p>
+
+          <h1 id="hero-heading" class="hero-title">
+            [GYM<br class="hidden sm:block"> SLOGAN]
+            <span class="block text-gym-orange">Starts Here.</span>
+          </h1>
+
+          <p class="hero-description mt-7">
+            Build strength. Sharpen your mindset. Become the strongest version of yourself.
+            Your next chapter starts with one decision.
+          </p>
+
+          <div class="mt-9 flex flex-wrap gap-3">
+            <a href="#plans" class="orange-button">
+              Explore Memberships
+              <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i>
+            </a>
+            <a href="#trainers" class="outline-button">
+              Meet Our Trainers
+              <i data-lucide="play-circle" class="h-4 w-4" aria-hidden="true"></i>
+            </a>
+          </div>
+
+          <div class="mt-8 flex items-center gap-3 text-xs text-white/70">
+            <i data-lucide="map-pin" class="h-4 w-4 text-gym-orange" aria-hidden="true"></i>
+            <span>[GYM ADDRESS], [CITY]</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-bottom">
+        <div class="container-width grid grid-cols-3">
+          <div class="hero-stat">
+            <div class="stat-number">01<span class="orange-text">.</span></div>
+            <div class="stat-caption">Train with purpose</div>
+          </div>
+          <div class="hero-stat pl-4 sm:pl-7">
+            <div class="stat-number">02<span class="orange-text">.</span></div>
+            <div class="stat-caption">Push your limits</div>
+          </div>
+          <div class="hero-stat pl-4 sm:pl-7">
+            <div class="stat-number">03<span class="orange-text">.</span></div>
+            <div class="stat-caption">Own your progress</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="border-y border-white/5 bg-[#101010] py-8 md:py-10" aria-label="Gym benefits">
+      <div class="container-width grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+        <div class="flex items-center gap-3">
+          <span class="grid h-11 w-11 shrink-0 place-items-center rounded border border-gym-orange/30 bg-gym-orange/10 text-gym-orange">
+            <i data-lucide="dumbbell" class="h-5 w-5" aria-hidden="true"></i>
+          </span>
+          <div>
+            <p class="text-xs font-bold">Strength Training</p>
+            <p class="mt-1 text-[10px] text-gym-muted">Train with purpose</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <span class="grid h-11 w-11 shrink-0 place-items-center rounded border border-gym-orange/30 bg-gym-orange/10 text-gym-orange">
+            <i data-lucide="user-round-check" class="h-5 w-5" aria-hidden="true"></i>
+          </span>
+          <div>
+            <p class="text-xs font-bold">Expert Coaching</p>
+            <p class="mt-1 text-[10px] text-gym-muted">Guidance that matters</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <span class="grid h-11 w-11 shrink-0 place-items-center rounded border border-gym-orange/30 bg-gym-orange/10 text-gym-orange">
+            <i data-lucide="heart-pulse" class="h-5 w-5" aria-hidden="true"></i>
+          </span>
+          <div>
+            <p class="text-xs font-bold">Fitness First</p>
+            <p class="mt-1 text-[10px] text-gym-muted">Built around your goals</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <span class="grid h-11 w-11 shrink-0 place-items-center rounded border border-gym-orange/30 bg-gym-orange/10 text-gym-orange">
+            <i data-lucide="users-round" class="h-5 w-5" aria-hidden="true"></i>
+          </span>
+          <div>
+            <p class="text-xs font-bold">Stronger Together</p>
+            <p class="mt-1 text-[10px] text-gym-muted">A community that motivates</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEMBERSHIP PLANS -->
+    <section id="plans" class="py-20 md:py-28" aria-labelledby="plans-heading">
+      <div class="container-width">
+        <div class="reveal mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          <div>
+            <span class="section-label">Memberships</span>
+            <h2 id="plans-heading" class="section-heading mt-5">
+              Invest in <span class="orange-text">yourself.</span>
+            </h2>
+            <p class="mt-4 max-w-lg text-sm leading-7 text-gym-muted">
+              Choose a plan that matches your goals. Start where you are and keep getting stronger.
+            </p>
+          </div>
+          <p class="max-w-xs text-xs leading-6 text-gym-muted">
+            Membership prices and terms are editable placeholders. Confirm the final amount and conditions with gym management.
+          </p>
+        </div>
+
+        <div id="plans-container" class="grid gap-6 md:grid-cols-3">
+          <!-- BASIC -->
+          <article class="plan-card reveal" data-plan="basic">
+            <div class="mb-5 flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase tracking-[.18em] text-gym-muted">01 / Essential</span>
+              <i data-lucide="zap" class="h-5 w-5 text-gym-orange" aria-hidden="true"></i>
+            </div>
+            <h3 class="font-display text-3xl font-semibold uppercase">Basic</h3>
+            <p class="mt-2 text-xs leading-6 text-gym-muted">Your first step towards a stronger you.</p>
+            <div class="mt-7 flex items-baseline gap-2">
+              <span class="plan-price" data-price="basic">₹999</span>
+              <span class="text-xs text-gym-muted" data-duration="basic">/ month</span>
+            </div>
+            <div class="mt-5 border-t border-white/10 pt-5">
+              <p class="text-[10px] font-bold uppercase tracking-[.13em] text-white/70">What's included</p>
+              <ul class="plan-features">
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>Access to standard gym equipment</li>
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>General workout guidance</li>
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>Locker access, subject to availability</li>
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>Regular gym access during member hours</li>
+              </ul>
+            </div>
+            <button type="button" class="orange-button mt-auto w-full justify-between" data-buy-plan="basic">
+              Choose Basic <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i>
+            </button>
+          </article>
+
+          <!-- STANDARD -->
+          <article class="plan-card recommended reveal" data-plan="standard">
+            <span class="recommended-label">Most Popular</span>
+            <div class="mb-5 flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase tracking-[.18em] text-gym-muted">02 / Performance</span>
+              <i data-lucide="flame" class="h-5 w-5 text-gym-orange" aria-hidden="true"></i>
+            </div>
+            <h3 class="font-display text-3xl font-semibold uppercase">Standard</h3>
+            <p class="mt-2 text-xs leading-6 text-gym-muted">More structure. More ways to progress.</p>
+            <div class="mt-7 flex items-baseline gap-2">
+              <span class="plan-price" data-price="standard">₹2,499</span>
+              <span class="text-xs text-gym-muted" data-duration="standard">/ 3 months</span>
+            </div>
+            <div class="mt-5 border-t border-white/10 pt-5">
+              <p class="text-[10px] font-bold uppercase tracking-[.13em] text-white/70">Everything in Basic, plus</p>
+              <ul class="plan-features">
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>Extended strength and cardio access</li>
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>Periodic fitness progress reviews</li>
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>Group workout sessions, subject to schedule</li>
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>One introductory trainer consultation</li>
+              </ul>
+            </div>
+            <button type="button" class="orange-button mt-auto w-full justify-between" data-buy-plan="standard">
+              Choose Standard <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i>
+            </button>
+          </article>
+
+          <!-- PREMIUM -->
+          <article class="plan-card reveal" data-plan="premium">
+            <div class="mb-5 flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase tracking-[.18em] text-gym-muted">03 / Elite</span>
+              <i data-lucide="crown" class="h-5 w-5 text-gym-orange" aria-hidden="true"></i>
+            </div>
+            <h3 class="font-display text-3xl font-semibold uppercase">Premium</h3>
+            <p class="mt-2 text-xs leading-6 text-gym-muted">A more personalized fitness experience.</p>
+            <div class="mt-7 flex items-baseline gap-2">
+              <span class="plan-price" data-price="premium">₹8,499</span>
+              <span class="text-xs text-gym-muted" data-duration="premium">/ 12 months</span>
+            </div>
+            <div class="mt-5 border-t border-white/10 pt-5">
+              <p class="text-[10px] font-bold uppercase tracking-[.13em] text-white/70">Everything in Standard, plus</p>
+              <ul class="plan-features">
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>Personalized workout planning</li>
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>Priority trainer appointment requests</li>
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>Monthly progress consultation</li>
+                <li><i data-lucide="check" class="h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i>Premium member benefits, as agreed</li>
+              </ul>
+            </div>
+            <button type="button" class="orange-button mt-auto w-full justify-between" data-buy-plan="premium">
+              Choose Premium <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i>
+            </button>
+          </article>
+        </div>
+
+        <!-- UPI PAYMENT -->
+        <div class="reveal mt-8 flex flex-col items-start justify-between gap-5 rounded-lg border border-white/10 bg-[#131313] p-6 md:flex-row md:items-center md:p-8">
+          <div class="flex items-start gap-4">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded border border-gym-orange/30 bg-gym-orange/10 text-gym-orange">
+              <i data-lucide="qr-code" class="h-6 w-6" aria-hidden="true"></i>
+            </span>
+            <div>
+              <h3 class="font-display text-xl font-semibold uppercase">Pay via UPI / QR</h3>
+              <p class="mt-2 max-w-xl text-xs leading-6 text-gym-muted">
+                View the gym's payment instructions and QR placeholder. Replace these with verified gym payment details before accepting payments.
+              </p>
+              <p class="mt-2 text-[11px] leading-5 text-yellow-300/90">
+                Payment confirmation may require verification by the gym administrator.
+              </p>
+            </div>
+          </div>
+          <button type="button" id="open-payment" class="outline-button shrink-0">
+            View Payment Options <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRAINERS -->
+    <section id="trainers" class="border-y border-white/5 bg-[#101010] py-20 md:py-28" aria-labelledby="trainers-heading">
+      <div class="container-width">
+        <div class="reveal mb-12 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          <div>
+            <span class="section-label">Meet the team</span>
+            <h2 id="trainers-heading" class="section-heading mt-5">
+              Experts who <span class="orange-text">push you.</span>
+            </h2>
+            <p class="mt-4 max-w-lg text-sm leading-7 text-gym-muted">
+              Get guidance, refine your technique and build training habits that support your goals.
+            </p>
+          </div>
+          <a href="#contact" class="outline-button self-start md:self-auto">
+            Enquire About Coaching <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i>
+          </a>
+        </div>
+
+        <div id="trainers-container" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <article class="trainer-card reveal">
+            <div class="trainer-image">
+              <img
+                src="https://images.unsplash.com/photo-1567013127542-490d757e51fc?auto=format&fit=crop&w=700&q=80"
+                alt="Fitness coach demonstrating strength training"
+                loading="lazy" decoding="async"
+                onerror="this.style.display='none';this.parentElement.style.background='#292929';">
+              <span class="absolute bottom-4 left-4 z-10 rounded border border-white/20 bg-black/60 px-3 py-2 text-[10px] font-bold uppercase tracking-wider">Strength</span>
+            </div>
+            <div class="p-5">
+              <h3 class="font-display text-2xl font-semibold uppercase">Alex Morgan</h3>
+              <p class="mt-1 text-[10px] font-bold uppercase tracking-wider text-gym-orange">Strength & Conditioning</p>
+              <p class="mt-3 text-xs text-gym-muted">5+ years experience</p>
+              <p class="mt-3 text-xs leading-6 text-gray-400">Focuses on progressive strength, movement quality and sustainable training routines.</p>
+            </div>
+          </article>
+
+          <article class="trainer-card reveal">
+            <div class="trainer-image">
+              <img
+                src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=700&q=80"
+                alt="Gym training floor with professional workout equipment"
+                loading="lazy" decoding="async"
+                onerror="this.style.display='none';this.parentElement.style.background='#292929';">
+              <span class="absolute bottom-4 left-4 z-10 rounded border border-white/20 bg-black/60 px-3 py-2 text-[10px] font-bold uppercase tracking-wider">Muscle Building</span>
+            </div>
+            <div class="p-5">
+              <h3 class="font-display text-2xl font-semibold uppercase">Ryan Carter</h3>
+              <p class="mt-1 text-[10px] font-bold uppercase tracking-wider text-gym-orange">Hypertrophy Training</p>
+              <p class="mt-3 text-xs text-gym-muted">4+ years experience</p>
+              <p class="mt-3 text-xs leading-6 text-gray-400">Helps members develop structured routines, sound technique and consistent progress.</p>
+            </div>
+          </article>
+
+          <article class="trainer-card reveal">
+            <div class="trainer-image">
+              <img
+                src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=700&q=80"
+                alt="Athlete practicing a controlled fitness exercise"
+                loading="lazy" decoding="async"
+                onerror="this.style.display='none';this.parentElement.style.background='#292929';">
+              <span class="absolute bottom-4 left-4 z-10 rounded border border-white/20 bg-black/60 px-3 py-2 text-[10px] font-bold uppercase tracking-wider">Conditioning</span>
+            </div>
+            <div class="p-5">
+              <h3 class="font-display text-2xl font-semibold uppercase">Jordan Lee</h3>
+              <p class="mt-1 text-[10px] font-bold uppercase tracking-wider text-gym-orange">Functional Fitness</p>
+              <p class="mt-3 text-xs text-gym-muted">4+ years experience</p>
+              <p class="mt-3 text-xs leading-6 text-gray-400">Builds balanced programs combining mobility, conditioning and functional movement.</p>
+            </div>
+          </article>
+
+          <article class="trainer-card reveal">
+            <div class="trainer-image">
+              <img
+                src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=700&q=80"
+                alt="Personal training session in a modern gym"
+                loading="lazy" decoding="async"
+                onerror="this.style.display='none';this.parentElement.style.background='#292929';">
+              <span class="absolute bottom-4 left-4 z-10 rounded border border-white/20 bg-black/60 px-3 py-2 text-[10px] font-bold uppercase tracking-wider">Personal Training</span>
+            </div>
+            <div class="p-5">
+              <h3 class="font-display text-2xl font-semibold uppercase">Sam Taylor</h3>
+              <p class="mt-1 text-[10px] font-bold uppercase tracking-wider text-gym-orange">Personal Coaching</p>
+              <p class="mt-3 text-xs text-gym-muted">6+ years experience</p>
+              <p class="mt-3 text-xs leading-6 text-gray-400">Works with members to set realistic goals and build personalized training plans.</p>
+            </div>
+          </article>
+        </div>
+
+        <p class="mt-6 text-[10px] leading-5 text-gym-muted">
+          Demo content: trainer names, experience, bios and imagery are illustrative placeholders. Replace them with actual staff profiles and approved photographs.
+        </p>
+      </div>
+    </section>
+
+    <!-- OPENING HOURS -->
+    <section id="hours" class="py-20 md:py-28" aria-labelledby="hours-heading">
+      <div class="container-width grid items-start gap-12 lg:grid-cols-[.85fr_1.15fr]">
+        <div class="reveal">
+          <span class="section-label">Plan your session</span>
+          <h2 id="hours-heading" class="section-heading mt-5">
+            Make time<br>to <span class="orange-text">get stronger.</span>
+          </h2>
+          <p class="mt-5 max-w-md text-sm leading-7 text-gym-muted">
+            Choose a training slot that fits your schedule. Check the separate member timings below before visiting.
+          </p>
+
+          <div class="mt-8 flex gap-4 rounded-lg border border-white/10 bg-[#131313] p-5">
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded bg-gym-orange/10 text-gym-orange">
+              <i data-lucide="clock-3" class="h-5 w-5" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="text-sm font-bold">Please confirm before visiting</p>
+              <p class="mt-2 text-xs leading-6 text-gym-muted">Timings may vary on public holidays or during special sessions. Contact the gym to confirm the latest schedule.</p>
+            </div>
+          </div>
+
+          <a href="#contact" class="orange-button mt-6">
+            Contact the Gym <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i>
+          </a>
+        </div>
+
+        <div class="reveal space-y-5">
+          <div class="hours-panel">
+            <div class="flex items-center justify-between border-b border-white/10 px-5 py-5">
+              <div class="flex items-center gap-3">
+                <span class="grid h-10 w-10 place-items-center rounded bg-gym-orange/10 text-gym-orange">
+                  <i data-lucide="users" class="h-5 w-5" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <h3 class="font-display text-xl font-semibold uppercase">Male Members</h3>
+                  <p class="mt-1 text-[10px] text-gym-muted">Member access schedule</p>
+                </div>
+              </div>
+              <span class="rounded bg-gym-orange/10 px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-gym-orange">Editable</span>
+            </div>
+
+            <div class="hours-row header">
+              <span>Day</span><span>Opening</span><span>Closing</span>
+            </div>
+            <div class="hours-row">
+              <span class="text-white">Monday – Friday</span>
+              <span class="text-gym-muted">6:00 AM</span>
+              <span class="text-gym-muted">10:00 AM / 5:00 PM – 10:00 PM</span>
+            </div>
+            <div class="hours-row">
+              <span class="text-white">Saturday</span>
+              <span class="text-gym-muted">6:00 AM</span>
+              <span class="text-gym-muted">10:00 AM / 5:00 PM – 9:00 PM</span>
+            </div>
+            <div class="hours-row">
+              <span class="text-white">Sunday</span>
+              <span class="text-gym-muted">7:00 AM</span>
+              <span class="text-gym-muted">11:00 AM</span>
+            </div>
+          </div>
+
+          <div class="hours-panel">
+            <div class="flex items-center justify-between border-b border-white/10 px-5 py-5">
+              <div class="flex items-center gap-3">
+                <span class="grid h-10 w-10 place-items-center rounded bg-gym-orange/10 text-gym-orange">
+                  <i data-lucide="calendar-clock" class="h-5 w-5" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <h3 class="font-display text-xl font-semibold uppercase">Female Members</h3>
+                  <p class="mt-1 text-[10px] text-gym-muted">Member access schedule</p>
+                </div>
+              </div>
+              <span class="rounded bg-gym-orange/10 px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-gym-orange">Editable</span>
+            </div>
+
+            <div class="hours-row header">
+              <span>Day</span><span>Opening</span><span>Closing</span>
+            </div>
+            <div class="hours-row">
+              <span class="text-white">Monday – Friday</span>
+              <span class="text-gym-muted">10:00 AM</span>
+              <span class="text-gym-muted">4:00 PM</span>
+            </div>
+            <div class="hours-row">
+              <span class="text-white">Saturday</span>
+              <span class="text-gym-muted">10:00 AM</span>
+              <span class="text-gym-muted">2:00 PM</span>
+            </div>
+            <div class="hours-row">
+              <span class="text-white">Sunday</span>
+              <span class="text-gym-muted">As scheduled</span>
+              <span class="text-gym-muted">Confirm with gym</span>
+            </div>
+          </div>
+
+          <p class="text-[10px] leading-5 text-gym-muted">
+            All schedules above are illustrative placeholders. Confirm actual opening hours, session arrangements and holiday schedules with gym management.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA BANNER -->
+    <section class="relative overflow-hidden border-y border-white/10 bg-[#15110e] py-16 md:py-20">
+      <div class="absolute -right-20 -top-32 h-96 w-96 rounded-full bg-gym-orange/10 blur-[100px]" aria-hidden="true"></div>
+      <div class="container-width relative flex flex-col justify-between gap-8 md:flex-row md:items-center">
+        <div class="reveal">
+          <span class="section-label">Your move</span>
+          <h2 class="mt-5 max-w-2xl font-display text-4xl font-semibold uppercase leading-tight md:text-6xl">
+            Stop waiting.<br><span class="orange-text">Start training.</span>
+          </h2>
+          <p class="mt-4 max-w-lg text-sm leading-7 text-gym-muted">
+            Take the first step towards your fitness goals. Explore our memberships or talk to the team about getting started.
+          </p>
+        </div>
+        <div class="reveal flex shrink-0 flex-wrap gap-3">
+          <a href="#plans" class="orange-button">
+            View Memberships <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i>
+          </a>
+          <a href="#contact" class="outline-button">Contact Us</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="py-16 md:py-20" aria-labelledby="contact-heading">
+      <div class="container-width">
+        <div class="reveal grid gap-8 rounded-lg border border-white/10 bg-[#131313] p-6 md:grid-cols-3 md:gap-10 md:p-10">
+          <div>
+            <span class="section-label">Find us</span>
+            <h2 id="contact-heading" class="mt-4 font-display text-3xl font-semibold uppercase">Visit the gym.</h2>
+            <p class="mt-3 text-xs leading-6 text-gym-muted">Have a question about memberships, training or visiting for the first time? Get in touch.</p>
+          </div>
+
+          <div class="space-y-5">
+            <div class="flex gap-3">
+              <i data-lucide="map-pin" class="mt-1 h-5 w-5 shrink-0 text-gym-orange" aria-hidden="true"></i>
+              <div>
+                <p class="text-xs font-bold">Gym Address</p>
+                <p class="mt-1 text-xs leading-6 text-gym-muted">[FULL GYM ADDRESS], [CITY], [PIN CODE]</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <i data-lucide="phone" class="mt-1 h-5 w-5 shrink-0 text-gym-orange" aria-hidden="true"></i>
+              <div>
+                <p class="text-xs font-bold">Phone</p>
+                <p class="mt-1 text-xs text-gym-muted">[GYM PHONE NUMBER]</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <i data-lucide="mail" class="mt-1 h-5 w-5 shrink-0 text-gym-orange" aria-hidden="true"></i>
+              <div>
+                <p class="text-xs font-bold">Email</p>
+                <p class="mt-1 text-xs text-gym-muted">[GYM EMAIL ADDRESS]</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs font-bold">Ready to get started?</p>
+            <p class="mt-2 text-xs leading-6 text-gym-muted">Explore membership options or speak with the gym team about the right plan for you.</p>
+            <a href="#plans" class="orange-button mt-5">
+              Join Now <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/10 bg-[#080808] pt-12">
+    <div class="container-width">
+      <div class="grid gap-10 pb-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <a href="#home" class="inline-flex items-center gap-3">
+            <span class="grid h-10 w-10 place-items-center rounded bg-gym-orange">
+              <i data-lucide="dumbbell" class="h-5 w-5" aria-hidden="true"></i>
+            </span>
+            <span class="font-display text-xl font-bold uppercase">[GYM NAME]</span>
+          </a>
+          <p class="mt-4 max-w-xs text-xs leading-6 text-gym-muted">
+            Train with purpose. Get stronger every day. Your fitness journey starts here.
+          </p>
+          <div class="mt-5 flex gap-3">
+            <a href="#" class="grid h-9 w-9 place-items-center rounded border border-white/10 text-gym-muted transition hover:border-gym-orange hover:text-gym-orange" aria-label="Instagram placeholder link">
+              <i data-lucide="instagram" class="h-4 w-4" aria-hidden="true"></i>
+            </a>
+            <a href="#" class="grid h-9 w-9 place-items-center rounded border border-white/10 text-gym-muted transition hover:border-gym-orange hover:text-gym-orange" aria-label="Facebook placeholder link">
+              <i data-lucide="facebook" class="h-4 w-4" aria-hidden="true"></i>
+            </a>
+            <a href="#" class="grid h-9 w-9 place-items-center rounded border border-white/10 text-gym-muted transition hover:border-gym-orange hover:text-gym-orange" aria-label="YouTube placeholder link">
+              <i data-lucide="youtube" class="h-4 w-4" aria-hidden="true"></i>
+            </a>
+          </div>
+          <p class="mt-3 text-[10px] text-gym-muted">Social URLs are placeholders. Replace before publishing.</p>
+        </div>
+
+        <div>
+          <h3 class="text-[10px] font-extrabold uppercase tracking-[.18em] text-white">Explore</h3>
+          <ul class="mt-5 grid gap-4">
+            <li><a href="#home" class="footer-link">Home</a></li>
+            <li><a href="#plans" class="footer-link">Membership Plans</a></li>
+            <li><a href="#trainers" class="footer-link">Our Trainers</a></li>
+            <li><a href="#hours" class="footer-link">Opening Hours</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-[10px] font-extrabold uppercase tracking-[.18em] text-white">Membership</h3>
+          <ul class="mt-5 grid gap-4">
+            <li><a href="#plans" class="footer-link">Basic Plan</a></li>
+            <li><a href="#plans" class="footer-link">Standard Plan</a></li>
+            <li><a href="#plans" class="footer-link">Premium Plan</a></li>
+            <li><button type="button" id="footer-payment" class="footer-link">UPI / QR Payment</button></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-[10px] font-extrabold uppercase tracking-[.18em] text-white">Get in touch</h3>
+          <ul class="mt-5 grid gap-4 text-xs leading-6 text-gym-muted">
+            <li class="flex gap-3"><i data-lucide="map-pin" class="mt-1 h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i><span>[GYM ADDRESS], [CITY]</span></li>
+            <li class="flex gap-3"><i data-lucide="phone" class="mt-1 h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i><span>[GYM PHONE NUMBER]</span></li>
+            <li class="flex gap-3"><i data-lucide="clock" class="mt-1 h-4 w-4 shrink-0 text-gym-orange" aria-hidden="true"></i><a href="#hours" class="footer-link">View opening hours</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="flex flex-col justify-between gap-4 border-t border-white/10 py-6 sm:flex-row sm:items-center">
+        <p class="text-[10px] text-gym-muted">© <span id="current-year">2026</span> [GYM NAME]. All rights reserved.</p>
+        <div class="flex flex-wrap gap-5">
+          <a href="#" class="footer-link text-[10px]">Privacy Policy</a>
+          <a href="#" class="footer-link text-[10px]">Terms & Conditions</a>
+          <a href="#home" class="footer-link flex items-center gap-2 text-[10px]">Back to top <i data-lucide="arrow-up" class="h-3 w-3" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- PAYMENT MODAL -->
+  <dialog id="payment-dialog" class="payment-dialog" aria-labelledby="payment-heading" aria-describedby="payment-description">
+    <div class="flex items-center justify-between border-b border-white/10 p-5">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-[.18em] text-gym-orange">Membership payment</p>
+        <h2 id="payment-heading" class="mt-2 font-display text-2xl font-semibold uppercase">Pay via UPI / QR</h2>
+      </div>
+      <button type="button" id="close-payment" class="grid h-10 w-10 place-items-center rounded border border-white/15 hover:border-gym-orange"
+        aria-label="Close payment dialog">
+        <i data-lucide="x" class="h-5 w-5" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="p-6">
+      <div class="rounded border border-white/10 bg-[#1a1a1a] p-4">
+        <p class="text-[10px] font-bold uppercase tracking-[.15em] text-gym-muted">Selected membership</p>
+        <div class="mt-2 flex items-center justify-between gap-3">
+          <span id="selected-plan-name" class="font-display text-xl font-semibold uppercase">Standard</span>
+          <span id="selected-plan-price" class="font-display text-2xl font-semibold text-gym-orange">₹2,499</span>
+        </div>
+        <p id="selected-plan-duration" class="mt-1 text-xs text-gym-muted">3 months</p>
+      </div>
+
+      <div class="my-6 text-center">
+        <div class="qr-placeholder" role="img" aria-label="Placeholder illustration for a future verified gym payment QR code">
+          <div class="qr-placeholder-inner">
+            <i data-lucide="qr-code" class="h-12 w-12 text-gym-orange" aria-hidden="true"></i>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-gym-orange">QR Placeholder</span>
+            <span class="px-2 text-[9px] text-gym-muted">Not a payment QR</span>
+          </div>
+        </div>
+        <p class="mt-4 text-xs font-bold">Gym UPI / QR details not configured</p>
+        <p class="mx-auto mt-2 max-w-xs text-[11px] leading-5 text-gym-muted">
+          The image above is for layout preview only. It cannot be used to make a payment.
+        </p>
+      </div>
+
+      <div class="rounded border border-yellow-500/25 bg-yellow-500/5 p-4">
+        <div class="flex items-start gap-3">
+          <i data-lucide="shield-check" class="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" aria-hidden="true"></i>
+          <div>
+            <p class="text-xs font-bold text-yellow-200">Payment verification</p>
+            <p id="payment-description" class="mt-2 text-[11px] leading-5 text-gym-muted">
+              Configure an authentic gym QR code and UPI ID before enabling payments. Payment confirmation may require gym admin verification. This page does not process payments or verify transactions.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" id="close-payment-bottom" class="outline-button mt-5 w-full">
+        Close
+      </button>
+    </div>
+  </dialog>
+
+  <script>
+    'use strict';
+
+    /*
+     * GYM WEBSITE CONFIGURATION
+     *
+     * This object is a static frontend placeholder.
+     * Replace its values with real gym data or populate it from a future
+     * FastAPI integration. Do not place API secrets or database credentials here.
+     */
+
+    const GYM_CONFIG = {
+      plans: {
+        basic: {
+          name: 'Basic',
+          price: '₹999',
+          duration: '1 month'
+        },
+        standard: {
+          name: 'Standard',
+          price: '₹2,499',
+          duration: '3 months'
+        },
+        premium: {
+          name: 'Premium',
+          price: '₹8,499',
+          duration: '12 months'
+        }
+      },
+
+      payment: {
+        mode: 'placeholder',
+        upiId: '',
+        qrImageUrl: ''
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeIcons();
+      initializeNavigation();
+      initializeSmoothScrolling();
+      initializeScrollEffects();
+      initializeMemberships();
+      initializePaymentModal();
+
+      document.getElementById('current-year').textContent =
+        String(new Date().getFullYear());
+    });
+
+    function initializeIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }
+
+    function initializeNavigation() {
+      const navbar = document.getElementById('navbar');
+      const menuButton = document.getElementById('mobile-menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+
+      function updateNavbar() {
+        navbar.classList.toggle('scrolled', window.scrollY > 25);
+      }
+
+      function closeMenu() {
+        mobileMenu.classList.add('hidden');
+        menuButton.setAttribute('aria-expanded', 'false');
+        menuButton.setAttribute('aria-label', 'Open navigation menu');
+        menuButton.innerHTML = '<i data-lucide="menu" class="h-5 w-5" aria-hidden="true"></i>';
+        initializeIcons();
+      }
+
+      menuButton.addEventListener('click', () => {
+        const isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
+
+        if (isExpanded) {
+          closeMenu();
+          return;
+        }
+
+        mobileMenu.classList.remove('hidden');
+        menuButton.setAttribute('aria-expanded', 'true');
+        menuButton.setAttribute('aria-label', 'Close navigation menu');
+        menuButton.innerHTML = '<i data-lucide="x" class="h-5 w-5" aria-hidden="true"></i>';
+        initializeIcons();
+      });
+
+      mobileMenu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', closeMenu);
+      });
+
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeMenu();
+      });
+
+      window.addEventListener('scroll', updateNavbar, { passive: true });
+      updateNavbar();
+    }
+
+    function initializeSmoothScrolling() {
+      document.querySelectorAll('a[href^="#"]').forEach(link => {
+        link.addEventListener('click', event => {
+          const href = link.getAttribute('href');
+
+          if (!href || href === '#') {
+            event.preventDefault();
+            return;
+          }
+
+          const target = document.querySelector(href);
+
+          if (!target) {
+            event.preventDefault();
+            return;
+          }
+
+          event.preventDefault();
+
+          target.scrollIntoView({
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+              ? 'auto'
+              : 'smooth',
+            block: 'start'
+          });
+        });
+      });
+    }
+
+    function initializeScrollEffects() {
+      const elements = document.querySelectorAll('.reveal');
+
+      if (!('IntersectionObserver' in window)) {
+        elements.forEach(element => element.classList.add('visible'));
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries, instance) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            instance.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -35px 0px'
+      });
+
+      elements.forEach(element => observer.observe(element));
+    }
+
+    function initializeMemberships() {
+      const planButtons = document.querySelectorAll('[data-buy-plan]');
+
+      planButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const planId = button.dataset.buyPlan;
+
+          if (!GYM_CONFIG.plans[planId]) {
+            console.error('Unknown membership plan:', planId);
+            return;
+          }
+
+          openPaymentModal(planId);
+        });
+      });
+    }
+
+    let previouslyFocusedElement = null;
+
+    function initializePaymentModal() {
+      const dialog = document.getElementById('payment-dialog');
+
+      document.getElementById('open-payment').addEventListener('click', () => {
+        openPaymentModal('standard');
+      });
+
+      document.getElementById('footer-payment').addEventListener('click', () => {
+        openPaymentModal('standard');
+      });
+
+      document.getElementById('close-payment').addEventListener('click', closePaymentModal);
+      document.getElementById('close-payment-bottom').addEventListener('click', closePaymentModal);
+
+      dialog.addEventListener('click', event => {
+        if (event.target === dialog) closePaymentModal();
+      });
+
+      dialog.addEventListener('close', () => {
+        document.body.classList.remove('modal-open');
+      });
+
+      /*
+       * Intentionally no payment-success state or fake transaction status.
+       * The modal remains informational until a real payment integration exists.
+       */
+    }
+
+    function openPaymentModal(planId) {
+      const plan = GYM_CONFIG.plans[planId];
+
+      if (!plan) return;
+
+      const dialog = document.getElementById('payment-dialog');
+
+      document.getElementById('selected-plan-name').textContent = plan.name;
+      document.getElementById('selected-plan-price').textContent = plan.price;
+      document.getElementById('selected-plan-duration').textContent = plan.duration;
+
+      previouslyFocusedElement = document.activeElement;
+      document.body.classList.add('modal-open');
+
+      if (typeof dialog.showModal === 'function') {
+        if (!dialog.open) dialog.showModal();
+        document.getElementById('close-payment').focus();
+      } else {
+        /*
+         * Graceful fallback for browsers without native dialog support.
+         */
+        dialog.setAttribute('open', '');
+        dialog.style.position = 'fixed';
+        dialog.style.inset = '50% auto auto 50%';
+        dialog.style.transform = 'translate(-50%, -50%)';
+        dialog.style.zIndex = '100';
+        dialog.style.display = 'block';
+        dialog.style.margin = '0';
+        dialog.style.width = 'min(480px, calc(100% - 32px))';
+        document.getElementById('close-payment').focus();
+      }
+    }
+
+    function closePaymentModal() {
+      const dialog = document.getElementById('payment-dialog');
+
+      if (typeof dialog.close === 'function' && dialog.open) {
+        dialog.close();
+      } else {
+        dialog.removeAttribute('open');
+        dialog.style.display = '';
+        dialog.style.position = '';
+        dialog.style.inset = '';
+        dialog.style.transform = '';
+        dialog.style.zIndex = '';
+        dialog.style.margin = '';
+        dialog.style.width = '';
+        document.body.classList.remove('modal-open');
+      }
+
+      if (previouslyFocusedElement &&
+          typeof previouslyFocusedElement.focus === 'function') {
+        previouslyFocusedElement.focus();
+      }
+
+      previouslyFocusedElement = null;
+    }
+  </script>
+</body>
+</html>

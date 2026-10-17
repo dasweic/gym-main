@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Dashboard | Gym SaaS</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #f5f5f5; }
+    .heading { font-family: 'Oswald', sans-serif; }
+    .panel { background: #141414; border: 1px solid #292929; }
+    .accent { color: #ff6b00; }
+    .accent-bg { background: #ff6b00; }
+    .muted { color: #a3a3a3; }
+    .nav-link { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:10px; color:#a3a3a3; }
+    .nav-link:hover, .nav-link.active { background:#24201d; color:#ff6b00; }
+    .metric { font-size:clamp(1.5rem,3vw,2rem); font-weight:800; }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <div class="min-h-screen md:flex">
+
+    <!-- Sidebar -->
+    <aside class="hidden md:flex md:w-64 shrink-0 flex-col border-r border-neutral-800 bg-[#0d0d0d] p-5">
+      <a href="../public/index.html" class="mb-10 flex items-center gap-3">
+        <div class="accent-bg rounded-lg p-2 text-black">
+          <i data-lucide="dumbbell"></i>
+        </div>
+        <div>
+          <div class="heading text-xl font-bold tracking-wide">GYM<span class="accent">.</span></div>
+          <div class="text-xs muted">MEMBER PORTAL</div>
+        </div>
+      </a>
+
+      <nav class="space-y-2">
+        <a class="nav-link active" href="./dashboard.html"><i data-lucide="layout-dashboard" size="18"></i> Dashboard</a>
+        <a class="nav-link" href="./profile.html"><i data-lucide="user-round" size="18"></i> My Profile</a>
+        <a class="nav-link" href="./profile.html#membership"><i data-lucide="credit-card" size="18"></i> Membership</a>
+      </nav>
+
+      <div class="mt-auto panel rounded-xl p-4">
+        <p class="text-sm font-semibold">Stay consistent.</p>
+        <p class="mt-1 text-xs muted">Small progress every day adds up.</p>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="min-w-0 flex-1">
+      <header class="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-800 bg-[#0a0a0a]/95 px-5 py-4 backdrop-blur md:px-8">
+        <div class="flex items-center gap-3">
+          <div class="accent-bg rounded-lg p-2 text-black md:hidden"><i data-lucide="dumbbell"></i></div>
+          <div>
+            <p class="text-xs muted">MEMBER PORTAL</p>
+            <h1 class="heading text-2xl font-semibold">DASHBOARD</h1>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="hidden text-right sm:block">
+            <p id="header-name" class="text-sm font-semibold">Loading member...</p>
+            <p class="text-xs muted">Gym Member</p>
+          </div>
+          <div id="avatar" class="accent-bg flex h-10 w-10 items-center justify-center rounded-full font-bold text-black">M</div>
+          <button id="logout-btn" class="rounded-lg border border-neutral-700 p-2 hover:border-orange-500" title="Logout">
+            <i data-lucide="log-out" size="18"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="mx-auto max-w-7xl space-y-7 p-5 md:p-8">
+
+        <div id="page-error" class="hidden rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300"></div>
+
+        <!-- Welcome -->
+        <section class="panel relative overflow-hidden rounded-2xl p-6 md:p-9">
+          <div class="relative z-[1] max-w-2xl">
+            <p class="accent text-xs font-bold tracking-[.25em]">YOUR FITNESS JOURNEY</p>
+            <h2 class="heading mt-3 text-4xl font-bold md:text-5xl">
+              LET'S GET <span class="accent">STRONGER.</span>
+            </h2>
+            <p class="mt-3 muted">Welcome back, <span id="welcome-name" class="font-semibold text-white">Member</span>. Keep showing up for yourself.</p>
+            <a href="./profile.html" class="accent-bg mt-6 inline-flex items-center gap-2 rounded-lg px-5 py-3 font-bold text-black hover:bg-orange-400">
+              View My Profile <i data-lucide="arrow-up-right" size="18"></i>
+            </a>
+          </div>
+          <div class="pointer-events-none absolute -right-8 -top-12 opacity-[.06]">
+            <i data-lucide="dumbbell" style="width:260px;height:260px"></i>
+          </div>
+        </section>
+
+        <!-- Stats -->
+        <section>
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="heading text-2xl">YOUR OVERVIEW</h2>
+            <span id="load-status" class="text-xs muted">Connecting...</span>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="panel rounded-xl p-5">
+              <div class="flex items-center justify-between">
+                <span class="text-sm muted">Height</span><i data-lucide="ruler" class="accent"></i>
+              </div>
+              <p id="height-value" class="metric mt-4">—</p>
+              <p class="mt-1 text-xs muted">Centimetres</p>
+            </article>
+
+            <article class="panel rounded-xl p-5">
+              <div class="flex items-center justify-between">
+                <span class="text-sm muted">Weight</span><i data-lucide="scale" class="accent"></i>
+              </div>
+              <p id="weight-value" class="metric mt-4">—</p>
+              <p class="mt-1 text-xs muted">Kilograms</p>
+            </article>
+
+            <article class="panel rounded-xl p-5">
+              <div class="flex items-center justify-between">
+                <span class="text-sm muted">BMI</span><i data-lucide="activity" class="accent"></i>
+              </div>
+              <p id="bmi-value" class="metric mt-4">—</p>
+              <p class="mt-1 text-xs muted">Calculated from height and weight</p>
+            </article>
+
+            <article class="panel rounded-xl p-5">
+              <div class="flex items-center justify-between">
+                <span class="text-sm muted">Attendance Records</span><i data-lucide="calendar-check" class="accent"></i>
+              </div>
+              <p id="attendance-value" class="metric mt-4">—</p>
+              <p class="mt-1 text-xs muted">Records returned by the API</p>
+            </article>
+          </div>
+        </section>
+
+        <!-- Membership -->
+        <section>
+          <h2 class="heading mb-4 text-2xl">MEMBERSHIP</h2>
+          <div class="panel rounded-xl p-6">
+            <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
+              <div class="flex items-start gap-4">
+                <div class="rounded-xl bg-orange-500/10 p-3 accent"><i data-lucide="crown" size="25"></i></div>
+                <div>
+                  <p class="text-xs font-bold tracking-widest muted">CURRENT PLAN</p>
+                  <h3 id="plan-name" class="heading mt-1 text-2xl">Loading...</h3>
+                  <p id="plan-dates" class="mt-2 text-sm muted">Checking membership details...</p>
+                </div>
+              </div>
+              <div>
+                <span id="plan-status" class="inline-flex rounded-full border border-neutral-700 px-4 py-2 text-sm">Loading</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Workouts -->
+        <section>
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="heading text-2xl">WORKOUT ACTIVITY</h2>
+            <a href="./profile.html" class="text-sm accent hover:text-orange-300">View profile →</a>
+          </div>
+          <div class="panel rounded-xl p-6">
+            <div class="flex items-start gap-4">
+              <div class="rounded-xl bg-orange-500/10 p-3 accent"><i data-lucide="clipboard-list" size="24"></i></div>
+              <div class="min-w-0 flex-1">
+                <h3 class="font-semibold">Workout records</h3>
+                <p id="workout-summary" class="mt-2 text-sm muted">Loading workout data...</p>
+                <div id="workout-list" class="mt-4 space-y-2"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick links -->
+        <section class="grid gap-4 sm:grid-cols-2">
+          <a href="./profile.html" class="panel flex items-center justify-between rounded-xl p-5 hover:border-orange-500/60">
+            <div><p class="font-semibold">Edit your profile</p><p class="mt-1 text-sm muted">Update your personal and fitness details.</p></div>
+            <i data-lucide="arrow-up-right" class="accent"></i>
+          </a>
+          <a href="./profile.html#membership" class="panel flex items-center justify-between rounded-xl p-5 hover:border-orange-500/60">
+            <div><p class="font-semibold">Membership details</p><p class="mt-1 text-sm muted">Review your current membership information.</p></div>
+            <i data-lucide="arrow-up-right" class="accent"></i>
+          </a>
+        </section>
+
+        <footer class="border-t border-neutral-800 pt-5 text-center text-xs muted">
+          Gym Member Portal · Your fitness, your progress.
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <!-- Load the shared API client -->
+  <script src="../js/api.js"></script>
+
+  <script>
+    'use strict';
+
+    const $ = (selector) => document.querySelector(selector);
+
+    function showError(message) {
+      const element = $('#page-error');
+      element.textContent = message;
+      element.classList.remove('hidden');
+    }
+
+    function formatDate(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      return Number.isNaN(date.getTime())
+        ? String(value)
+        : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function display(value, suffix = '') {
+      return value !== null && value !== undefined && value !== ''
+        ? `${value}${suffix}` : '—';
+    }
+
+    async function initializeDashboard() {
+      if (!window.GymAPI || !window.GymAuth) {
+        showError('API client did not load. Check that frontend/js/api.js exists.');
+        $('#load-status').textContent = 'API unavailable';
+        return;
+      }
+
+      if (!window.GymAuth.isLoggedIn()) {
+        window.location.replace('../public/login.html');
+        return;
+      }
+
+      $('#load-status').textContent = 'Loading live data...';
+
+      try {
+        const user = await window.GymAPI.me();
+
+        if (!user || user.role !== 'member') {
+          window.GymAuth.clear();
+          window.location.replace('../public/login.html');
+          return;
+        }
+
+        const [profileResult, subscriptionResult, attendanceResult, workoutsResult] =
+          await Promise.allSettled([
+            window.GymAPI.getProfile(),
+            window.GymAPI.getSubscription(),
+            window.GymAPI.getAttendance(),
+            window.GymAPI.getWorkouts()
+          ]);
+
+        if (profileResult.status === 'fulfilled') {
+          const profile = profileResult.value;
+          const name = profile.name || user.name || 'Member';
+          const initials = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+
+          $('#header-name').textContent = name;
+          $('#welcome-name').textContent = name;
+          $('#avatar').textContent = initials || 'M';
+          $('#height-value').textContent = display(profile.height_cm, ' cm');
+          $('#weight-value').textContent = display(profile.weight_kg, ' kg');
+
+          const bmi = profile.bmi ??
+            (Number(profile.height_cm) > 0 && Number(profile.weight_kg) > 0
+              ? Number(profile.weight_kg) / Math.pow(Number(profile.height_cm) / 100, 2)
+              : null);
+
+          $('#bmi-value').textContent = bmi == null ? '—' : Number(bmi).toFixed(1);
+        } else {
+          console.error('Profile request failed:', profileResult.reason);
+          showError('Profile details could not be loaded. Try refreshing the page.');
+        }
+
+        if (subscriptionResult.status === 'fulfilled') {
+          const subscription = subscriptionResult.value;
+
+          if (!subscription || subscription.subscription === null) {
+            $('#plan-name').textContent = 'No active plan';
+            $('#plan-dates').textContent = 'Contact your gym administrator for membership details.';
+            $('#plan-status').textContent = 'No subscription';
+          } else {
+            $('#plan-name').textContent = subscription.plan_name || 'Membership';
+            const dates = [
+              subscription.start_date ? `Started ${formatDate(subscription.start_date)}` : '',
+              subscription.end_date ? `Expires ${formatDate(subscription.end_date)}` : ''
+            ].filter(Boolean);
+            $('#plan-dates').textContent = dates.join(' · ') || 'Dates not provided by API';
+            $('#plan-status').textContent = subscription.status || 'Status unavailable';
+          }
+        } else {
+          console.error('Subscription request failed:', subscriptionResult.reason);
+          $('#plan-name').textContent = 'Unable to load plan';
+          $('#plan-dates').textContent = 'Refresh the page or check the backend.';
+          $('#plan-status').textContent = 'Unavailable';
+        }
+
+        if (attendanceResult.status === 'fulfilled' && Array.isArray(attendanceResult.value)) {
+          const records = attendanceResult.value;
+          $('#attendance-value').textContent = String(records.length);
+        } else {
+          $('#attendance-value').textContent = '—';
+          console.error('Attendance request failed:', attendanceResult.reason);
+        }
+
+        if (workoutsResult.status === 'fulfilled' && Array.isArray(workoutsResult.value)) {
+          const workouts = workoutsResult.value;
+          $('#workout-summary').textContent = workouts.length
+            ? `${workouts.length} workout record(s) returned by the server.`
+            : 'No workout records are available yet.';
+
+          const list = $('#workout-list');
+          list.replaceChildren();
+
+          workouts.slice(0, 5).forEach((workout) => {
+            const item = document.createElement('div');
+            item.className = 'rounded-lg border border-neutral-800 bg-black/20 p-3';
+
+            const title = document.createElement('p');
+            title.className = 'font-medium';
+            title.textContent = workout.name || workout.title || workout.workout_name || 'Workout';
+
+            const details = document.createElement('p');
+            details.className = 'mt-1 text-xs muted';
+            details.textContent = [
+              workout.date ? formatDate(workout.date) : '',
+              workout.muscle_group || workout.category || ''
+            ].filter(Boolean).join(' · ') || 'Workout details provided by the API';
+
+            item.append(title, details);
+            list.append(item);
+          });
+        } else {
+          $('#workout-summary').textContent = 'Workout data could not be loaded.';
+          console.error('Workout request failed:', workoutsResult.reason);
+        }
+
+        if ([profileResult, subscriptionResult, attendanceResult, workoutsResult]
+          .every(result => result.status === 'fulfilled')) {
+          $('#load-status').textContent = 'Live data connected';
+        } else {
+          $('#load-status').textContent = 'Partially loaded';
+        }
+
+        if (window.lucide) window.lucide.createIcons();
+      } catch (error) {
+        console.error('Dashboard initialization failed:', error);
+        $('#load-status').textContent = 'Connection error';
+
+        const message = error && error.message ? error.message : 'Could not load dashboard data.';
+        if (/authentication|required|session expired|invalid or expired access token|user not found/i.test(message)) {
+          window.GymAuth.clear();
+          window.location.replace('../public/login.html');
+          return;
+        }
+        showError(message);
+      }
+    }
+
+    $('#logout-btn').addEventListener('click', () => {
+      if (window.GymAuth) window.GymAuth.clear();
+      else if (window.GymAPI) window.GymAPI.logout();
+      window.location.replace('../public/login.html');
+    });
+
+    document.addEventListener('DOMContentLoaded', initializeDashboard);
+  </script>
+</body>
+</html>

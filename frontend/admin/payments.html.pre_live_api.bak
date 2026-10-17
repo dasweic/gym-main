@@ -1,0 +1,1837 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0A0A0A" />
+  <meta name="description" content="Gym management payment dashboard for reviewing illustrative transactions, configuring UPI settings, and exporting payment reports." />
+  <title>Payments | IronCore Admin</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: "#FF6B00",
+            base: "#0A0A0A",
+            panel: "#171717",
+            muted: "#A3A3A3"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            heading: ["Oswald", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0A0A0A;
+      --panel: #171717;
+      --panel2: #1D1D1D;
+      --border: #2B2B2B;
+      --orange: #FF6B00;
+      --text: #FFFFFF;
+      --muted: #A3A3A3;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible,
+    textarea:focus-visible, a:focus-visible {
+      outline: 2px solid var(--orange);
+      outline-offset: 3px;
+    }
+
+    .heading-font { font-family: Oswald, sans-serif; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 15px; }
+    .field {
+      width: 100%;
+      min-height: 42px;
+      background: #101010;
+      border: 1px solid #333;
+      color: white;
+      border-radius: 9px;
+      padding: 10px 12px;
+      font-size: 12px;
+      transition: border-color .2s;
+    }
+    .field:focus { border-color: var(--orange); outline: none; }
+    .field::placeholder { color: #737373; }
+    select.field { cursor: pointer; }
+    .field-label {
+      display: block;
+      font-size: 11px;
+      color: #C5C5C5;
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+    .btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background .2s, border-color .2s, transform .2s;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary { background: var(--orange); color: white; }
+    .btn-primary:hover { background: #E65F00; }
+    .btn-secondary { background: #222; border-color: #373737; color: #E5E5E5; }
+    .btn-secondary:hover { background: #2A2A2A; }
+    .btn-danger { background: #291414; border-color: #542424; color: #FCA5A5; }
+    .btn-danger:hover { background: #3A1919; }
+    .btn-ghost { color: #BDBDBD; background: transparent; }
+    .btn-ghost:hover { color: white; background: #292929; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+    .sidebar {
+      width: 250px;
+      position: fixed;
+      inset: 0 auto 0 0;
+      background: #111;
+      border-right: 1px solid #292929;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      transition: transform .25s ease;
+    }
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 13px;
+      margin-bottom: 4px;
+      border-radius: 9px;
+      color: #A3A3A3;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all .2s;
+    }
+    .sidebar-link:hover { background: #202020; color: white; }
+    .sidebar-link.active {
+      background: rgba(255,107,0,.12);
+      color: #FF8A3D;
+      border: 1px solid rgba(255,107,0,.18);
+    }
+    .main-content { margin-left: 250px; min-height: 100vh; }
+    .topbar {
+      height: 70px;
+      background: rgba(10,10,10,.92);
+      border-bottom: 1px solid #242424;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(16px);
+    }
+    .kpi-card { padding: 19px; min-width: 0; }
+    .kpi-icon {
+      width: 39px;
+      height: 39px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+    }
+    .kpi-value { font-size: clamp(22px, 2vw, 29px); font-weight: 700; letter-spacing: -1.1px; }
+    .muted { color: var(--muted); }
+    .section-title { font-size: 14px; font-weight: 700; }
+    .eyebrow { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; color: #8F8F8F; }
+    .sample-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: #21190F;
+      border: 1px solid #49301B;
+      color: #F9B477;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .35px;
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      padding: 5px 8px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-size: 10px;
+      line-height: 1.2;
+      font-weight: 600;
+    }
+    .status::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+    .status-paid, .status-refunded { color: #6EE7B7; background: #10251D; border-color: #1E4836; }
+    .status-pending, .status-refund-pending { color: #FCD34D; background: #29220E; border-color: #4C3C14; }
+    .status-failed { color: #FCA5A5; background: #2B1515; border-color: #502525; }
+
+    .table-scroll { overflow-x: auto; }
+    .transaction-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .transaction-table th {
+      padding: 13px 15px;
+      background: #1B1B1B;
+      color: #858585;
+      font-size: 9px;
+      letter-spacing: .7px;
+      text-transform: uppercase;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .transaction-table td {
+      padding: 15px;
+      border-bottom: 1px solid #292929;
+      font-size: 11px;
+      vertical-align: middle;
+    }
+    .transaction-table tbody tr { transition: background .15s; }
+    .transaction-table tbody tr:hover { background: #1D1D1D; }
+    .transaction-table tbody tr:last-child td { border-bottom: none; }
+    .transaction-table td:first-child, .transaction-table th:first-child { padding-left: 19px; }
+    .transaction-table td:last-child, .transaction-table th:last-child { padding-right: 19px; }
+    .member-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .menu-panel {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 20;
+      min-width: 175px;
+      padding: 5px;
+      border: 1px solid #383838;
+      background: #202020;
+      border-radius: 10px;
+      box-shadow: 0 12px 35px #0009;
+    }
+    .menu-item {
+      width: 100%;
+      padding: 9px 10px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-align: left;
+      color: #D4D4D4;
+      font-size: 11px;
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+    }
+    .menu-item:hover { background: #303030; color: white; }
+    .menu-item.danger { color: #FCA5A5; }
+    .menu-item:disabled { opacity: .4; cursor: not-allowed; }
+
+    .qr-drop {
+      border: 1px dashed #484848;
+      background: #101010;
+      border-radius: 12px;
+      transition: border-color .2s, background .2s;
+    }
+    .qr-drop.drag-over { border-color: var(--orange); background: #21180F; }
+    .qr-preview {
+      width: 138px;
+      height: 138px;
+      border: 1px solid #373737;
+      background: white;
+      border-radius: 9px;
+      object-fit: contain;
+      padding: 7px;
+    }
+    .qr-placeholder {
+      width: 138px;
+      height: 138px;
+      border: 1px solid #333;
+      background: #101010;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      color: #696969;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.78);
+      backdrop-filter: blur(5px);
+    }
+    .modal {
+      width: min(100%, 600px);
+      max-height: min(88vh, 850px);
+      overflow-y: auto;
+      background: #171717;
+      border: 1px solid #353535;
+      border-radius: 16px;
+      box-shadow: 0 24px 90px #0009;
+      animation: modal-in .18s ease-out;
+    }
+    .modal-wide { width: min(100%, 760px); }
+    @keyframes modal-in {
+      from { opacity: 0; transform: translateY(8px) scale(.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .detail-item { background: #111; border: 1px solid #292929; border-radius: 9px; padding: 12px; min-width: 0; }
+    .detail-label { color: #8C8C8C; font-size: 10px; margin-bottom: 7px; }
+    .detail-value { font-size: 12px; color: #F3F3F3; font-weight: 600; overflow-wrap: anywhere; }
+    .toast-region {
+      position: fixed;
+      top: 84px;
+      right: 20px;
+      z-index: 200;
+      width: min(380px, calc(100vw - 32px));
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      background: #1B1B1B;
+      border: 1px solid #383838;
+      border-radius: 11px;
+      padding: 13px 15px;
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+      box-shadow: 0 8px 30px #0007;
+      animation: toast-in .2s ease-out;
+      pointer-events: auto;
+    }
+    .toast.success { border-color: #23513C; }
+    .toast.error { border-color: #663232; }
+    .toast.info { border-color: #49371D; }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .empty-state { padding: 48px 20px; text-align: center; }
+    .empty-icon { width: 48px; height: 48px; margin: 0 auto 14px; display: grid; place-items: center; border-radius: 14px; background: #252525; color: #A3A3A3; }
+    .pagination-btn {
+      min-width: 29px;
+      height: 29px;
+      border: 1px solid #333;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      color: #A3A3A3;
+      font-size: 11px;
+      background: #151515;
+    }
+    .pagination-btn.active { background: #FF6B00; color: white; border-color: #FF6B00; }
+    .pagination-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    .hidden { display: none !important; }
+
+    @media (max-width: 1100px) {
+      .sidebar { width: 225px; }
+      .main-content { margin-left: 225px; }
+      .transaction-table th, .transaction-table td { padding-left: 11px; padding-right: 11px; }
+      .kpi-card { padding: 15px; }
+    }
+    @media (max-width: 850px) {
+      .sidebar { transform: translateX(-100%); width: 260px; }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .sidebar-backdrop {
+        position: fixed; inset: 0; z-index: 45; background: #0009;
+      }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .filters-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 520px) {
+      .page-container { padding: 18px 13px !important; }
+      .topbar { height: 62px; padding-left: 13px !important; padding-right: 13px !important; }
+      .kpi-grid { gap: 10px; }
+      .kpi-card { padding: 13px; }
+      .kpi-icon { width: 33px; height: 33px; }
+      .kpi-value { font-size: 22px; }
+      .heading-font.page-title { font-size: 28px; }
+      .filters-grid { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr 1fr; }
+      .overlay { padding: 10px; }
+      .modal { border-radius: 13px; }
+      .toast-region { top: 70px; right: 10px; width: calc(100vw - 20px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="sidebarBackdrop" class="sidebar-backdrop hidden" aria-hidden="true"></div>
+
+  <aside id="sidebar" class="sidebar" aria-label="Main navigation">
+    <div class="h-[70px] px-6 flex items-center gap-3 border-b border-[#292929]">
+      <div class="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-white">
+        <i data-lucide="dumbbell" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="heading-font text-[22px] tracking-wide leading-none">IRON<span class="text-brand">CORE</span></div>
+        <div class="text-[9px] text-neutral-500 tracking-[2px] mt-1">GYM MANAGEMENT</div>
+      </div>
+      <button id="closeSidebar" class="ml-auto md:hidden text-neutral-400 hover:text-white" aria-label="Close navigation">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="px-4 pt-7 pb-2">
+      <div class="eyebrow px-3 mb-3">Workspace</div>
+      <nav>
+        <a href="dashboard.html" class="sidebar-link">
+          <i data-lucide="layout-dashboard" class="w-[17px] h-[17px]"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="members.html" class="sidebar-link">
+          <i data-lucide="users" class="w-[17px] h-[17px]"></i>
+          <span>Members</span>
+        </a>
+        <a href="payments.html" class="sidebar-link active" aria-current="page">
+          <i data-lucide="wallet" class="w-[17px] h-[17px]"></i>
+          <span>Payments</span>
+          <span class="ml-auto w-1.5 h-1.5 rounded-full bg-brand"></span>
+        </a>
+        <a href="plans.html" class="sidebar-link">
+          <i data-lucide="layers" class="w-[17px] h-[17px]"></i>
+          <span>Membership Plans</span>
+        </a>
+        <a href="trainers.html" class="sidebar-link">
+          <i data-lucide="user-round-check" class="w-[17px] h-[17px]"></i>
+          <span>Trainers</span>
+        </a>
+      </nav>
+
+      <div class="eyebrow px-3 mt-8 mb-3">Preferences</div>
+      <nav>
+        <a href="settings.html" class="sidebar-link">
+          <i data-lucide="settings-2" class="w-[17px] h-[17px]"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="mt-auto p-4">
+      <div class="rounded-xl border border-[#333] bg-[#191919] p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <i data-lucide="shield-check" class="w-4 h-4 text-brand"></i>
+          <span class="text-[11px] font-semibold">Demo environment</span>
+        </div>
+        <p class="text-[10px] text-neutral-500 leading-relaxed">Illustrative data only. No live payment gateway is connected.</p>
+      </div>
+      <div class="flex items-center gap-3 mt-4 px-1">
+        <div class="w-9 h-9 rounded-full bg-[#33251A] border border-[#56381F] grid place-items-center text-brand text-xs font-bold">AD</div>
+        <div class="min-w-0">
+          <div class="text-xs font-semibold">Gym Administrator</div>
+          <div class="text-[10px] text-neutral-500 mt-1">Owner workspace</div>
+        </div>
+        <span class="ml-auto w-2 h-2 rounded-full bg-emerald-400" title="Demo UI available"></span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar px-6 lg:px-8 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <button id="openSidebar" class="md:hidden w-9 h-9 rounded-lg border border-[#333] grid place-items-center text-neutral-300" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <div class="text-[11px] text-neutral-500 hidden sm:flex items-center gap-2">
+          <i data-lucide="house" class="w-3.5 h-3.5"></i>
+          <span>/</span>
+          <span>Admin</span>
+          <span>/</span>
+          <span class="text-neutral-200">Payments</span>
+        </div>
+        <div class="sm:hidden text-sm font-semibold">Payments</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="hidden sm:inline-flex sample-label">
+          <i data-lucide="flask-conical" class="w-3 h-3"></i>
+          SAMPLE DATA
+        </span>
+        <button id="topHelp" class="w-9 h-9 rounded-lg border border-[#333] grid place-items-center text-neutral-400 hover:text-white hover:bg-[#222]" aria-label="About this demo" title="About this demo">
+          <i data-lucide="info" class="w-4 h-4"></i>
+        </button>
+        <div class="w-9 h-9 rounded-full bg-[#302218] border border-[#51351F] grid place-items-center text-brand text-xs font-bold">AD</div>
+      </div>
+    </header>
+
+    <div class="page-container px-6 py-7 lg:px-8 lg:py-8 max-w-[1700px] mx-auto">
+      <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-7">
+        <div>
+          <div class="eyebrow mb-2">Finance / Overview</div>
+          <h1 class="heading-font page-title text-[34px] sm:text-[38px] tracking-wide leading-tight">Payment Management<span class="text-brand">.</span></h1>
+          <p class="text-xs text-neutral-500 mt-2">Track collections, review transactions, and configure your payment preferences.</p>
+          <div class="flex items-center gap-2 mt-4">
+            <span class="sample-label"><i data-lucide="alert-circle" class="w-3 h-3"></i> DEMONSTRATION ONLY</span>
+            <span class="text-[10px] text-neutral-500">Not connected to live financial records</span>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="exportCsv" class="btn btn-secondary">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Export CSV
+          </button>
+          <button id="scrollToSettings" class="btn btn-primary">
+            <i data-lucide="settings-2" class="w-4 h-4"></i>
+            UPI Settings
+          </button>
+        </div>
+      </section>
+
+      <section aria-label="Sample payment metrics" class="mb-7">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="section-title">Collections Overview</h2>
+          <span class="text-[10px] text-neutral-500">Illustrative sample figures</span>
+        </div>
+        <div class="kpi-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <article class="panel kpi-card">
+            <div class="flex items-start justify-between gap-2">
+              <div class="text-[11px] text-neutral-400">Total Collections</div>
+              <div class="kpi-icon bg-[#332014] text-[#FF984B]"><i data-lucide="indian-rupee" class="w-5 h-5"></i></div>
+            </div>
+            <div id="kpiCollections" class="kpi-value mt-4">₹0</div>
+            <div class="flex items-center gap-1.5 mt-3 text-[10px] text-neutral-500">
+              <i data-lucide="chart-no-axes-combined" class="w-3.5 h-3.5 text-brand"></i>
+              Paid transactions only
+            </div>
+          </article>
+          <article class="panel kpi-card">
+            <div class="flex items-start justify-between gap-2">
+              <div class="text-[11px] text-neutral-400">Successful Payments</div>
+              <div class="kpi-icon bg-[#122B20] text-emerald-400"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+            </div>
+            <div id="kpiSuccessful" class="kpi-value mt-4">0</div>
+            <div class="flex items-center gap-1.5 mt-3 text-[10px] text-neutral-500">
+              <i data-lucide="badge-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+              Transactions marked Paid
+            </div>
+          </article>
+          <article class="panel kpi-card">
+            <div class="flex items-start justify-between gap-2">
+              <div class="text-[11px] text-neutral-400">Pending Payments</div>
+              <div class="kpi-icon bg-[#30270E] text-amber-300"><i data-lucide="clock-3" class="w-5 h-5"></i></div>
+            </div>
+            <div id="kpiPending" class="kpi-value mt-4">0</div>
+            <div class="flex items-center gap-1.5 mt-3 text-[10px] text-neutral-500">
+              <i data-lucide="circle-dashed" class="w-3.5 h-3.5 text-amber-300"></i>
+              Includes refund pending
+            </div>
+          </article>
+          <article class="panel kpi-card">
+            <div class="flex items-start justify-between gap-2">
+              <div class="text-[11px] text-neutral-400">Refunds</div>
+              <div class="kpi-icon bg-[#241A35] text-purple-300"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></div>
+            </div>
+            <div id="kpiRefunds" class="kpi-value mt-4">₹0</div>
+            <div class="flex items-center gap-1.5 mt-3 text-[10px] text-neutral-500">
+              <i data-lucide="info" class="w-3.5 h-3.5 text-purple-300"></i>
+              Marked refunded in demo
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="upiSettings" class="panel p-5 sm:p-6 mb-7 scroll-mt-24">
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#332014] text-brand grid place-items-center flex-shrink-0">
+              <i data-lucide="qr-code" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="section-title text-[15px]">UPI Payment Settings</h2>
+              <p class="text-[11px] text-neutral-500 mt-1.5">Configure the details shown in your gym's illustrative payment setup.</p>
+            </div>
+          </div>
+          <span class="sample-label self-start"><i data-lucide="monitor" class="w-3 h-3"></i> SESSION ONLY</span>
+        </div>
+
+        <div class="rounded-lg bg-[#211A12] border border-[#49331E] px-3.5 py-3 mb-6 flex items-start gap-2.5">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-[#F9B477] mt-0.5 flex-shrink-0"></i>
+          <p class="text-[10px] text-[#E3C5A5] leading-relaxed">Demo mode: changes remain in this page's memory and are lost when you reload. No UPI credentials are sent or saved to a server. Only upload a QR code you are authorized to use.</p>
+        </div>
+
+        <form id="upiForm" novalidate>
+          <div class="grid grid-cols-1 lg:grid-cols-[1fr_270px] gap-7">
+            <div class="space-y-5">
+              <div>
+                <label class="field-label" for="accountHolder">Account Holder / Gym Name <span class="text-brand">*</span></label>
+                <input id="accountHolder" name="accountHolder" class="field" type="text" maxlength="100" autocomplete="organization" placeholder="e.g. IronCore Fitness" required aria-describedby="holderError" />
+                <p id="holderError" class="text-[10px] text-red-400 mt-1.5 hidden" role="alert"></p>
+              </div>
+              <div>
+                <label class="field-label" for="upiId">Gym Owner's UPI ID <span class="text-brand">*</span></label>
+                <input id="upiId" name="upiId" class="field" type="text" maxlength="100" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="name@bank" required aria-describedby="upiError" />
+                <p class="text-[10px] text-neutral-600 mt-1.5">Example format only. Enter your own authorized UPI ID; no real details are prefilled.</p>
+                <p id="upiError" class="text-[10px] text-red-400 mt-1.5 hidden" role="alert"></p>
+              </div>
+              <div class="pt-1">
+                <div class="flex items-center gap-2 mb-3">
+                  <i data-lucide="image-up" class="w-4 h-4 text-brand"></i>
+                  <h3 class="text-xs font-semibold">Payment QR Code</h3>
+                </div>
+                <label for="qrFile" class="field-label">Upload QR image (PNG, JPEG or WebP)</label>
+                <input id="qrFile" class="field" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="qrError" />
+                <p id="qrError" class="text-[10px] text-red-400 mt-1.5 hidden" role="alert"></p>
+                <p class="text-[10px] text-neutral-600 mt-2">Maximum 2 MB. Preview only; the image is not uploaded anywhere.</p>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[11px] font-semibold">QR Preview</span>
+                <span id="qrFileState" class="text-[9px] text-neutral-500">No image selected</span>
+              </div>
+              <div id="qrDrop" class="qr-drop min-h-[225px] flex flex-col items-center justify-center p-4 gap-3">
+                <div id="qrPlaceholder" class="qr-placeholder">
+                  <div class="text-center">
+                    <i data-lucide="scan-qr-code" class="w-10 h-10 mx-auto mb-2"></i>
+                    <div class="text-[10px]">QR preview</div>
+                  </div>
+                </div>
+                <img id="qrPreview" class="qr-preview hidden" alt="Uploaded payment QR code preview" />
+                <p id="qrPreviewCaption" class="text-[10px] text-neutral-500 text-center">Your QR code will appear here.</p>
+                <div class="flex items-center gap-2 flex-wrap justify-center">
+                  <button type="button" id="replaceQr" class="btn btn-secondary text-[10px]">
+                    <i data-lucide="upload" class="w-3.5 h-3.5"></i> Replace
+                  </button>
+                  <button type="button" id="removeQr" class="btn btn-ghost text-[10px]" disabled>
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 border-t border-[#2B2B2B] mt-6 pt-5">
+            <p class="text-[10px] text-neutral-500 flex items-center gap-2">
+              <i data-lucide="lock-keyhole" class="w-3.5 h-3.5"></i>
+              No credentials or authentication tokens are stored in browser storage.
+            </p>
+            <button type="submit" id="saveSettings" class="btn btn-primary">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              Save Settings
+            </button>
+          </div>
+          <div id="settingsFeedback" class="hidden mt-4 rounded-lg p-3 text-[11px]" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section class="panel overflow-hidden" aria-labelledby="transactionsHeading">
+        <div class="p-5 sm:p-6 border-b border-[#2B2B2B]">
+          <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center flex-wrap gap-2">
+                <h2 id="transactionsHeading" class="section-title text-[15px]">Transactions</h2>
+                <span class="sample-label">SAMPLE RECORDS</span>
+              </div>
+              <p class="text-[11px] text-neutral-500 mt-1.5">Review and manage illustrative payment records.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="relative flex-1 min-w-[210px] sm:min-w-[250px]">
+                <label class="sr-only" for="searchInput">Search by member name or transaction ID</label>
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none"></i>
+                <input id="searchInput" class="field pl-9" type="search" placeholder="Search member or transaction ID..." />
+              </div>
+              <button id="toggleFilters" class="btn btn-secondary">
+                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+                Filters
+                <span id="filterCount" class="hidden rounded-full bg-brand text-white min-w-[17px] h-[17px] grid place-items-center text-[9px] px-1">0</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="filterPanel" class="hidden mt-5 pt-5 border-t border-[#2B2B2B]">
+            <div class="filters-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+              <div>
+                <label class="field-label" for="statusFilter">Payment Status</label>
+                <select id="statusFilter" class="field">
+                  <option value="">All statuses</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Failed">Failed</option>
+                  <option value="Refund Pending">Refund Pending</option>
+                  <option value="Refunded">Refunded</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="methodFilter">Payment Method</label>
+                <select id="methodFilter" class="field">
+                  <option value="">All methods</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="dateFrom">From Date</label>
+                <input id="dateFrom" class="field" type="date" />
+              </div>
+              <div>
+                <label class="field-label" for="dateTo">To Date</label>
+                <input id="dateTo" class="field" type="date" />
+              </div>
+              <div class="flex items-end">
+                <button id="clearFilters" class="btn btn-secondary w-full">
+                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+            <p id="dateFilterError" class="hidden text-[10px] text-red-400 mt-3" role="alert"></p>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 mt-5">
+            <div class="flex flex-wrap items-center gap-2 text-[10px] text-neutral-500">
+              <span id="resultCount" aria-live="polite">Showing 0 transactions</span>
+              <span class="text-neutral-700">•</span>
+              <span id="resultTotal" class="text-neutral-300">₹0 filtered amount</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-[10px] text-neutral-500" for="pageSize">Rows</label>
+              <select id="pageSize" class="field !w-[76px] !min-h-[32px] !py-1 !px-2">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+              <button id="exportFiltered" class="btn btn-ghost !px-2 !py-2" title="Export currently filtered transactions to CSV">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Export filtered</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="transaction-table">
+            <caption class="sr-only">Illustrative gym membership payment transactions with demo-only actions.</caption>
+            <thead>
+              <tr>
+                <th scope="col">Transaction ID</th>
+                <th scope="col">Member</th>
+                <th scope="col">Membership Plan</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Date &amp; Time</th>
+                <th scope="col">Method</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="transactionBody"></tbody>
+          </table>
+          <div id="emptyState" class="empty-state hidden">
+            <div class="empty-icon"><i data-lucide="search-x" class="w-6 h-6"></i></div>
+            <h3 class="text-sm font-semibold">No transactions found</h3>
+            <p class="text-[11px] text-neutral-500 mt-2 max-w-[300px] mx-auto">Try a different search term or adjust your filters to find sample transactions.</p>
+            <button id="emptyClearFilters" class="btn btn-secondary mt-4">Clear all filters</button>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-t border-[#2B2B2B]">
+          <div id="paginationInfo" class="text-[10px] text-neutral-500">Showing 0–0 of 0</div>
+          <div id="paginationControls" class="flex items-center gap-1.5" aria-label="Transaction pages"></div>
+        </div>
+      </section>
+
+      <footer class="flex flex-col sm:flex-row justify-between gap-2 py-6 mt-1 text-[10px] text-neutral-600">
+        <span>© <span id="currentYear"></span> IronCore Admin · Demo interface</span>
+        <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> No live financial operations are performed</span>
+      </footer>
+    </div>
+  </main>
+
+  <!-- Transaction details modal -->
+  <div id="detailsOverlay" class="overlay hidden" role="presentation">
+    <section id="detailsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle" aria-describedby="detailsDescription" tabindex="-1">
+      <div class="p-5 sm:p-6 border-b border-[#2B2B2B] flex items-start justify-between gap-3">
+        <div>
+          <div class="eyebrow mb-2">Transaction Record</div>
+          <h2 id="detailsTitle" class="heading-font text-2xl tracking-wide">Transaction Details</h2>
+          <p id="detailsDescription" class="text-[10px] text-neutral-500 mt-1.5">Illustrative record only. No live gateway data.</p>
+        </div>
+        <button class="modal-close w-9 h-9 grid place-items-center rounded-lg border border-[#333] text-neutral-400 hover:text-white hover:bg-[#222]" data-close="detailsOverlay" aria-label="Close transaction details">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="p-5 sm:p-6">
+        <div class="rounded-xl bg-[#101010] border border-[#2D2D2D] p-4 mb-5">
+          <div class="flex justify-between items-start gap-3">
+            <div>
+              <div class="text-[10px] text-neutral-500">Transaction Amount</div>
+              <div id="detailAmount" class="heading-font text-3xl mt-2">₹0</div>
+            </div>
+            <div id="detailStatus"></div>
+          </div>
+          <div class="border-t border-[#2A2A2A] mt-4 pt-3 flex items-center justify-between gap-3">
+            <span class="text-[10px] text-neutral-500">Transaction ID</span>
+            <span id="detailId" class="text-[11px] font-semibold break-all text-right">—</span>
+          </div>
+        </div>
+        <h3 class="text-xs font-semibold mb-3">Payment Information</h3>
+        <div class="detail-grid">
+          <div class="detail-item"><div class="detail-label">Member Name</div><div id="detailMember" class="detail-value">—</div></div>
+          <div class="detail-item"><div class="detail-label">Member Email</div><div id="detailEmail" class="detail-value">—</div></div>
+          <div class="detail-item"><div class="detail-label">Membership Plan</div><div id="detailPlan" class="detail-value">—</div></div>
+          <div class="detail-item"><div class="detail-label">Payment Method</div><div id="detailMethod" class="detail-value">—</div></div>
+          <div class="detail-item"><div class="detail-label">Transaction Date</div><div id="detailDate" class="detail-value">—</div></div>
+          <div class="detail-item"><div class="detail-label">Member ID</div><div id="detailMemberId" class="detail-value">—</div></div>
+          <div class="detail-item"><div class="detail-label">Reference Information</div><div id="detailReference" class="detail-value">—</div></div>
+          <div class="detail-item"><div class="detail-label">Record Type</div><div class="detail-value">Illustrative sample</div></div>
+        </div>
+        <div class="rounded-lg bg-[#211A12] border border-[#49331E] p-3 mt-4 flex gap-2.5 items-start">
+          <i data-lucide="info" class="w-4 h-4 text-[#F9B477] mt-0.5 flex-shrink-0"></i>
+          <p class="text-[10px] text-[#E3C5A5] leading-relaxed">This record is simulated. Any status update below changes only this page's in-memory dataset; it does not verify or transfer money.</p>
+        </div>
+        <div class="flex flex-wrap justify-end gap-2 mt-5">
+          <button class="btn btn-secondary modal-close" data-close="detailsOverlay">Close</button>
+          <button id="detailActionButton" class="btn btn-primary"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Demo action</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Accessible confirmation dialog -->
+  <div id="confirmOverlay" class="overlay hidden" role="presentation">
+    <section class="modal !max-w-[440px]" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmDescription" tabindex="-1">
+      <div class="p-5 sm:p-6">
+        <div class="w-11 h-11 rounded-xl bg-[#332014] text-brand grid place-items-center mb-4">
+          <i data-lucide="shield-alert" class="w-5 h-5"></i>
+        </div>
+        <h2 id="confirmTitle" class="text-base font-bold">Confirm demo action</h2>
+        <p id="confirmDescription" class="text-xs text-neutral-400 leading-relaxed mt-2">This action changes only the illustrative dataset.</p>
+        <div class="rounded-lg bg-[#211A12] border border-[#49331E] p-3 mt-4">
+          <p class="text-[10px] text-[#E3C5A5]">No real payment will be verified, no refund will be issued, and no money will be transferred.</p>
+        </div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button id="cancelConfirm" class="btn btn-secondary">Cancel</button>
+          <button id="acceptConfirm" class="btn btn-primary">Confirm demo change</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- About demo dialog -->
+  <div id="aboutOverlay" class="overlay hidden" role="presentation">
+    <section class="modal !max-w-[450px]" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" tabindex="-1">
+      <div class="p-5 sm:p-6">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#332014] text-brand grid place-items-center"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
+            <div><h2 id="aboutTitle" class="font-bold text-sm">About this demo</h2><p class="text-[10px] text-neutral-500 mt-1">Payments management prototype</p></div>
+          </div>
+          <button class="modal-close w-8 h-8 grid place-items-center rounded-lg border border-[#333]" data-close="aboutOverlay" aria-label="Close about dialog"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="space-y-3 mt-5 text-[11px] text-neutral-400 leading-relaxed">
+          <p>All transaction records, member details, dates, amounts, and sample identifiers on this page are fictional demonstration data.</p>
+          <p>Payment actions update the in-memory demo dataset only. Changes are not sent to a payment provider or backend and reset on page reload.</p>
+          <p>UPI settings and QR previews are temporary. The QR image stays in browser memory for this page and is not uploaded.</p>
+          <p>A production FastAPI/PostgreSQL integration must verify transactions through trusted server-side provider evidence and implement authenticated, authorized, audited refund workflows.</p>
+        </div>
+        <button class="btn btn-primary w-full mt-5 modal-close" data-close="aboutOverlay">Got it</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-relevant="additions text"></div>
+
+  <script>
+    "use strict";
+
+    /*
+     * PAYMENT MANAGEMENT DEMO
+     *
+     * Integration notes:
+     * - This page intentionally does not call any API endpoints.
+     * - All transaction mutations exist only in the in-memory `transactions` array.
+     * - Never trust a browser-side status change as proof of payment.
+     * - A future backend should authorize each action and verify provider evidence
+     *   server-side, with idempotency, audit logs, and explicit refund handling.
+     * - Never place API keys, provider secrets, or authentication tokens in this page.
+     */
+
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+    const rupeeFormatter = new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2
+    });
+
+    function money(amount) {
+      return rupeeFormatter.format(Number(amount) || 0);
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[character]);
+    }
+
+    function statusClass(status) {
+      return ({
+        "Paid": "status-paid",
+        "Pending": "status-pending",
+        "Failed": "status-failed",
+        "Refund Pending": "status-refund-pending",
+        "Refunded": "status-refunded"
+      })[status] || "status-pending";
+    }
+
+    function statusBadge(status) {
+      return `<span class="status ${statusClass(status)}" aria-label="Status: ${escapeHTML(status)}">${escapeHTML(status)}</span>`;
+    }
+
+    function initials(name) {
+      return String(name).trim().split(/\s+/).slice(0, 2).map(part => part[0] || "").join("").toUpperCase();
+    }
+
+    const avatarColors = [
+      ["#2A211A", "#FFB36F"], ["#1D2635", "#93C5FD"],
+      ["#292036", "#D8B4FE"], ["#183027", "#86EFAC"],
+      ["#322124", "#FDA4AF"], ["#272D32", "#A5F3FC"],
+      ["#332A17", "#FDE68A"], ["#28241D", "#D6D3D1"]
+    ];
+
+    const sampleDataNotice = "This is an illustrative demo action. No real payment was verified, refunded, or transferred.";
+
+    // All names, IDs, amounts, timestamps, and reference labels are fictional.
+    // Dates are fixed to keep the demonstration predictable across page visits.
+    const transactions = [
+      { id: "DEMO-TXN-1001", memberId: "DEMO-M001", member: "Aarav Sharma", email: "aarav@example.invalid", plan: "Premium Annual", amount: 14999, date: "2026-10-09T10:30:00+05:30", method: "UPI", status: "Paid", reference: "ILLUSTRATIVE-REF-001" },
+      { id: "DEMO-TXN-1002", memberId: "DEMO-M002", member: "Priya Patel", email: "priya@example.invalid", plan: "Standard Quarterly", amount: 4500, date: "2026-10-09T09:45:00+05:30", method: "Cash", status: "Pending", reference: "No gateway reference — cash sample" },
+      { id: "DEMO-TXN-1003", memberId: "DEMO-M003", member: "Rohan Mehta", email: "rohan@example.invalid", plan: "Elite Monthly", amount: 2999, date: "2026-10-08T18:20:00+05:30", method: "Bank Transfer", status: "Paid", reference: "ILLUSTRATIVE-REF-003" },
+      { id: "DEMO-TXN-1004", memberId: "DEMO-M004", member: "Ananya Singh", email: "ananya@example.invalid", plan: "Premium Annual", amount: 14999, date: "2026-10-08T16:15:00+05:30", method: "UPI", status: "Refund Pending", reference: "ILLUSTRATIVE-REF-004" },
+      { id: "DEMO-TXN-1005", memberId: "DEMO-M005", member: "Kabir Verma", email: "kabir@example.invalid", plan: "Standard Monthly", amount: 1799, date: "2026-10-08T12:05:00+05:30", method: "UPI", status: "Failed", reference: "ILLUSTRATIVE-REF-005" },
+      { id: "DEMO-TXN-1006", memberId: "DEMO-M006", member: "Ishita Gupta", email: "ishita@example.invalid", plan: "Elite Quarterly", amount: 7999, date: "2026-10-07T17:30:00+05:30", method: "Bank Transfer", status: "Paid", reference: "ILLUSTRATIVE-REF-006" },
+      { id: "DEMO-TXN-1007", memberId: "DEMO-M007", member: "Arjun Joshi", email: "arjun@example.invalid", plan: "Standard Monthly", amount: 1799, date: "2026-10-07T14:20:00+05:30", method: "Cash", status: "Refunded", reference: "Illustrative manual refund record" },
+      { id: "DEMO-TXN-1008", memberId: "DEMO-M008", member: "Meera Kapoor", email: "meera@example.invalid", plan: "Premium Quarterly", amount: 6999, date: "2026-10-06T11:50:00+05:30", method: "UPI", status: "Paid", reference: "ILLUSTRATIVE-REF-008" },
+      { id: "DEMO-TXN-1009", memberId: "DEMO-M009", member: "Vivaan Reddy", email: "vivaan@example.invalid", plan: "Elite Monthly", amount: 2999, date: "2026-10-05T10:10:00+05:30", method: "Bank Transfer", status: "Pending", reference: "ILLUSTRATIVE-REF-009" },
+      { id: "DEMO-TXN-1010", memberId: "DEMO-M010", member: "Diya Malhotra", email: "diya@example.invalid", plan: "Premium Annual", amount: 14999, date: "2026-10-04T15:40:00+05:30", method: "UPI", status: "Paid", reference: "ILLUSTRATIVE-REF-010" },
+      { id: "DEMO-TXN-1011", memberId: "DEMO-M011", member: "Aditya Nair", email: "aditya@example.invalid", plan: "Standard Quarterly", amount: 4500, date: "2026-10-03T13:25:00+05:30", method: "Cash", status: "Paid", reference: "No gateway reference — cash sample" },
+      { id: "DEMO-TXN-1012", memberId: "DEMO-M012", member: "Saanvi Rao", email: "saanvi@example.invalid", plan: "Elite Quarterly", amount: 7999, date: "2026-10-02T09:15:00+05:30", method: "UPI", status: "Failed", reference: "ILLUSTRATIVE-REF-012" },
+      { id: "DEMO-TXN-1013", memberId: "DEMO-M013", member: "Reyansh Shah", email: "reyansh@example.invalid", plan: "Standard Monthly", amount: 1799, date: "2026-09-30T19:05:00+05:30", method: "Bank Transfer", status: "Paid", reference: "ILLUSTRATIVE-REF-013" },
+      { id: "DEMO-TXN-1014", memberId: "DEMO-M014", member: "Aadhya Iyer", email: "aadhya@example.invalid", plan: "Premium Quarterly", amount: 6999, date: "2026-09-28T11:00:00+05:30", method: "UPI", status: "Refund Pending", reference: "ILLUSTRATIVE-REF-014" },
+      { id: "DEMO-TXN-1015", memberId: "DEMO-M015", member: "Krish Bansal", email: "krish@example.invalid", plan: "Standard Monthly", amount: 1799, date: "2026-09-25T16:30:00+05:30", method: "Cash", status: "Pending", reference: "No gateway reference — cash sample" },
+      { id: "DEMO-TXN-1016", memberId: "DEMO-M016", member: "Tara Desai", email: "tara@example.invalid", plan: "Premium Annual", amount: 14999, date: "2026-09-22T10:45:00+05:30", method: "UPI", status: "Paid", reference: "ILLUSTRATIVE-REF-016" },
+      { id: "DEMO-TXN-1017", memberId: "DEMO-M017", member: "Dev Khanna", email: "dev@example.invalid", plan: "Elite Monthly", amount: 2999, date: "2026-09-18T12:30:00+05:30", method: "Bank Transfer", status: "Refunded", reference: "Illustrative manual refund record" },
+      { id: "DEMO-TXN-1018", memberId: "DEMO-M018", member: "Myra Sethi", email: "myra@example.invalid", plan: "Standard Quarterly", amount: 4500, date: "2026-09-15T17:15:00+05:30", method: "UPI", status: "Paid", reference: "ILLUSTRATIVE-REF-018" }
+    ];
+
+    let currentPage = 1;
+    let activeTransactionId = null;
+    let pendingConfirmation = null;
+    let lastFocusedElement = null;
+    let qrObjectUrl = null;
+    let pendingQrFile = null;
+    let currentQrFile = null;
+    let savedSessionSettings = { holder: "", upiId: "", qrFile: null };
+    let isSidebarOpen = false;
+
+    const STATUS_VALUES = ["Paid", "Pending", "Failed", "Refund Pending", "Refunded"];
+    const METHOD_VALUES = ["UPI", "Cash", "Bank Transfer"];
+
+    function getTransaction(id) {
+      return transactions.find(transaction => transaction.id === id) || null;
+    }
+
+    function formatDateTime(iso) {
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) return "Invalid date";
+      return new Intl.DateTimeFormat("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: "Asia/Kolkata"
+      }).format(date);
+    }
+
+    function getFilteredTransactions() {
+      const query = $("#searchInput").value.trim().toLowerCase();
+      const status = $("#statusFilter").value;
+      const method = $("#methodFilter").value;
+      const from = $("#dateFrom").value;
+      const to = $("#dateTo").value;
+
+      return transactions
+        .filter(transaction => {
+          const matchesQuery = !query ||
+            transaction.member.toLowerCase().includes(query) ||
+            transaction.id.toLowerCase().includes(query);
+
+          const transactionDate = transaction.date.slice(0, 10);
+          const matchesStatus = !status || transaction.status === status;
+          const matchesMethod = !method || transaction.method === method;
+          const matchesFrom = !from || transactionDate >= from;
+          const matchesTo = !to || transactionDate <= to;
+
+          return matchesQuery && matchesStatus && matchesMethod && matchesFrom && matchesTo;
+        })
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    function getFilteredAmount(records) {
+      // This is a display total, not a settlement or net revenue calculation.
+      return records.reduce((sum, transaction) => sum + transaction.amount, 0);
+    }
+
+    function renderKpis() {
+      const paid = transactions.filter(transaction => transaction.status === "Paid");
+      const refunded = transactions.filter(transaction => transaction.status === "Refunded");
+      const pending = transactions.filter(transaction =>
+        transaction.status === "Pending" || transaction.status === "Refund Pending"
+      );
+
+      $("#kpiCollections").textContent = money(getFilteredAmount(paid));
+      $("#kpiSuccessful").textContent = paid.length.toLocaleString("en-IN");
+      $("#kpiPending").textContent = pending.length.toLocaleString("en-IN");
+      $("#kpiRefunds").textContent = money(getFilteredAmount(refunded));
+    }
+
+    function renderRows() {
+      const filtered = getFilteredTransactions();
+      const pageSize = Number($("#pageSize").value) || 10;
+      const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+      currentPage = Math.min(Math.max(1, currentPage), pageCount);
+
+      const start = (currentPage - 1) * pageSize;
+      const pageRows = filtered.slice(start, start + pageSize);
+
+      $("#resultCount").textContent = `Showing ${filtered.length} of ${transactions.length} transactions`;
+      $("#resultTotal").textContent = `${money(getFilteredAmount(filtered))} filtered amount`;
+      $("#paginationInfo").textContent = filtered.length
+        ? `Showing ${start + 1}–${Math.min(start + pageSize, filtered.length)} of ${filtered.length}`
+        : "Showing 0–0 of 0";
+
+      const activeFilterCount = [
+        $("#statusFilter").value,
+        $("#methodFilter").value,
+        $("#dateFrom").value,
+        $("#dateTo").value
+      ].filter(Boolean).length;
+
+      $("#filterCount").textContent = activeFilterCount;
+      $("#filterCount").classList.toggle("hidden", activeFilterCount === 0);
+
+      const empty = filtered.length === 0;
+      $("#emptyState").classList.toggle("hidden", !empty);
+      $(".table-scroll").classList.toggle("has-empty-state", empty);
+      $("#transactionBody").innerHTML = empty ? "" : pageRows.map((transaction, index) => {
+        const avatar = avatarColors[(transactions.indexOf(transaction) + 8) % avatarColors.length];
+        return `
+          <tr>
+            <td>
+              <button type="button" class="text-brand hover:text-orange-300 font-semibold text-[10px] tracking-wide text-left" data-action="details" data-id="${escapeHTML(transaction.id)}" aria-label="View details for ${escapeHTML(transaction.id)}">
+                ${escapeHTML(transaction.id)}
+              </button>
+              <div class="text-[9px] text-neutral-600 mt-1">Sample record</div>
+            </td>
+            <td>
+              <div class="flex items-center gap-2.5 min-w-[145px]">
+                <div class="member-avatar" style="background:${avatar[0]};color:${avatar[1]}">${escapeHTML(initials(transaction.member))}</div>
+                <div class="min-w-0">
+                  <div class="text-[11px] font-semibold text-neutral-200">${escapeHTML(transaction.member)}</div>
+                  <div class="text-[9px] text-neutral-500 mt-1">${escapeHTML(transaction.memberId)}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="text-[11px] text-neutral-300 whitespace-nowrap">${escapeHTML(transaction.plan)}</span></td>
+            <td><span class="font-semibold text-[11px] whitespace-nowrap">${money(transaction.amount)}</span></td>
+            <td>
+              <div class="text-[10px] text-neutral-300 whitespace-nowrap">${escapeHTML(formatDateTime(transaction.date))}</div>
+              <div class="text-[9px] text-neutral-600 mt-1">IST</div>
+            </td>
+            <td>
+              <div class="flex items-center gap-1.5 whitespace-nowrap text-[10px] text-neutral-300">
+                <i data-lucide="${transaction.method === "UPI" ? "smartphone" : transaction.method === "Cash" ? "banknote" : "landmark"}" class="w-3.5 h-3.5 text-neutral-500"></i>
+                ${escapeHTML(transaction.method)}
+              </div>
+            </td>
+            <td>${statusBadge(transaction.status)}</td>
+            <td>
+              <div class="relative flex justify-end">
+                <button type="button" class="w-8 h-8 grid place-items-center rounded-lg border border-[#333] text-neutral-400 hover:text-white hover:bg-[#2A2A2A]" data-action="menu" data-id="${escapeHTML(transaction.id)}" aria-label="Actions for ${escapeHTML(transaction.id)}" aria-haspopup="true" aria-expanded="false">
+                  <i data-lucide="ellipsis" class="w-4 h-4"></i>
+                </button>
+                <div class="menu-panel hidden" data-menu-for="${escapeHTML(transaction.id)}" role="menu">
+                  <button class="menu-item" role="menuitem" data-action="details" data-id="${escapeHTML(transaction.id)}"><i data-lucide="eye" class="w-3.5 h-3.5"></i> View Details</button>
+                  ${transaction.status === "Pending" || transaction.status === "Failed"
+                    ? `<button class="menu-item" role="menuitem" data-action="verify" data-id="${escapeHTML(transaction.id)}"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Verify Payment (Demo)</button>`
+                    : ""}
+                  ${transaction.status !== "Pending"
+                    ? `<button class="menu-item" role="menuitem" data-action="pending" data-id="${escapeHTML(transaction.id)}"><i data-lucide="clock-3" class="w-3.5 h-3.5"></i> Mark as Pending</button>`
+                    : ""}
+                  ${transaction.status === "Paid"
+                    ? `<button class="menu-item danger" role="menuitem" data-action="refundRequest" data-id="${escapeHTML(transaction.id)}"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Set Refund Pending</button>`
+                    : ""}
+                  ${transaction.status === "Refund Pending"
+                    ? `<button class="menu-item danger" role="menuitem" data-action="refunded" data-id="${escapeHTML(transaction.id)}"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Mark Refunded (Demo)</button>
+                       <button class="menu-item" role="menuitem" data-action="cancelRefund" data-id="${escapeHTML(transaction.id)}"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i> Cancel Refund Request</button>`
+                    : ""}
+                  ${transaction.status === "Refunded"
+                    ? `<button class="menu-item" role="menuitem" data-action="refundRequest" data-id="${escapeHTML(transaction.id)}"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Set Refund Pending</button>`
+                    : ""}
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      renderPagination(filtered.length, pageSize, pageCount);
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function renderPagination(total, pageSize, pageCount) {
+      const controls = $("#paginationControls");
+      controls.innerHTML = "";
+
+      function addButton(label, page, disabled = false, active = false, ariaLabel = label) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `pagination-btn${active ? " active" : ""}`;
+        button.disabled = disabled;
+        button.textContent = label;
+        button.setAttribute("aria-label", ariaLabel);
+        if (active) button.setAttribute("aria-current", "page");
+        button.addEventListener("click", () => {
+          currentPage = page;
+          closeAllMenus();
+          renderRows();
+        });
+        controls.appendChild(button);
+      }
+
+      addButton("‹", Math.max(1, currentPage - 1), currentPage === 1, false, "Previous page");
+
+      let pages = [];
+      if (pageCount <= 5) {
+        pages = Array.from({ length: pageCount }, (_, index) => index + 1);
+      } else if (currentPage <= 3) {
+        pages = [1, 2, 3, 4, 5];
+      } else if (currentPage >= pageCount - 2) {
+        pages = [pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1, pageCount];
+      } else {
+        pages = [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
+      }
+
+      pages.forEach(page => addButton(String(page), page, false, page === currentPage, `Page ${page}`));
+      addButton("›", Math.min(pageCount, currentPage + 1), currentPage === pageCount, false, "Next page");
+    }
+
+    function renderAll() {
+      renderKpis();
+      renderRows();
+    }
+
+    function closeAllMenus() {
+      $$("[data-menu-for]").forEach(menu => menu.classList.add("hidden"));
+      $$('[data-action="menu"]').forEach(button => button.setAttribute("aria-expanded", "false"));
+    }
+
+    function openDetails(id) {
+      const transaction = getTransaction(id);
+      if (!transaction) {
+        showToast("Transaction not found in the demo dataset.", "error");
+        return;
+      }
+
+      closeAllMenus();
+      activeTransactionId = id;
+      lastFocusedElement = document.activeElement;
+
+      $("#detailAmount").textContent = money(transaction.amount);
+      $("#detailStatus").innerHTML = statusBadge(transaction.status);
+      $("#detailId").textContent = transaction.id;
+      $("#detailMember").textContent = transaction.member;
+      $("#detailEmail").textContent = transaction.email;
+      $("#detailPlan").textContent = transaction.plan;
+      $("#detailMethod").textContent = transaction.method;
+      $("#detailDate").textContent = formatDateTime(transaction.date) + " IST";
+      $("#detailMemberId").textContent = transaction.memberId;
+      $("#detailReference").textContent = transaction.reference;
+
+      const actionButton = $("#detailActionButton");
+      if (transaction.status === "Pending" || transaction.status === "Failed") {
+        actionButton.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4"></i> Verify (Demo)';
+        actionButton.dataset.action = "verify";
+      } else if (transaction.status === "Paid") {
+        actionButton.innerHTML = '<i data-lucide="rotate-ccw" class="w-4 h-4"></i> Set Refund Pending';
+        actionButton.dataset.action = "refundRequest";
+      } else if (transaction.status === "Refund Pending") {
+        actionButton.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4"></i> Mark Refunded (Demo)';
+        actionButton.dataset.action = "refunded";
+      } else {
+        actionButton.innerHTML = '<i data-lucide="clock-3" class="w-4 h-4"></i> Mark as Pending';
+        actionButton.dataset.action = "pending";
+      }
+      actionButton.dataset.id = id;
+
+      $("#detailsOverlay").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      if (window.lucide) window.lucide.createIcons();
+      $("#detailsModal").focus();
+    }
+
+    function hideOverlay(overlay) {
+      if (!overlay || overlay.classList.contains("hidden")) return;
+      overlay.classList.add("hidden");
+      const anyOpen = $$(".overlay").some(item => !item.classList.contains("hidden"));
+      document.body.style.overflow = anyOpen ? "hidden" : "";
+      if (!anyOpen && lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
+    }
+
+    function showToast(message, type = "info", title = "") {
+      const region = $("#toastRegion");
+      const toast = document.createElement("div");
+      toast.className = `toast ${type}`;
+      const icon = type === "success" ? "check-circle-2" : type === "error" ? "alert-circle" : "info";
+      const heading = title || (type === "success" ? "Demo update complete" : type === "error" ? "Please check" : "Demo notice");
+
+      toast.innerHTML = `
+        <i data-lucide="${icon}" class="w-4 h-4 mt-0.5 flex-shrink-0 ${type === "success" ? "text-emerald-400" : type === "error" ? "text-red-400" : "text-[#F9B477]"}"></i>
+        <div class="min-w-0 flex-1">
+          <div class="text-[11px] font-semibold text-white">${escapeHTML(heading)}</div>
+          <div class="text-[10px] text-neutral-400 mt-1 leading-relaxed">${escapeHTML(message)}</div>
+        </div>
+        <button type="button" class="text-neutral-500 hover:text-white" aria-label="Dismiss notification"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+      `;
+
+      toast.querySelector("button").addEventListener("click", () => toast.remove());
+      region.appendChild(toast);
+      if (window.lucide) window.lucide.createIcons();
+
+      // Keep notifications available long enough to read; they never control transactions.
+      window.setTimeout(() => {
+        if (toast.isConnected) toast.remove();
+      }, 6000);
+    }
+
+    function actionDescription(action, transaction) {
+      const details = {
+        verify: {
+          title: "Simulate payment verification?",
+          description: `Change ${transaction.id} (${transaction.member}) to Paid in the local demo dataset? This is not real payment verification.`,
+          next: "Paid"
+        },
+        pending: {
+          title: "Mark this record as pending?",
+          description: `Set ${transaction.id} to Pending in the local demo dataset?`,
+          next: "Pending"
+        },
+        refundRequest: {
+          title: "Set refund status to pending?",
+          description: `Change ${transaction.id} to Refund Pending in the local demo dataset. No refund will be requested from a provider.`,
+          next: "Refund Pending"
+        },
+        refunded: {
+          title: "Mark as refunded in the demo?",
+          description: `Change ${transaction.id} to Refunded in the local demo dataset? This does not send money or confirm an actual refund.`,
+          next: "Refunded"
+        },
+        cancelRefund: {
+          title: "Cancel the demo refund request?",
+          description: `Return ${transaction.id} from Refund Pending to Paid in the local demo dataset?`,
+          next: "Paid"
+        }
+      };
+      return details[action] || null;
+    }
+
+    function requestAction(action, id) {
+      const transaction = getTransaction(id);
+      if (!transaction) {
+        showToast("Transaction not found.", "error");
+        return;
+      }
+
+      const config = actionDescription(action, transaction);
+      if (!config) return;
+
+      // Avoid offering invalid transitions if the row was updated elsewhere.
+      const validTransitions = {
+        verify: ["Pending", "Failed"],
+        pending: STATUS_VALUES.filter(status => status !== "Pending"),
+        refundRequest: ["Paid", "Refunded"],
+        refunded: ["Refund Pending"],
+        cancelRefund: ["Refund Pending"]
+      };
+
+      if (!validTransitions[action]?.includes(transaction.status)) {
+        showToast("This action is not available for the current demo status.", "error");
+        return;
+      }
+
+      closeAllMenus();
+      pendingConfirmation = { action, id, expectedStatus: transaction.status };
+      lastFocusedElement = document.activeElement;
+
+      $("#confirmTitle").textContent = config.title;
+      $("#confirmDescription").textContent = config.description;
+      $("#acceptConfirm").disabled = false;
+      $("#acceptConfirm").textContent = "Confirm demo change";
+      $("#confirmOverlay").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      $(".modal[role='alertdialog']", $("#confirmOverlay")).focus();
+    }
+
+    function performConfirmedAction() {
+      if (!pendingConfirmation) return;
+
+      const { action, id, expectedStatus } = pendingConfirmation;
+      const transaction = getTransaction(id);
+
+      if (!transaction || transaction.status !== expectedStatus) {
+        pendingConfirmation = null;
+        hideOverlay($("#confirmOverlay"));
+        showToast("The sample record changed. Review its current status and try again.", "error");
+        return;
+      }
+
+      const config = actionDescription(action, transaction);
+      if (!config) return;
+
+      // Intentionally an in-memory demo mutation; never a real financial operation.
+      transaction.status = config.next;
+      pendingConfirmation = null;
+      hideOverlay($("#confirmOverlay"));
+
+      renderAll();
+
+      if (activeTransactionId === id && !$("#detailsOverlay").classList.contains("hidden")) {
+        openDetails(id);
+      }
+
+      showToast(`${id} is now marked "${config.next}" in the demonstration dataset. ${sampleDataNotice}`, "success");
+    }
+
+    // CSV uses the entire currently filtered result, not only the visible page.
+    function csvEscape(value) {
+      const text = String(value ?? "");
+      return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+    }
+
+    function exportCsv() {
+      const rows = getFilteredTransactions();
+      if (rows.length === 0) {
+        showToast("There are no filtered sample transactions to export.", "error");
+        return;
+      }
+
+      const headers = [
+        "Transaction ID",
+        "Member ID",
+        "Member Name",
+        "Member Email",
+        "Membership Plan",
+        "Amount INR",
+        "Date Time IST",
+        "Payment Method",
+        "Status",
+        "Reference Information",
+        "Record Type"
+      ];
+
+      const csvRows = rows.map(transaction => [
+        transaction.id,
+        transaction.memberId,
+        transaction.member,
+        transaction.email,
+        transaction.plan,
+        transaction.amount.toFixed(2),
+        formatDateTime(transaction.date) + " IST",
+        transaction.method,
+        transaction.status,
+        transaction.reference,
+        "Illustrative sample data"
+      ]);
+
+      const csv = "\uFEFF" + [headers, ...csvRows]
+        .map(row => row.map(csvEscape).join(","))
+        .join("\r\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      link.href = url;
+      link.download = `ironcore-demo-transactions-${dateStamp}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      showToast(`Exported ${rows.length} filtered illustrative transaction(s). This CSV contains demo data only.`, "success");
+    }
+
+    // Search and filters
+    $("#searchInput").addEventListener("input", () => {
+      currentPage = 1;
+      closeAllMenus();
+      renderRows();
+    });
+
+    ["statusFilter", "methodFilter", "dateFrom", "dateTo"].forEach(id => {
+      $("#" + id).addEventListener("change", () => {
+        currentPage = 1;
+        validateDateRange();
+        renderRows();
+      });
+    });
+
+    $("#pageSize").addEventListener("change", () => {
+      currentPage = 1;
+      renderRows();
+    });
+
+    function validateDateRange() {
+      const from = $("#dateFrom").value;
+      const to = $("#dateTo").value;
+      const error = $("#dateFilterError");
+
+      if (from && to && from > to) {
+        error.textContent = "The start date must be on or before the end date. No records match this invalid range.";
+        error.classList.remove("hidden");
+        $("#dateFrom").setAttribute("aria-invalid", "true");
+        $("#dateTo").setAttribute("aria-invalid", "true");
+        return false;
+      }
+
+      error.textContent = "";
+      error.classList.add("hidden");
+      $("#dateFrom").removeAttribute("aria-invalid");
+      $("#dateTo").removeAttribute("aria-invalid");
+      return true;
+    }
+
+    $("#toggleFilters").addEventListener("click", () => {
+      const panel = $("#filterPanel");
+      const hidden = panel.classList.toggle("hidden");
+      $("#toggleFilters").setAttribute("aria-expanded", String(!hidden));
+    });
+
+    function clearFilters() {
+      $("#searchInput").value = "";
+      $("#statusFilter").value = "";
+      $("#methodFilter").value = "";
+      $("#dateFrom").value = "";
+      $("#dateTo").value = "";
+      $("#dateFilterError").classList.add("hidden");
+      $("#dateFrom").removeAttribute("aria-invalid");
+      $("#dateTo").removeAttribute("aria-invalid");
+      currentPage = 1;
+      closeAllMenus();
+      renderRows();
+      showToast("All transaction search and filters have been cleared.", "info");
+    }
+
+    $("#clearFilters").addEventListener("click", clearFilters);
+    $("#emptyClearFilters").addEventListener("click", clearFilters);
+    $("#exportCsv").addEventListener("click", exportCsv);
+    $("#exportFiltered").addEventListener("click", exportCsv);
+
+    // Transaction actions use delegated event handling so pagination remains functional.
+    $("#transactionBody").addEventListener("click", event => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+
+      const { action, id } = button.dataset;
+
+      if (action === "menu") {
+        const menu = $(`[data-menu-for="${CSS.escape(id)}"]`);
+        const willOpen = menu.classList.contains("hidden");
+        closeAllMenus();
+        if (willOpen) {
+          menu.classList.remove("hidden");
+          button.setAttribute("aria-expanded", "true");
+        }
+        return;
+      }
+
+      if (action === "details") {
+        openDetails(id);
+        return;
+      }
+
+      requestAction(action, id);
+    });
+
+    $("#detailActionButton").addEventListener("click", event => {
+      const { action, id } = event.currentTarget.dataset;
+      if (action && id) requestAction(action, id);
+    });
+
+    document.addEventListener("click", event => {
+      if (!event.target.closest("[data-menu-for]") && !event.target.closest('[data-action="menu"]')) {
+        closeAllMenus();
+      }
+    });
+
+    // Accessible dialog handling, Escape-to-close, and focus containment.
+    function openSimpleOverlay(overlay) {
+      lastFocusedElement = document.activeElement;
+      overlay.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      const dialog = $(".modal", overlay);
+      if (dialog) dialog.focus();
+    }
+
+    $$("[data-close]").forEach(button => {
+      button.addEventListener("click", () => {
+        const overlay = $("#" + button.dataset.close);
+        if (overlay === $("#confirmOverlay")) pendingConfirmation = null;
+        hideOverlay(overlay);
+      });
+    });
+
+    [$("#detailsOverlay"), $("#confirmOverlay"), $("#aboutOverlay")].forEach(overlay => {
+      overlay.addEventListener("mousedown", event => {
+        if (event.target === overlay) {
+          if (overlay === $("#confirmOverlay")) pendingConfirmation = null;
+          hideOverlay(overlay);
+        }
+      });
+    });
+
+    $("#cancelConfirm").addEventListener("click", () => {
+      pendingConfirmation = null;
+      hideOverlay($("#confirmOverlay"));
+    });
+
+    $("#acceptConfirm").addEventListener("click", performConfirmedAction);
+    $("#topHelp").addEventListener("click", () => openSimpleOverlay($("#aboutOverlay")));
+
+    document.addEventListener("keydown", event => {
+      const visibleOverlay = $$(".overlay").find(overlay => !overlay.classList.contains("hidden"));
+
+      if (event.key === "Escape") {
+        if (visibleOverlay) {
+          if (visibleOverlay === $("#confirmOverlay")) pendingConfirmation = null;
+          hideOverlay(visibleOverlay);
+        } else {
+          closeAllMenus();
+          closeSidebar();
+        }
+      }
+
+      if (event.key === "Tab" && visibleOverlay) {
+        const focusable = $$(
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex="0"]',
+          visibleOverlay
+        ).filter(element => element.offsetParent !== null);
+
+        if (!focusable.length) {
+          event.preventDefault();
+          return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    });
+
+    // UPI form: session-memory only, no persistence or network requests.
+    function setFieldError(field, errorElement, message) {
+      const input = $("#" + field);
+      const error = $("#" + errorElement);
+      error.textContent = message;
+      error.classList.toggle("hidden", !message);
+      input.setAttribute("aria-invalid", String(Boolean(message)));
+    }
+
+    function validateUpiForm() {
+      const holder = $("#accountHolder").value.trim();
+      const upi = $("#upiId").value.trim();
+      let valid = true;
+
+      if (!holder) {
+        setFieldError("accountHolder", "holderError", "Enter an account holder or gym name.");
+        valid = false;
+      } else {
+        setFieldError("accountHolder", "holderError", "");
+      }
+
+      // Structural format check only; this cannot verify UPI ownership or validity.
+      const upiPattern = /^[A-Za-z0-9][A-Za-z0-9._-]{1,99}@[A-Za-z][A-Za-z0-9.-]{1,49}$/;
+      if (!upi) {
+        setFieldError("upiId", "upiError", "Enter a UPI ID for this demo.");
+        valid = false;
+      } else if (!upiPattern.test(upi)) {
+        setFieldError("upiId", "upiError", "Enter a structurally valid UPI ID, such as name@bank. Ownership is not verified.");
+        valid = false;
+      } else {
+        setFieldError("upiId", "upiError", "");
+      }
+
+      if (!validateQrSelection()) valid = false;
+      return valid;
+    }
+
+    function showSettingsFeedback(message, type) {
+      const feedback = $("#settingsFeedback");
+      feedback.className = "mt-4 rounded-lg p-3 text-[11px]";
+      feedback.classList.add(type === "success"
+        ? "bg-[#10251D] border border-[#23513C] text-emerald-300"
+        : type === "error"
+          ? "bg-[#2B1515] border border-[#663232] text-red-300"
+          : "bg-[#211A12] border border-[#49331E] text-[#F9B477]");
+      feedback.textContent = message;
+    }
+
+    function validateQrSelection() {
+      if (pendingQrFile && !isValidQrFile(pendingQrFile)) {
+        $("#qrError").textContent = "Choose a valid PNG, JPEG, or WebP image under 2 MB.";
+        $("#qrError").classList.remove("hidden");
+        return false;
+      }
+      $("#qrError").textContent = "";
+      $("#qrError").classList.add("hidden");
+      return true;
+    }
+
+    function isValidQrFile(file) {
+      if (!file || file.size <= 0 || file.size > 2 * 1024 * 1024) return false;
+      return ["image/png", "image/jpeg", "image/webp"].includes(file.type);
+    }
+
+    function releaseQrObjectUrl() {
+      if (qrObjectUrl) {
+        URL.revokeObjectURL(qrObjectUrl);
+        qrObjectUrl = null;
+      }
+    }
+
+    function setQrPreview(file) {
+      releaseQrObjectUrl();
+      currentQrFile = file || null;
+
+      const preview = $("#qrPreview");
+      const placeholder = $("#qrPlaceholder");
+      const caption = $("#qrPreviewCaption");
+      const fileState = $("#qrFileState");
+      const removeButton = $("#removeQr");
+
+      if (!file) {
+        preview.removeAttribute("src");
+        preview.classList.add("hidden");
+        placeholder.classList.remove("hidden");
+        caption.textContent = "Your QR code will appear here.";
+        fileState.textContent = "No image selected";
+        removeButton.disabled = true;
+        return;
+      }
+
+      qrObjectUrl = URL.createObjectURL(file);
+      preview.src = qrObjectUrl;
+      preview.classList.remove("hidden");
+      placeholder.classList.add("hidden");
+      caption.textContent = "Local preview only. No payment scan or transfer is initiated.";
+      fileState.textContent = file.name.length > 20 ? file.name.slice(0, 17) + "..." : file.name;
+      removeButton.disabled = false;
+    }
+
+    function selectQrFile(file) {
+      if (!file) return;
+
+      if (!isValidQrFile(file)) {
+        pendingQrFile = null;
+        $("#qrFile").value = "";
+        $("#qrError").textContent = "The image must be PNG, JPEG, or WebP and no larger than 2 MB.";
+        $("#qrError").classList.remove("hidden");
+        showToast("QR image rejected. Choose a supported image under 2 MB.", "error");
+        return;
+      }
+
+      pendingQrFile = file;
+      setQrPreview(file);
+      $("#qrError").textContent = "";
+      $("#qrError").classList.add("hidden");
+      $("#settingsFeedback").classList.add("hidden");
+      showToast("QR image preview updated in this page's memory.", "success");
+    }
+
+    $("#qrFile").addEventListener("change", event => {
+      selectQrFile(event.target.files?.[0]);
+    });
+
+    $("#replaceQr").addEventListener("click", () => $("#qrFile").click());
+
+    $("#removeQr").addEventListener("click", () => {
+      pendingQrFile = null;
+      currentQrFile = null;
+      $("#qrFile").value = "";
+      setQrPreview(null);
+      $("#qrError").classList.add("hidden");
+      $("#settingsFeedback").classList.add("hidden");
+      showToast("QR image removed from the current page preview.", "info");
+    });
+
+    const qrDrop = $("#qrDrop");
+    qrDrop.addEventListener("dragover", event => {
+      event.preventDefault();
+      qrDrop.classList.add("drag-over");
+    });
+    qrDrop.addEventListener("dragleave", event => {
+      if (!qrDrop.contains(event.relatedTarget)) qrDrop.classList.remove("drag-over");
+    });
+    qrDrop.addEventListener("drop", event => {
+      event.preventDefault();
+      qrDrop.classList.remove("drag-over");
+      selectQrFile(event.dataTransfer?.files?.[0]);
+    });
+
+    $("#accountHolder").addEventListener("input", () => {
+      setFieldError("accountHolder", "holderError", "");
+      $("#settingsFeedback").classList.add("hidden");
+    });
+    $("#upiId").addEventListener("input", () => {
+      setFieldError("upiId", "upiError", "");
+      $("#settingsFeedback").classList.add("hidden");
+    });
+
+    $("#upiForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const button = $("#saveSettings");
+
+      if (!validateUpiForm()) {
+        showSettingsFeedback("Please correct the highlighted fields before saving these demo settings.", "error");
+        const invalid = $("#upiForm [aria-invalid='true']");
+        if (invalid) invalid.focus();
+        return;
+      }
+
+      button.disabled = true;
+      button.innerHTML = '<i data-lucide="loader-circle" class="w-4 h-4 animate-spin"></i> Updating demo...';
+      if (window.lucide) window.lucide.createIcons();
+
+      // The async boundary is purely for demo feedback. No network request is made.
+      window.setTimeout(() => {
+        savedSessionSettings = {
+          holder: $("#accountHolder").value.trim(),
+          upiId: $("#upiId").value.trim(),
+          qrFile: currentQrFile
+        };
+
+        button.disabled = false;
+        button.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Save Settings';
+        if (window.lucide) window.lucide.createIcons();
+
+        showSettingsFeedback(
+          "Demo settings updated in current page memory only. Nothing was uploaded or permanently saved, and the UPI ID has not been verified.",
+          "success"
+        );
+        showToast("UPI settings updated in page memory only. They will be lost on reload.", "success");
+      }, 350);
+    });
+
+    // Responsive sidebar
+    function openSidebar() {
+      isSidebarOpen = true;
+      $("#sidebar").classList.add("open");
+      $("#sidebarBackdrop").classList.remove("hidden");
+      $("#openSidebar").setAttribute("aria-expanded", "true");
+      $("#closeSidebar").focus();
+    }
+
+    function closeSidebar() {
+      if (!isSidebarOpen) return;
+      isSidebarOpen = false;
+      $("#sidebar").classList.remove("open");
+      $("#sidebarBackdrop").classList.add("hidden");
+      $("#openSidebar").setAttribute("aria-expanded", "false");
+    }
+
+    $("#openSidebar").addEventListener("click", openSidebar);
+    $("#closeSidebar").addEventListener("click", closeSidebar);
+    $("#sidebarBackdrop").addEventListener("click", closeSidebar);
+
+    $("#scrollToSettings").addEventListener("click", () => {
+      $("#upiSettings").scrollIntoView({ behavior: "smooth", block: "start" });
+      window.setTimeout(() => $("#accountHolder").focus({ preventScroll: true }), 350);
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 850) closeSidebar();
+    });
+
+    window.addEventListener("beforeunload", () => {
+      releaseQrObjectUrl();
+    });
+
+    // Initialize with the illustrative dataset. No external data is loaded.
+    $("#currentYear").textContent = new Date().getFullYear();
+    renderAll();
+    if (window.lucide) window.lucide.createIcons();
+
+    // Explicit demo initialization message.
+    showToast("Loaded illustrative transactions. All actions remain local to this page.", "info", "Demo mode active");
+  </script>
+</body>
+</html>

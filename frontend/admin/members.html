@@ -1,0 +1,2009 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="description" content="Gym management member administration dashboard. Demonstration interface with in-memory member data.">
+  <title>Member Management | IRONCORE Admin</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gym: {
+              bg: '#0A0A0A',
+              panel: '#171717',
+              border: '#292929',
+              accent: '#FF6B00',
+              muted: '#A3A3A3'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Oswald', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0A0A0A;
+      --panel: #171717;
+      --border: #292929;
+      --accent: #FF6B00;
+      --muted: #A3A3A3;
+      --green: #22C55E;
+      --amber: #F59E0B;
+      --red: #EF4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: #FFF;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+
+    button:focus-visible, a:focus-visible, input:focus-visible,
+    select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .display { font-family: 'Oswald', sans-serif; }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; }
+    .muted { color: var(--muted); }
+    .accent { color: var(--accent); }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: 248px;
+      z-index: 50;
+      background: #111;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transition: transform .25s ease;
+    }
+
+    .main-area { margin-left: 248px; min-width: 0; min-height: 100vh; }
+    .brand-mark {
+      width: 37px;
+      height: 37px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 43px;
+      padding: 0 12px;
+      border-radius: 7px;
+      color: #A3A3A3;
+      transition: background .15s, color .15s;
+    }
+
+    .nav-link:hover { background: #222; color: #fff; }
+    .nav-link.active { background: rgba(255,107,0,.12); color: var(--accent); font-weight: 600; }
+    .nav-link.active .nav-indicator { display: block; }
+    .nav-indicator { display: none; width: 3px; height: 20px; border-radius: 4px; background: var(--accent); margin-left: -12px; margin-right: 1px; }
+
+    .topbar {
+      height: 70px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,10,.92);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(12px);
+    }
+
+    .page-content { max-width: 1700px; margin: auto; padding: 30px 32px 40px; }
+
+    .btn {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: .15s;
+    }
+
+    .btn-secondary { background: #202020; color: #EEE; }
+    .btn-secondary:hover { background: #292929; border-color: #444; }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+    .btn-primary:hover { background: #E85F00; }
+    .btn-danger { background: rgba(239,68,68,.1); color: #F87171; border-color: rgba(239,68,68,.3); }
+    .btn-danger:hover { background: rgba(239,68,68,.18); }
+
+    .stat-card { padding: 20px; min-width: 0; }
+    .stat-icon { height: 39px; width: 39px; display: grid; place-items: center; border-radius: 9px; flex-shrink: 0; }
+    .stat-number { font-family: 'Oswald', sans-serif; font-size: 30px; line-height: 1.15; font-weight: 500; }
+
+    .field {
+      width: 100%;
+      min-height: 39px;
+      background: #101010;
+      border: 1px solid #333;
+      border-radius: 7px;
+      padding: 9px 11px;
+      color: #F5F5F5;
+      transition: border-color .15s;
+    }
+
+    .field:focus { border-color: var(--accent); outline: none; }
+    .field::placeholder { color: #737373; }
+    select.field { cursor: pointer; }
+    .field-label { display: block; font-size: 11px; font-weight: 600; color: #D4D4D4; margin-bottom: 7px; }
+
+    .search-wrap { position: relative; }
+    .search-wrap > svg, .search-wrap > i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #737373; pointer-events: none; }
+    .search-wrap input { padding-left: 37px; }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .status-green { color: #4ADE80; background: rgba(34,197,94,.09); border-color: rgba(34,197,94,.18); }
+    .status-amber { color: #FBBF24; background: rgba(245,158,11,.09); border-color: rgba(245,158,11,.2); }
+    .status-red { color: #F87171; background: rgba(239,68,68,.09); border-color: rgba(239,68,68,.2); }
+    .status-neutral { color: #D4D4D4; background: #242424; border-color: #383838; }
+
+    .plan-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 8px;
+      background: #242424;
+      border: 1px solid #333;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .table-scroll { overflow-x: auto; scrollbar-width: thin; scrollbar-color: #404040 #171717; }
+    .members-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .members-table th {
+      background: #1C1C1C;
+      padding: 13px 15px;
+      color: #858585;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .065em;
+      font-weight: 700;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .members-table td {
+      padding: 14px 15px;
+      border-bottom: 1px solid #252525;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .members-table tbody tr { transition: background .12s; }
+    .members-table tbody tr:hover { background: #1D1D1D; }
+    .members-table tbody tr:last-child td { border-bottom: none; }
+    .member-name { font-size: 12px; font-weight: 600; color: #F5F5F5; }
+    .member-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #292929; border: 1px solid #383838; flex-shrink: 0; }
+    .avatar-placeholder { display: grid; place-items: center; font-weight: 700; color: #FFD0B0; background: #542D18; }
+    .action-wrap { position: relative; display: inline-block; }
+    .action-trigger { width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 6px; color: #999; background: transparent; }
+    .action-trigger:hover, .action-trigger[aria-expanded="true"] { background: #303030; color: white; border-color: #404040; }
+
+    .action-menu {
+      position: absolute;
+      top: calc(100% + 5px);
+      right: 0;
+      z-index: 25;
+      min-width: 180px;
+      padding: 5px;
+      background: #222;
+      border: 1px solid #393939;
+      border-radius: 8px;
+      box-shadow: 0 14px 36px rgba(0,0,0,.45);
+    }
+
+    .action-menu button { width: 100%; display: flex; gap: 9px; align-items: center; padding: 10px; border-radius: 5px; text-align: left; color: #DDD; font-size: 11px; }
+    .action-menu button:hover { background: #303030; color: white; }
+    .action-menu button.danger { color: #F87171; }
+    .action-menu button:disabled { opacity: .35; }
+
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.76); backdrop-filter: blur(3px); z-index: 70; display: flex; justify-content: center; align-items: center; padding: 18px; }
+    .modal {
+      width: 100%;
+      max-width: 650px;
+      max-height: calc(100dvh - 36px);
+      overflow-y: auto;
+      background: #171717;
+      border: 1px solid #373737;
+      border-radius: 13px;
+      box-shadow: 0 24px 90px rgba(0,0,0,.6);
+    }
+    .modal-sm { max-width: 430px; }
+    .modal-header { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; padding: 21px 23px; border-bottom: 1px solid #303030; }
+    .modal-body { padding: 22px 23px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 9px; padding: 15px 23px; border-top: 1px solid #303030; background: #151515; }
+    .close-btn { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; color: #A3A3A3; flex-shrink: 0; }
+    .close-btn:hover { background: #303030; color: #fff; }
+
+    .upload-area { display: flex; gap: 15px; align-items: center; padding: 13px; border: 1px dashed #444; border-radius: 8px; background: #111; }
+    .upload-preview { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 1px solid #444; background: #252525; }
+    .file-button { position: relative; display: inline-flex; align-items: center; justify-content: center; padding: 8px 10px; border: 1px solid #444; background: #222; border-radius: 6px; color: #eee; font-size: 11px; font-weight: 600; cursor: pointer; }
+    .file-button input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .error-text { color: #F87171; font-size: 11px; margin-top: 5px; }
+    .success-text { color: #4ADE80; }
+    .toast-region { position: fixed; top: 84px; right: 22px; z-index: 100; width: min(360px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 9px; pointer-events: none; }
+    .toast { display: flex; align-items: flex-start; gap: 10px; padding: 14px; background: #202020; border: 1px solid #3A3A3A; border-radius: 9px; box-shadow: 0 12px 30px rgba(0,0,0,.35); animation: slideIn .2s ease; pointer-events: auto; }
+    .toast-icon { flex-shrink: 0; margin-top: 1px; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .demo-banner { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: rgba(255,107,0,.055); border: 1px solid rgba(255,107,0,.18); border-radius: 8px; color: #D4D4D4; line-height: 1.6; }
+    .pagination-btn { min-width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #343434; border-radius: 6px; color: #A3A3A3; background: #1B1B1B; padding: 0 9px; }
+    .pagination-btn:hover:not(:disabled) { background: #303030; color: #fff; }
+    .pagination-btn.current { background: rgba(255,107,0,.13); color: var(--accent); border-color: rgba(255,107,0,.4); font-weight: 700; }
+    .pagination-btn:disabled { opacity: .35; }
+    .empty-icon { width: 54px; height: 54px; display: grid; place-items: center; margin: 0 auto 14px; border: 1px solid #333; background: #202020; border-radius: 50%; color: #888; }
+
+    .mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 45; display: none; }
+    .mobile-overlay.visible { display: block; }
+    .table-meta { color: #858585; font-size: 11px; }
+
+    @media (max-width: 1250px) {
+      .page-content { padding: 24px 22px 34px; }
+      .topbar { padding: 0 22px; }
+      .sidebar { width: 225px; }
+      .main-area { margin-left: 225px; }
+      .members-table th, .members-table td { padding-left: 12px; padding-right: 12px; }
+    }
+
+    @media (max-width: 1023px) {
+      .sidebar { width: 260px; transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-area { margin-left: 0; }
+      .topbar { padding: 0 22px; }
+    }
+
+    @media (max-width: 640px) {
+      .topbar { height: 62px; padding: 0 15px; }
+      .page-content { padding: 22px 14px 30px; }
+      .stat-card { padding: 15px; }
+      .stat-number { font-size: 27px; }
+      .stat-icon { width: 34px; height: 34px; }
+      .page-title { font-size: 25px !important; }
+      .page-header { align-items: flex-start !important; flex-direction: column; }
+      .page-header .btn { width: 100%; }
+      .filters-grid { grid-template-columns: 1fr; }
+      .filter-actions { display: flex; }
+      .filter-actions .btn { flex: 1; }
+      .modal-header, .modal-body { padding: 17px; }
+      .modal-footer { padding: 13px 17px; }
+      .overlay { padding: 10px; }
+      .modal { max-height: calc(100dvh - 20px); }
+      .pagination-row { align-items: flex-start !important; flex-direction: column; }
+      .topbar-profile-label { display: none; }
+      .demo-banner { font-size: 11px; }
+      .toast-region { top: 72px; right: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="mobileOverlay" class="mobile-overlay" aria-hidden="true"></div>
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar" aria-label="Main navigation">
+    <div class="px-6 py-5 flex items-center gap-3 border-b border-[#292929]">
+      <div class="brand-mark" aria-hidden="true">
+        <i data-lucide="dumbbell" width="21" height="21"></i>
+      </div>
+      <div>
+        <div class="display text-xl tracking-wide font-semibold leading-tight">IRON<span class="accent">CORE</span></div>
+        <div class="text-[9px] text-neutral-500 uppercase tracking-[.22em] mt-1">Gym Management</div>
+      </div>
+      <button id="closeSidebar" class="close-btn ml-auto lg:hidden" aria-label="Close navigation">
+        <i data-lucide="x" width="18" height="18"></i>
+      </button>
+    </div>
+
+    <div class="px-4 pt-7 pb-2">
+      <p class="text-[10px] font-bold uppercase tracking-[.15em] text-neutral-600 px-3 mb-3">Workspace</p>
+      <nav class="space-y-1">
+        <a href="dashboard.html" class="nav-link">
+          <span class="nav-indicator"></span><i data-lucide="layout-dashboard" width="18" height="18"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="members.html" class="nav-link active" aria-current="page">
+          <span class="nav-indicator"></span><i data-lucide="users" width="18" height="18"></i>
+          <span>Members</span>
+          <span class="ml-auto text-[10px] bg-[#2A2019] text-orange-400 rounded px-2 py-1">Current</span>
+        </a>
+        <a href="payments.html" class="nav-link">
+          <span class="nav-indicator"></span><i data-lucide="wallet" width="18" height="18"></i>
+          <span>Payments</span>
+        </a>
+        <a href="plans.html" class="nav-link">
+          <span class="nav-indicator"></span><i data-lucide="layers" width="18" height="18"></i>
+          <span>Membership Plans</span>
+        </a>
+        <a href="trainers.html" class="nav-link">
+          <span class="nav-indicator"></span><i data-lucide="user-round" width="18" height="18"></i>
+          <span>Trainers</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="px-4 pt-7 pb-2">
+      <p class="text-[10px] font-bold uppercase tracking-[.15em] text-neutral-600 px-3 mb-3">Preferences</p>
+      <nav>
+        <a href="settings.html" class="nav-link">
+          <span class="nav-indicator"></span><i data-lucide="settings-2" width="18" height="18"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="mt-auto p-4">
+      <div class="rounded-lg border border-[#303030] bg-[#181818] p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+          <span class="text-[11px] font-semibold">Demo environment</span>
+        </div>
+        <p class="text-[10px] leading-relaxed text-neutral-500">Member records are temporary and exist only in this page session.</p>
+        <div class="border-t border-[#303030] mt-4 pt-3 flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-[#422817] text-orange-300 grid place-items-center font-bold text-xs">GO</div>
+          <div>
+            <p class="text-[11px] font-semibold">Gym Owner</p>
+            <p class="text-[10px] text-neutral-500">Administrator demo</p>
+          </div>
+          <i data-lucide="shield-check" width="15" height="15" class="ml-auto text-neutral-500"></i>
+        </div>
+      </div>
+      <p class="text-center text-[9px] text-neutral-700 mt-4">IRONCORE ADMIN · UI DEMO</p>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main-area">
+    <header class="topbar">
+      <div class="flex items-center gap-3 min-w-0">
+        <button id="openSidebar" class="close-btn lg:hidden flex-shrink-0" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">
+          <i data-lucide="menu" width="21" height="21"></i>
+        </button>
+        <div class="min-w-0">
+          <div class="text-[11px] text-neutral-500 flex items-center gap-2">
+            <span class="hidden sm:inline">Workspace</span><i data-lucide="chevron-right" width="12" height="12" class="hidden sm:inline"></i>
+            <span class="text-neutral-300">Members</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="hidden sm:inline-flex items-center gap-2 border border-[#333] rounded-full px-3 py-1.5 text-[10px] text-neutral-400">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> DEMO MODE
+        </span>
+        <div class="w-9 h-9 rounded-full border border-[#373737] bg-[#222] grid place-items-center text-neutral-300" aria-label="Administrator account">
+          <i data-lucide="user-round" width="17" height="17"></i>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <section class="page-header flex items-center justify-between gap-5 mb-6">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-1 h-5 rounded bg-orange-500"></span>
+            <span class="text-[10px] uppercase tracking-[.16em] text-neutral-500 font-bold">People & subscriptions</span>
+          </div>
+          <h1 class="display page-title text-[32px] font-medium leading-tight tracking-wide">Member Management</h1>
+          <p class="text-neutral-500 text-xs mt-2">Manage gym members, subscriptions and attendance.</p>
+        </div>
+        <button id="addMemberBtn" class="btn btn-primary">
+          <i data-lucide="user-plus" width="16" height="16"></i>
+          Add New Member
+        </button>
+      </section>
+
+      <div class="demo-banner mb-6" role="note">
+        <i data-lucide="info" width="17" height="17" class="text-orange-400 flex-shrink-0 mt-0.5"></i>
+        <div>
+          <p class="text-xs font-semibold text-neutral-200">Illustrative demonstration data</p>
+          <p class="text-[11px] text-neutral-400 mt-0.5">All initial member records and summary figures on this page are fictional examples, not live database values. Changes made here stay in this page's temporary memory and are discarded when the page is reloaded. No backend is connected.</p>
+        </div>
+      </div>
+
+      <!-- Summary cards -->
+      <section aria-label="Member statistics" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <article class="panel stat-card">
+          <div class="flex items-center justify-between gap-3 mb-5">
+            <span class="text-xs text-neutral-400">Total Members</span>
+            <span class="stat-icon bg-orange-500/10 text-orange-400"><i data-lucide="users" width="19" height="19"></i></span>
+          </div>
+          <div class="flex items-end justify-between gap-3">
+            <p id="statTotal" class="stat-number">08</p>
+            <span class="text-[10px] text-neutral-500">Demo records</span>
+          </div>
+          <div class="border-t border-[#292929] mt-4 pt-3 flex items-center gap-2 text-[10px] text-neutral-500">
+            <i data-lucide="database" width="13" height="13"></i> All sample profiles
+          </div>
+        </article>
+
+        <article class="panel stat-card">
+          <div class="flex items-center justify-between gap-3 mb-5">
+            <span class="text-xs text-neutral-400">Active Members</span>
+            <span class="stat-icon bg-green-500/10 text-green-400"><i data-lucide="user-check" width="19" height="19"></i></span>
+          </div>
+          <div class="flex items-end justify-between gap-3">
+            <p id="statActive" class="stat-number">04</p>
+            <span class="text-[10px] text-green-400">In good standing</span>
+          </div>
+          <div class="border-t border-[#292929] mt-4 pt-3 flex items-center gap-2 text-[10px] text-neutral-500">
+            <i data-lucide="check-circle-2" width="13" height="13"></i> Active subscriptions
+          </div>
+        </article>
+
+        <article class="panel stat-card">
+          <div class="flex items-center justify-between gap-3 mb-5">
+            <span class="text-xs text-neutral-400">Expiring Soon</span>
+            <span class="stat-icon bg-amber-500/10 text-amber-400"><i data-lucide="clock-3" width="19" height="19"></i></span>
+          </div>
+          <div class="flex items-end justify-between gap-3">
+            <p id="statExpiring" class="stat-number">02</p>
+            <span class="text-[10px] text-amber-400">Within 7 days</span>
+          </div>
+          <div class="border-t border-[#292929] mt-4 pt-3 flex items-center gap-2 text-[10px] text-neutral-500">
+            <i data-lucide="calendar-clock" width="13" height="13"></i> Renewal may be needed
+          </div>
+        </article>
+
+        <article class="panel stat-card">
+          <div class="flex items-center justify-between gap-3 mb-5">
+            <span class="text-xs text-neutral-400">Pending Fees</span>
+            <span class="stat-icon bg-red-500/10 text-red-400"><i data-lucide="wallet" width="19" height="19"></i></span>
+          </div>
+          <div class="flex items-end justify-between gap-3">
+            <p id="statPending" class="stat-number">03</p>
+            <span class="text-[10px] text-red-400">Needs attention</span>
+          </div>
+          <div class="border-t border-[#292929] mt-4 pt-3 flex items-center gap-2 text-[10px] text-neutral-500">
+            <i data-lucide="receipt" width="13" height="13"></i> Pending or overdue
+          </div>
+        </article>
+      </section>
+
+      <!-- Member records -->
+      <section class="panel overflow-hidden">
+        <div class="p-5 sm:p-6 border-b border-[#292929]">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div>
+              <h2 class="text-sm font-semibold">All Members</h2>
+              <p class="text-[11px] text-neutral-500 mt-1">Search, filter and manage member records.</p>
+            </div>
+            <span class="text-[10px] text-neutral-500 border border-[#333] rounded-md px-2.5 py-1.5">Temporary session data</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 filters-grid">
+            <div class="sm:col-span-2 xl:col-span-1">
+              <label for="searchInput" class="field-label">Search members</label>
+              <div class="search-wrap">
+                <i data-lucide="search" width="16" height="16"></i>
+                <input id="searchInput" class="field" type="search" placeholder="Name or phone number..." autocomplete="off">
+              </div>
+            </div>
+
+            <div>
+              <label for="planFilter" class="field-label">Membership Plan</label>
+              <select id="planFilter" class="field">
+                <option value="">All Plans</option>
+                <option value="Basic">Basic</option>
+                <option value="Standard">Standard</option>
+                <option value="Premium">Premium</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="subscriptionFilter" class="field-label">Subscription Status</label>
+              <select id="subscriptionFilter" class="field">
+                <option value="">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Expiring Soon">Expiring Soon</option>
+                <option value="Expired">Expired</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="feeFilter" class="field-label">Fee Status</label>
+              <select id="feeFilter" class="field">
+                <option value="">All Fee Statuses</option>
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+                <option value="Overdue">Overdue</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 mt-4">
+            <p id="filterSummary" class="text-[10px] text-neutral-500" aria-live="polite">Showing all demonstration members</p>
+            <div class="filter-actions flex items-center gap-2">
+              <button id="clearFiltersBtn" class="btn btn-secondary text-[11px]">
+                <i data-lucide="rotate-ccw" width="14" height="14"></i> Clear Filters
+              </button>
+              <button id="exportBtn" class="btn btn-secondary text-[11px]" title="Download currently filtered demo records as CSV">
+                <i data-lucide="download" width="14" height="14"></i> Export CSV
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="members-table" aria-label="Gym member records">
+            <thead>
+              <tr>
+                <th scope="col">Member</th>
+                <th scope="col">Age</th>
+                <th scope="col">Phone</th>
+                <th scope="col">
+                  <button id="sortPlanBtn" class="inline-flex items-center gap-1 hover:text-white" aria-label="Sort by membership plan">
+                    Plan <i data-lucide="arrow-up-down" width="12" height="12"></i>
+                  </button>
+                </th>
+                <th scope="col">
+                  <button id="sortDaysBtn" class="inline-flex items-center gap-1 hover:text-white" aria-label="Sort by subscription days remaining">
+                    Days Left <i data-lucide="arrow-up-down" width="12" height="12"></i>
+                  </button>
+                </th>
+                <th scope="col">Attendance</th>
+                <th scope="col">Fee Status</th>
+                <th scope="col">Subscription</th>
+                <th scope="col"><span class="sr-only">Actions</span>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="membersTableBody">
+              <tr><td colspan="9" class="text-center py-10 text-neutral-500">Loading demonstration members...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="emptyState" class="hidden px-6 py-16 text-center" role="status">
+          <div class="empty-icon"><i data-lucide="users-round" width="24" height="24"></i></div>
+          <h3 class="text-sm font-semibold">No members found</h3>
+          <p class="text-xs text-neutral-500 mt-2 max-w-sm mx-auto">We couldn't find any members matching your current search or filters. Try adjusting your criteria.</p>
+          <button id="emptyClearBtn" class="btn btn-secondary mt-5"><i data-lucide="rotate-ccw" width="14" height="14"></i> Clear all filters</button>
+        </div>
+
+        <div class="pagination-row flex items-center justify-between gap-4 p-4 sm:px-6 border-t border-[#292929]">
+          <div class="flex flex-wrap items-center gap-3">
+            <label for="pageSize" class="text-[11px] text-neutral-500">Rows per page</label>
+            <select id="pageSize" class="field !w-auto !min-h-[32px] !py-1 !px-2 text-[11px]">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <span id="paginationInfo" class="table-meta" aria-live="polite">Showing 1–8 of 8</span>
+          </div>
+          <nav id="paginationControls" class="flex items-center gap-1.5" aria-label="Member table pagination">
+            <button class="pagination-btn" disabled aria-label="Previous page"><i data-lucide="chevron-left" width="15" height="15"></i></button>
+            <button class="pagination-btn current" aria-current="page">1</button>
+            <button class="pagination-btn" disabled aria-label="Next page"><i data-lucide="chevron-right" width="15" height="15"></i></button>
+          </nav>
+        </div>
+      </section>
+
+      <footer class="flex flex-wrap items-center justify-between gap-3 mt-6 text-[10px] text-neutral-600">
+        <p>© <span id="footerYear">2026</span> IRONCORE · Member Administration</p>
+        <p class="flex items-center gap-2"><i data-lucide="shield-alert" width="13" height="13"></i> Demo only · No backend connected</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Add/Edit Member Modal -->
+  <div id="memberModal" class="overlay hidden" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="memberModalTitle" aria-describedby="memberModalDescription">
+      <div class="modal-header">
+        <div>
+          <h2 id="memberModalTitle" class="display text-2xl tracking-wide">Add New Member</h2>
+          <p id="memberModalDescription" class="text-[11px] text-neutral-500 mt-1">Enter member details for this temporary demo session.</p>
+        </div>
+        <button type="button" class="close-btn" data-close-modal="memberModal" aria-label="Close member form">
+          <i data-lucide="x" width="19" height="19"></i>
+        </button>
+      </div>
+
+      <form id="memberForm" novalidate>
+        <div class="modal-body">
+          <div class="demo-banner mb-5">
+            <i data-lucide="info" width="16" height="16" class="text-orange-400 flex-shrink-0 mt-0.5"></i>
+            <p class="text-[11px]">Demo operation only. Submitting updates the in-memory page dataset; nothing is sent to a server or database.</p>
+          </div>
+
+          <div class="mb-5">
+            <label class="field-label" for="profilePhoto">Profile Photo <span class="text-neutral-600 font-normal">(Optional)</span></label>
+            <div class="upload-area">
+              <img id="imagePreview" class="upload-preview" alt="Profile photo preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' rx='40' fill='%23252525'/%3E%3Ccircle cx='40' cy='29' r='14' fill='%23666666'/%3E%3Cpath d='M14 76c1-17 11-26 26-26s25 9 26 26' fill='%23666666'/%3E%3C/svg%3E">
+              <div class="min-w-0">
+                <label class="file-button">
+                  <i data-lucide="upload" width="13" height="13"></i>
+                  Choose Image
+                  <input id="profilePhoto" type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-describedby="photoHelp photoError">
+                </label>
+                <p id="photoHelp" class="text-[10px] text-neutral-500 mt-2">JPG, PNG, WEBP or GIF · Maximum 500 KB</p>
+                <p id="photoFileName" class="text-[10px] text-neutral-400 mt-1 truncate max-w-[240px]">No file selected</p>
+                <p id="photoError" class="error-text hidden" role="alert"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+              <label class="field-label" for="fullName">Full Name <span class="text-red-400">*</span></label>
+              <input class="field" id="fullName" name="fullName" type="text" placeholder="e.g. Aarav Sharma" maxlength="100" autocomplete="name" required>
+              <p class="error-text hidden" id="fullNameError" role="alert"></p>
+            </div>
+
+            <div>
+              <label class="field-label" for="age">Age <span class="text-red-400">*</span></label>
+              <input class="field" id="age" name="age" type="number" min="16" max="100" step="1" placeholder="e.g. 25" required>
+              <p class="error-text hidden" id="ageError" role="alert"></p>
+            </div>
+
+            <div>
+              <label class="field-label" for="phone">Phone Number <span class="text-red-400">*</span></label>
+              <input class="field" id="phone" name="phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel" maxlength="20" required>
+              <p class="text-[10px] text-neutral-600 mt-1">Enter a valid international or Indian phone number.</p>
+              <p class="error-text hidden" id="phoneError" role="alert"></p>
+            </div>
+
+            <div>
+              <label class="field-label" for="membershipPlan">Membership Plan <span class="text-red-400">*</span></label>
+              <select class="field" id="membershipPlan" name="membershipPlan" required>
+                <option value="">Select a plan</option>
+                <option value="Basic">Basic</option>
+                <option value="Standard">Standard</option>
+                <option value="Premium">Premium</option>
+              </select>
+              <p class="error-text hidden" id="membershipPlanError" role="alert"></p>
+            </div>
+
+            <div>
+              <label class="field-label" for="feeStatus">Fee Status <span class="text-red-400">*</span></label>
+              <select class="field" id="feeStatus" name="feeStatus" required>
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+                <option value="Overdue">Overdue</option>
+              </select>
+              <p class="error-text hidden" id="feeStatusError" role="alert"></p>
+            </div>
+
+            <div>
+              <label class="field-label" for="startDate">Membership Start Date <span class="text-red-400">*</span></label>
+              <input class="field" id="startDate" name="startDate" type="date" required>
+              <p class="error-text hidden" id="startDateError" role="alert"></p>
+            </div>
+
+            <div>
+              <label class="field-label" for="duration">Membership Duration <span class="text-red-400">*</span></label>
+              <select class="field" id="duration" name="duration" required>
+                <option value="30">1 Month (30 days)</option>
+                <option value="90">3 Months (90 days)</option>
+                <option value="180">6 Months (180 days)</option>
+                <option value="365">12 Months (365 days)</option>
+                <option value="custom">Custom end date</option>
+              </select>
+              <p class="error-text hidden" id="durationError" role="alert"></p>
+            </div>
+
+            <div id="customEndDateWrap" class="hidden sm:col-span-2">
+              <label class="field-label" for="endDate">Membership End Date <span class="text-red-400">*</span></label>
+              <input class="field" id="endDate" name="endDate" type="date">
+              <p class="error-text hidden" id="endDateError" role="alert"></p>
+            </div>
+
+            <div class="sm:col-span-2 bg-[#111] border border-[#303030] rounded-lg p-3 flex items-start gap-3">
+              <i data-lucide="calendar-check" width="17" height="17" class="text-orange-400 mt-0.5 flex-shrink-0"></i>
+              <div>
+                <p class="text-[11px] font-semibold">Membership dates</p>
+                <p id="datePreview" class="text-[11px] text-neutral-500 mt-1">Choose a start date and duration to preview the membership end date.</p>
+              </div>
+            </div>
+          </div>
+          <p id="formGeneralError" class="error-text hidden mt-4" role="alert"></p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="memberModal">Cancel</button>
+          <button type="submit" id="saveMemberBtn" class="btn btn-primary">
+            <i data-lucide="user-plus" width="15" height="15"></i>
+            <span id="saveMemberLabel">Add Demo Member</span>
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profileModal" class="overlay hidden" role="presentation">
+    <section class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+      <div class="modal-header">
+        <div>
+          <h2 id="profileModalTitle" class="display text-2xl">Member Profile</h2>
+          <p class="text-[11px] text-neutral-500 mt-1">Illustrative member information</p>
+        </div>
+        <button class="close-btn" data-close-modal="profileModal" aria-label="Close member profile"><i data-lucide="x" width="19" height="19"></i></button>
+      </div>
+      <div id="profileContent" class="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-close-modal="profileModal">Close</button>
+        <button id="profileEditBtn" class="btn btn-primary"><i data-lucide="pencil" width="14" height="14"></i> Edit Member</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Renewal Modal -->
+  <div id="renewModal" class="overlay hidden" role="presentation">
+    <section class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="renewTitle">
+      <div class="modal-header">
+        <div>
+          <h2 id="renewTitle" class="display text-2xl">Renew Membership</h2>
+          <p class="text-[11px] text-neutral-500 mt-1">Temporary demonstration operation</p>
+        </div>
+        <button class="close-btn" data-close-modal="renewModal" aria-label="Close renewal dialog"><i data-lucide="x" width="19" height="19"></i></button>
+      </div>
+      <form id="renewForm">
+        <div class="modal-body">
+          <div class="demo-banner mb-5">
+            <i data-lucide="info" width="16" height="16" class="text-orange-400 flex-shrink-0 mt-0.5"></i>
+            <p class="text-[11px]">This only changes the temporary demonstration record. No real membership or payment will be processed.</p>
+          </div>
+          <p id="renewMemberName" class="text-sm font-semibold mb-5">Member</p>
+          <div class="mb-4">
+            <label class="field-label" for="renewDuration">Renewal Duration</label>
+            <select id="renewDuration" class="field" required>
+              <option value="30">1 Month (30 days)</option>
+              <option value="90" selected>3 Months (90 days)</option>
+              <option value="180">6 Months (180 days)</option>
+              <option value="365">12 Months (365 days)</option>
+            </select>
+          </div>
+          <div class="mb-1">
+            <label class="field-label" for="renewFeeStatus">Fee Status After Renewal</label>
+            <select id="renewFeeStatus" class="field" required>
+              <option value="Paid">Paid (demo)</option>
+              <option value="Pending">Pending</option>
+              <option value="Overdue">Overdue</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="renewModal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i data-lucide="refresh-cw" width="14" height="14"></i> Renew Demo Record</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Delete Confirmation -->
+  <div id="deleteModal" class="overlay hidden" role="presentation">
+    <section class="modal modal-sm" role="alertdialog" aria-modal="true" aria-labelledby="deleteTitle" aria-describedby="deleteDescription">
+      <div class="modal-header">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 grid place-items-center flex-shrink-0">
+            <i data-lucide="trash-2" width="19" height="19"></i>
+          </div>
+          <div>
+            <h2 id="deleteTitle" class="text-base font-semibold mt-1">Delete Demo Member?</h2>
+            <p id="deleteDescription" class="text-[11px] text-neutral-400 mt-2 leading-relaxed">This removes the selected member from the current page's temporary demonstration dataset. It does not delete a real database record.</p>
+          </div>
+        </div>
+        <button class="close-btn" data-close-modal="deleteModal" aria-label="Cancel deletion"><i data-lucide="x" width="18" height="18"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
+          <p class="text-[10px] text-neutral-400">Selected member</p>
+          <p id="deleteMemberName" class="text-sm font-semibold mt-1">Member</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-close-modal="deleteModal">Cancel</button>
+        <button id="confirmDeleteBtn" class="btn btn-danger"><i data-lucide="trash-2" width="14" height="14"></i> Delete Demo Record</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    'use strict';
+
+    /*
+     * IRONCORE MEMBERS — FRONTEND DEMO
+     *
+     * Architecture notes:
+     * - memberStore is an in-memory demonstration repository.
+     * - Replace DemoMemberRepository with a FastAPI-backed repository when ready.
+     * - Do not treat client-side validation as authorization or server validation.
+     * - A real backend must authenticate/authorize every read and mutation,
+     *   validate inputs independently, and enforce membership/payment rules.
+     * - No localStorage, credentials, authentication tokens, or API calls are used.
+     */
+
+    const DemoMemberRepository = (() => {
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+
+      const isoDate = date => {
+        const d = new Date(date);
+        return [
+          d.getFullYear(),
+          String(d.getMonth() + 1).padStart(2, '0'),
+          String(d.getDate()).padStart(2, '0')
+        ].join('-');
+      };
+
+      const addDays = (date, days) => {
+        const d = new Date(date);
+        d.setDate(d.getDate() + days);
+        return isoDate(d);
+      };
+
+      const daysFromToday = days => addDays(now, days);
+
+      let nextId = 9;
+
+      const sampleMembers = [
+        {
+          id: 1, name: 'Aarav Sharma', age: 24, phone: '+91 98765 43210',
+          plan: 'Premium', startDate: daysFromToday(-75), endDate: daysFromToday(15),
+          feeStatus: 'Paid', attendance: 24, photo: '', photoData: '', demo: true
+        },
+        {
+          id: 2, name: 'Priya Verma', age: 27, phone: '+91 98123 45670',
+          plan: 'Standard', startDate: daysFromToday(-85), endDate: daysFromToday(5),
+          feeStatus: 'Pending', attendance: 19, photo: '', photoData: '', demo: true
+        },
+        {
+          id: 3, name: 'Rahul Mehta', age: 31, phone: '+91 97654 32109',
+          plan: 'Basic', startDate: daysFromToday(-120), endDate: daysFromToday(-30),
+          feeStatus: 'Overdue', attendance: 11, photo: '', photoData: '', demo: true
+        },
+        {
+          id: 4, name: 'Ananya Patel', age: 22, phone: '+91 98980 12345',
+          plan: 'Premium', startDate: daysFromToday(-20), endDate: daysFromToday(160),
+          feeStatus: 'Paid', attendance: 18, photo: '', photoData: '', demo: true
+        },
+        {
+          id: 5, name: 'Vikram Singh', age: 35, phone: '+91 91234 56780',
+          plan: 'Standard', startDate: daysFromToday(-150), endDate: daysFromToday(-5),
+          feeStatus: 'Overdue', attendance: 8, photo: '', photoData: '', demo: true
+        },
+        {
+          id: 6, name: 'Sneha Kapoor', age: 26, phone: '+91 99887 76655',
+          plan: 'Basic', startDate: daysFromToday(-15), endDate: daysFromToday(75),
+          feeStatus: 'Paid', attendance: 12, photo: '', photoData: '', demo: true
+        },
+        {
+          id: 7, name: 'Rohan Gupta', age: 29, phone: '+91 93456 78901',
+          plan: 'Premium', startDate: daysFromToday(-55), endDate: daysFromToday(3),
+          feeStatus: 'Pending', attendance: 21, photo: '', photoData: '', demo: true
+        },
+        {
+          id: 8, name: 'Meera Joshi', age: 23, phone: '+91 90909 12345',
+          plan: 'Standard', startDate: daysFromToday(-10), endDate: daysFromToday(80),
+          feeStatus: 'Paid', attendance: 9, photo: '', photoData: '', demo: true
+        }
+      ];
+
+      let members = sampleMembers.map(member => ({ ...member }));
+
+      function getStatus(member) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const end = new Date(member.endDate + 'T00:00:00');
+        const days = Math.ceil((end - today) / 86400000);
+        if (days < 0) return 'Expired';
+        if (days <= 7) return 'Expiring Soon';
+        return 'Active';
+      }
+
+      function getDaysRemaining(member) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return Math.ceil((new Date(member.endDate + 'T00:00:00') - today) / 86400000);
+      }
+
+      function list() {
+        return members.map(m => ({
+          ...m,
+          subscriptionStatus: getStatus(m),
+          daysRemaining: getDaysRemaining(m)
+        }));
+      }
+
+      function find(id) {
+        const member = members.find(m => m.id === Number(id));
+        return member ? { ...member, subscriptionStatus: getStatus(member), daysRemaining: getDaysRemaining(member) } : null;
+      }
+
+      function create(data) {
+        const member = { ...data, id: nextId++, attendance: 0, demo: true };
+        members.push(member);
+        return find(member.id);
+      }
+
+      function update(id, data) {
+        const index = members.findIndex(m => m.id === Number(id));
+        if (index === -1) return null;
+        members[index] = { ...members[index], ...data, id: Number(id), demo: true };
+        return find(id);
+      }
+
+      function remove(id) {
+        const index = members.findIndex(m => m.id === Number(id));
+        if (index === -1) return false;
+        members.splice(index, 1);
+        return true;
+      }
+
+      function renew(id, duration, feeStatus) {
+        const member = members.find(m => m.id === Number(id));
+        if (!member) return null;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const currentEnd = new Date(member.endDate + 'T00:00:00');
+        const start = currentEnd > today ? currentEnd : today;
+        const end = new Date(start);
+        end.setDate(end.getDate() + Number(duration));
+
+        member.startDate = isoDate(today);
+        member.endDate = isoDate(end);
+        member.feeStatus = feeStatus;
+        return find(id);
+      }
+
+      return { list, find, create, update, remove, renew, getStatus, getDaysRemaining };
+    })();
+
+    const $ = id => document.getElementById(id);
+    const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+
+    const state = {
+      search: '',
+      plan: '',
+      subscription: '',
+      fee: '',
+      sortKey: 'name',
+      sortDirection: 'asc',
+      page: 1,
+      pageSize: 10,
+      editingId: null,
+      activeMemberId: null,
+      deleteMemberId: null,
+      lastFocusedElement: null,
+      photoData: '',
+      photoName: '',
+      openMenuId: null
+    };
+
+    const DEFAULT_AVATAR = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect width="80" height="80" rx="40" fill="%23252525"/%3E%3Ccircle cx="40" cy="29" r="14" fill="%23666666"/%3E%3Cpath d="M14 76c1-17 11-26 26-26s25 9 26 26" fill="%23666666"/%3E%3C/svg%3E';
+
+    function initIcons() {
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function initials(name) {
+      return String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase();
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return '—';
+      const date = new Date(dateString + 'T00:00:00');
+      if (Number.isNaN(date.getTime())) return '—';
+      return new Intl.DateTimeFormat('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric'
+      }).format(date);
+    }
+
+    function feeBadge(status) {
+      const className = status === 'Paid' ? 'status-green' :
+        status === 'Pending' ? 'status-amber' : 'status-red';
+      return `<span class="status ${className}">${escapeHTML(status)}</span>`;
+    }
+
+    function subscriptionBadge(status) {
+      const className = status === 'Active' ? 'status-green' :
+        status === 'Expiring Soon' ? 'status-amber' : 'status-red';
+      return `<span class="status ${className}">${escapeHTML(status)}</span>`;
+    }
+
+    function showToast(message, type = 'success', detail = '') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      const icon = type === 'error' ? 'alert-circle' : type === 'warning' ? 'alert-triangle' : 'check-circle-2';
+      const color = type === 'error' ? 'text-red-400' : type === 'warning' ? 'text-amber-400' : 'text-green-400';
+      toast.innerHTML = `
+        <i data-lucide="${icon}" width="18" height="18" class="toast-icon ${color}"></i>
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-semibold text-neutral-100">${escapeHTML(message)}</p>
+          ${detail ? `<p class="text-[10px] text-neutral-400 mt-1 leading-relaxed">${escapeHTML(detail)}</p>` : ''}
+        </div>
+        <button class="close-btn !w-6 !h-6" aria-label="Dismiss notification"><i data-lucide="x" width="14" height="14"></i></button>
+      `;
+      toast.querySelector('button').addEventListener('click', () => toast.remove());
+      $('toastRegion').appendChild(toast);
+      initIcons();
+      window.setTimeout(() => toast.remove(), 5000);
+    }
+
+    function getFilteredMembers() {
+      const search = state.search.trim().toLowerCase();
+
+      const members = DemoMemberRepository.list().filter(member => {
+        const searchMatch = !search ||
+          member.name.toLowerCase().includes(search) ||
+          member.phone.toLowerCase().includes(search) ||
+          member.phone.replace(/\D/g, '').includes(search.replace(/\D/g, ''));
+
+        return searchMatch &&
+          (!state.plan || member.plan === state.plan) &&
+          (!state.subscription || member.subscriptionStatus === state.subscription) &&
+          (!state.fee || member.feeStatus === state.fee);
+      });
+
+      members.sort((a, b) => {
+        let aValue = a[state.sortKey];
+        let bValue = b[state.sortKey];
+
+        if (state.sortKey === 'daysRemaining' || state.sortKey === 'age' || state.sortKey === 'attendance') {
+          aValue = Number(aValue);
+          bValue = Number(bValue);
+        } else {
+          aValue = String(aValue ?? '').toLowerCase();
+          bValue = String(bValue ?? '').toLowerCase();
+        }
+
+        const result = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        return state.sortDirection === 'asc' ? result : -result;
+      });
+
+      return members;
+    }
+
+    function renderStats() {
+      const members = DemoMemberRepository.list();
+      $('statTotal').textContent = String(members.length).padStart(2, '0');
+      $('statActive').textContent = String(members.filter(m => m.subscriptionStatus === 'Active').length).padStart(2, '0');
+      $('statExpiring').textContent = String(members.filter(m => m.subscriptionStatus === 'Expiring Soon').length).padStart(2, '0');
+      $('statPending').textContent = String(members.filter(m => m.feeStatus === 'Pending' || m.feeStatus === 'Overdue').length).padStart(2, '0');
+    }
+
+    function renderMemberRow(member) {
+      const daysLabel = member.daysRemaining < 0
+        ? `${Math.abs(member.daysRemaining)} days overdue`
+        : member.daysRemaining === 0
+          ? 'Expires today'
+          : `${member.daysRemaining} days`;
+
+      const daysColor = member.daysRemaining < 0 ? 'text-red-400' :
+        member.daysRemaining <= 7 ? 'text-amber-400' : 'text-neutral-300';
+
+      const photoMarkup = member.photoData
+        ? `<img class="member-avatar" src="${member.photoData}" alt="" loading="lazy">`
+        : `<div class="member-avatar avatar-placeholder" aria-hidden="true">${escapeHTML(initials(member.name))}</div>`;
+
+      const id = Number(member.id);
+      const menuOpen = state.openMenuId === id;
+
+      return `
+        <tr data-member-id="${id}">
+          <td>
+            <div class="flex items-center gap-3">
+              ${photoMarkup}
+              <div>
+                <p class="member-name">${escapeHTML(member.name)}</p>
+                <p class="text-[10px] text-neutral-600 mt-1">ID: MEM-${String(id).padStart(4, '0')}</p>
+              </div>
+            </div>
+          </td>
+          <td class="text-neutral-300">${escapeHTML(member.age)}</td>
+          <td class="text-neutral-400 text-[11px]">${escapeHTML(member.phone)}</td>
+          <td><span class="plan-pill">${escapeHTML(member.plan)}</span></td>
+          <td>
+            <span class="text-[11px] font-semibold ${daysColor}">${escapeHTML(daysLabel)}</span>
+            <p class="text-[10px] text-neutral-600 mt-1">Until ${escapeHTML(formatDate(member.endDate))}</p>
+          </td>
+          <td>
+            <span class="text-xs font-semibold">${escapeHTML(member.attendance)}</span>
+            <span class="text-[10px] text-neutral-600"> days</span>
+          </td>
+          <td>${feeBadge(member.feeStatus)}</td>
+          <td>${subscriptionBadge(member.subscriptionStatus)}</td>
+          <td>
+            <div class="action-wrap">
+              <button class="action-trigger" data-action="menu" data-id="${id}" aria-label="Actions for ${escapeHTML(member.name)}" aria-haspopup="true" aria-expanded="${menuOpen}">
+                <i data-lucide="more-horizontal" width="18" height="18"></i>
+              </button>
+              ${menuOpen ? `
+                <div class="action-menu" role="menu" aria-label="Member actions">
+                  <button role="menuitem" data-action="view" data-id="${id}"><i data-lucide="eye" width="14" height="14"></i> View Profile</button>
+                  <button role="menuitem" data-action="edit" data-id="${id}"><i data-lucide="pencil" width="14" height="14"></i> Edit Member</button>
+                  <button role="menuitem" data-action="renew" data-id="${id}"><i data-lucide="refresh-cw" width="14" height="14"></i> Renew Membership</button>
+                  <div class="h-px bg-[#383838] my-1"></div>
+                  <button role="menuitem" class="danger" data-action="delete" data-id="${id}"><i data-lucide="trash-2" width="14" height="14"></i> Delete Member</button>
+                </div>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
+    function renderPagination(total, start, end, pageCount) {
+      $('paginationInfo').textContent = total === 0
+        ? 'No records to display'
+        : `Showing ${start + 1}–${end} of ${total}`;
+
+      const nav = $('paginationControls');
+      nav.replaceChildren();
+
+      const previous = document.createElement('button');
+      previous.className = 'pagination-btn';
+      previous.setAttribute('aria-label', 'Previous page');
+      previous.innerHTML = '<i data-lucide="chevron-left" width="15" height="15"></i>';
+      previous.disabled = state.page <= 1;
+      previous.addEventListener('click', () => {
+        if (state.page > 1) {
+          state.page--;
+          renderTable();
+        }
+      });
+      nav.appendChild(previous);
+
+      let pages;
+      if (pageCount <= 5) {
+        pages = Array.from({ length: pageCount }, (_, i) => i + 1);
+      } else if (state.page <= 3) {
+        pages = [1, 2, 3, 4, '…', pageCount];
+      } else if (state.page >= pageCount - 2) {
+        pages = [1, '…', pageCount - 3, pageCount - 2, pageCount - 1, pageCount];
+      } else {
+        pages = [1, '…', state.page - 1, state.page, state.page + 1, '…', pageCount];
+      }
+
+      for (const page of pages) {
+        if (page === '…') {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'text-neutral-600 px-1';
+          ellipsis.textContent = '…';
+          nav.appendChild(ellipsis);
+          continue;
+        }
+
+        const button = document.createElement('button');
+        button.className = `pagination-btn ${page === state.page ? 'current' : ''}`;
+        button.textContent = String(page);
+        button.setAttribute('aria-label', `Page ${page}`);
+        if (page === state.page) button.setAttribute('aria-current', 'page');
+        button.addEventListener('click', () => {
+          state.page = page;
+          renderTable();
+        });
+        nav.appendChild(button);
+      }
+
+      const next = document.createElement('button');
+      next.className = 'pagination-btn';
+      next.setAttribute('aria-label', 'Next page');
+      next.innerHTML = '<i data-lucide="chevron-right" width="15" height="15"></i>';
+      next.disabled = state.page >= pageCount;
+      next.addEventListener('click', () => {
+        if (state.page < pageCount) {
+          state.page++;
+          renderTable();
+        }
+      });
+      nav.appendChild(next);
+      initIcons();
+    }
+
+    function renderTable() {
+      const members = getFilteredMembers();
+      const total = members.length;
+      const pageCount = Math.max(1, Math.ceil(total / state.pageSize));
+
+      if (state.page > pageCount) state.page = pageCount;
+
+      const start = (state.page - 1) * state.pageSize;
+      const pageMembers = members.slice(start, start + state.pageSize);
+      const tbody = $('membersTableBody');
+
+      tbody.innerHTML = pageMembers.length
+        ? pageMembers.map(renderMemberRow).join('')
+        : '';
+
+      $('emptyState').classList.toggle('hidden', total !== 0);
+      $('membersTableBody').closest('table').classList.toggle('hidden', total === 0);
+
+      const activeFilters = [state.search, state.plan, state.subscription, state.fee].filter(Boolean).length;
+      $('filterSummary').textContent = activeFilters
+        ? `${total} matching member${total === 1 ? '' : 's'} · ${activeFilters} active filter${activeFilters === 1 ? '' : 's'}`
+        : `Showing all ${total} demonstration member${total === 1 ? '' : 's'}`;
+
+      renderPagination(total, start, Math.min(start + pageMembers.length, total), pageCount);
+      renderStats();
+      initIcons();
+    }
+
+    function resetPaginationAndRender() {
+      state.page = 1;
+      state.openMenuId = null;
+      renderTable();
+    }
+
+    function openModal(id, trigger = document.activeElement) {
+      state.lastFocusedElement = trigger;
+      const modal = $(id);
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      const focusTarget = modal.querySelector('input:not([type="file"]):not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex="0"]');
+      window.setTimeout(() => focusTarget?.focus(), 20);
+      initIcons();
+    }
+
+    function closeModal(id, restoreFocus = true) {
+      const modal = $(id);
+      if (!modal || modal.classList.contains('hidden')) return;
+
+      modal.classList.add('hidden');
+      if (![...document.querySelectorAll('.overlay')].some(item => !item.classList.contains('hidden'))) {
+        document.body.style.overflow = '';
+      }
+
+      if (restoreFocus && state.lastFocusedElement && document.contains(state.lastFocusedElement)) {
+        state.lastFocusedElement.focus();
+      }
+    }
+
+    function closeAllMenus() {
+      if (state.openMenuId !== null) {
+        state.openMenuId = null;
+        renderTable();
+      }
+    }
+
+    function setError(id, message) {
+      const element = $(id);
+      if (!element) return;
+      element.textContent = message;
+      element.classList.toggle('hidden', !message);
+    }
+
+    function clearFormErrors() {
+      ['fullName', 'age', 'phone', 'membershipPlan', 'feeStatus', 'startDate', 'duration', 'endDate'].forEach(field => {
+        setError(field + 'Error', '');
+        $(field)?.removeAttribute('aria-invalid');
+      });
+      setError('photoError', '');
+      setError('formGeneralError', '');
+    }
+
+    function markInvalid(field, errorId, message) {
+      $(field).setAttribute('aria-invalid', 'true');
+      setError(errorId, message);
+    }
+
+    function normalizePhone(value) {
+      return String(value || '').replace(/[\s().-]/g, '');
+    }
+
+    function isValidPhone(value) {
+      const normalized = normalizePhone(value);
+      return /^\+?[1-9]\d{7,14}$/.test(normalized);
+    }
+
+    function isValidName(value) {
+      const trimmed = value.trim();
+      return trimmed.length >= 2 &&
+        trimmed.length <= 100 &&
+        /^[\p{L}\p{M}][\p{L}\p{M}\s.'’-]*$/u.test(trimmed);
+    }
+
+    function dateFromISO(value) {
+      if (!value) return null;
+      const date = new Date(value + 'T00:00:00');
+      if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) return null;
+      return date;
+    }
+
+    function dateToday() {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0')
+      ].join('-');
+    }
+
+    function addDurationToDate(dateString, days) {
+      const date = dateFromISO(dateString);
+      if (!date) return '';
+      date.setDate(date.getDate() + Number(days));
+      return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0')
+      ].join('-');
+    }
+
+    function updateDatePreview() {
+      const start = $('startDate').value;
+      const duration = $('duration').value;
+      const custom = duration === 'custom';
+      $('customEndDateWrap').classList.toggle('hidden', !custom);
+      $('endDate').required = custom;
+
+      if (custom) {
+        const end = $('endDate').value;
+        $('datePreview').textContent = start && end && end > start
+          ? `Starts ${formatDate(start)} · Ends ${formatDate(end)}`
+          : 'Choose an end date later than the start date.';
+      } else {
+        const end = start ? addDurationToDate(start, duration) : '';
+        $('datePreview').textContent = start && end
+          ? `Starts ${formatDate(start)} · Ends ${formatDate(end)}`
+          : 'Choose a start date and duration to preview the membership end date.';
+      }
+    }
+
+    function resetMemberForm() {
+      $('memberForm').reset();
+      clearFormErrors();
+      state.photoData = '';
+      state.photoName = '';
+      $('profilePhoto').value = '';
+      $('imagePreview').src = DEFAULT_AVATAR;
+      $('photoFileName').textContent = 'No file selected';
+      $('feeStatus').value = 'Paid';
+      $('duration').value = '30';
+      $('startDate').value = dateToday();
+      $('endDate').value = '';
+      $('customEndDateWrap').classList.add('hidden');
+      $('endDate').required = false;
+      updateDatePreview();
+    }
+
+    function openAddMember() {
+      state.editingId = null;
+      resetMemberForm();
+      $('memberModalTitle').textContent = 'Add New Member';
+      $('memberModalDescription').textContent = 'Enter member details for this temporary demo session.';
+      $('saveMemberLabel').textContent = 'Add Demo Member';
+      $('saveMemberBtn').querySelector('svg')?.setAttribute('data-lucide', 'user-plus');
+      openModal('memberModal');
+    }
+
+    function openEditMember(id) {
+      const member = DemoMemberRepository.find(id);
+      if (!member) {
+        showToast('Member not found', 'error', 'The record may have been removed from the demo dataset.');
+        return;
+      }
+
+      state.editingId = member.id;
+      resetMemberForm();
+
+      $('memberModalTitle').textContent = 'Edit Member';
+      $('memberModalDescription').textContent = 'Update details in this temporary demonstration dataset.';
+      $('saveMemberLabel').textContent = 'Update Demo Member';
+      $('fullName').value = member.name;
+      $('age').value = member.age;
+      $('phone').value = member.phone;
+      $('membershipPlan').value = member.plan;
+      $('feeStatus').value = member.feeStatus;
+      $('startDate').value = member.startDate;
+      $('endDate').value = member.endDate;
+      state.photoData = member.photoData || '';
+      state.photoName = '';
+      $('imagePreview').src = member.photoData || DEFAULT_AVATAR;
+      $('photoFileName').textContent = member.photoData ? 'Existing demo image' : 'No file selected';
+
+      const days = Math.round((dateFromISO(member.endDate) - dateFromISO(member.startDate)) / 86400000);
+      const supportedDuration = ['30', '90', '180', '365'].includes(String(days));
+      $('duration').value = supportedDuration ? String(days) : 'custom';
+      $('customEndDateWrap').classList.toggle('hidden', supportedDuration);
+      $('endDate').required = !supportedDuration;
+      updateDatePreview();
+      openModal('memberModal');
+    }
+
+    function validateMemberForm() {
+      clearFormErrors();
+      let valid = true;
+
+      const name = $('fullName').value.trim();
+      const age = Number($('age').value);
+      const phone = $('phone').value.trim();
+      const plan = $('membershipPlan').value;
+      const fee = $('feeStatus').value;
+      const startDate = $('startDate').value;
+      const duration = $('duration').value;
+
+      if (!isValidName(name)) {
+        markInvalid('fullName', 'fullNameError', 'Enter a valid name containing at least 2 letters.');
+        valid = false;
+      }
+
+      if (!Number.isInteger(age) || age < 16 || age > 100) {
+        markInvalid('age', 'ageError', 'Age must be a whole number between 16 and 100.');
+        valid = false;
+      }
+
+      if (!isValidPhone(phone)) {
+        markInvalid('phone', 'phoneError', 'Enter a valid phone number with 8–15 digits, including country code if needed.');
+        valid = false;
+      } else {
+        const normalizedPhone = normalizePhone(phone);
+        const duplicate = DemoMemberRepository.list().find(member =>
+          normalizePhone(member.phone) === normalizedPhone &&
+          member.id !== state.editingId
+        );
+        if (duplicate) {
+          markInvalid('phone', 'phoneError', 'This phone number already exists in the demonstration dataset.');
+          valid = false;
+        }
+      }
+
+      if (!['Basic', 'Standard', 'Premium'].includes(plan)) {
+        markInvalid('membershipPlan', 'membershipPlanError', 'Select a valid membership plan.');
+        valid = false;
+      }
+
+      if (!['Paid', 'Pending', 'Overdue'].includes(fee)) {
+        markInvalid('feeStatus', 'feeStatusError', 'Select a valid fee status.');
+        valid = false;
+      }
+
+      if (!dateFromISO(startDate)) {
+        markInvalid('startDate', 'startDateError', 'Choose a valid membership start date.');
+        valid = false;
+      }
+
+      let endDate = '';
+      if (duration === 'custom') {
+        endDate = $('endDate').value;
+        if (!dateFromISO(endDate)) {
+          markInvalid('endDate', 'endDateError', 'Choose a valid membership end date.');
+          valid = false;
+        } else if (startDate && endDate <= startDate) {
+          markInvalid('endDate', 'endDateError', 'The end date must be later than the start date.');
+          valid = false;
+        }
+      } else if (['30', '90', '180', '365'].includes(duration)) {
+        endDate = addDurationToDate(startDate, Number(duration));
+      } else {
+        markInvalid('duration', 'durationError', 'Choose a valid membership duration.');
+        valid = false;
+      }
+
+      if (valid && !endDate) {
+        setError('formGeneralError', 'Unable to calculate the membership end date. Please check your dates.');
+        valid = false;
+      }
+
+      return valid ? {
+        name,
+        age,
+        phone,
+        plan,
+        feeStatus: fee,
+        startDate,
+        endDate,
+        photoData: state.photoData || ''
+      } : null;
+    }
+
+    async function handlePhotoChange(event) {
+      const file = event.target.files?.[0];
+      setError('photoError', '');
+
+      if (!file) return;
+
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('photoError', 'Choose a JPG, PNG, WEBP or GIF image.');
+        event.target.value = '';
+        return;
+      }
+
+      if (file.size > 500 * 1024) {
+        setError('photoError', 'Image exceeds 500 KB. Choose a smaller image.');
+        event.target.value = '';
+        return;
+      }
+
+      if (file.size === 0) {
+        setError('photoError', 'The selected file is empty. Choose another image.');
+        event.target.value = '';
+        return;
+      }
+
+      try {
+        const dataURL = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error('Unable to read this image.'));
+          reader.readAsDataURL(file);
+        });
+
+        if (typeof dataURL !== 'string' || !dataURL.startsWith('data:image/')) {
+          throw new Error('The selected file is not a valid image.');
+        }
+
+        const image = new Image();
+        await new Promise((resolve, reject) => {
+          image.onload = resolve;
+          image.onerror = () => reject(new Error('The selected image could not be decoded.'));
+          image.src = dataURL;
+        });
+
+        state.photoData = dataURL;
+        state.photoName = file.name;
+        $('imagePreview').src = dataURL;
+        $('photoFileName').textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      } catch (error) {
+        state.photoData = '';
+        state.photoName = '';
+        setError('photoError', error.message || 'Unable to preview this image.');
+        event.target.value = '';
+      }
+    }
+
+    function submitMemberForm(event) {
+      event.preventDefault();
+      const data = validateMemberForm();
+      if (!data) {
+        const invalid = $('memberForm').querySelector('[aria-invalid="true"]');
+        invalid?.focus();
+        return;
+      }
+
+      if (state.editingId !== null) {
+        const updated = DemoMemberRepository.update(state.editingId, data);
+        if (!updated) {
+          setError('formGeneralError', 'This member no longer exists in the demo dataset.');
+          return;
+        }
+        closeModal('memberModal', false);
+        state.editingId = null;
+        resetPaginationAndRender();
+        showToast('Demo member updated', 'success', 'Changes exist only in the current page session.');
+      } else {
+        DemoMemberRepository.create(data);
+        closeModal('memberModal', false);
+        resetPaginationAndRender();
+        showToast('Demo member added', 'success', 'The new member is available in memory until the page is reloaded.');
+      }
+
+      $('addMemberBtn').focus();
+    }
+
+    function openProfile(id) {
+      const member = DemoMemberRepository.find(id);
+      if (!member) return;
+
+      state.activeMemberId = member.id;
+
+      const avatar = member.photoData
+        ? `<img src="${member.photoData}" alt="" class="w-[76px] h-[76px] rounded-full object-cover border border-[#383838]">`
+        : `<div class="w-[76px] h-[76px] rounded-full avatar-placeholder text-xl border border-[#383838]">${escapeHTML(initials(member.name))}</div>`;
+
+      $('profileContent').innerHTML = `
+        <div class="flex flex-col items-center text-center pb-5 border-b border-[#303030]">
+          ${avatar}
+          <h3 class="text-base font-semibold mt-3">${escapeHTML(member.name)}</h3>
+          <p class="text-[10px] text-neutral-500 mt-1">MEM-${String(member.id).padStart(4, '0')} · Demonstration profile</p>
+          <div class="flex flex-wrap justify-center gap-2 mt-3">
+            ${subscriptionBadge(member.subscriptionStatus)}
+            ${feeBadge(member.feeStatus)}
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-5">
+          ${profileDetail('Age', `${member.age} years`)}
+          ${profileDetail('Phone', member.phone)}
+          ${profileDetail('Membership Plan', member.plan)}
+          ${profileDetail('Attendance', `${member.attendance} days`)}
+          ${profileDetail('Start Date', formatDate(member.startDate))}
+          ${profileDetail('End Date', formatDate(member.endDate))}
+          ${profileDetail('Days Remaining', member.daysRemaining < 0 ? `${Math.abs(member.daysRemaining)} days overdue` : `${member.daysRemaining} days`)}
+          ${profileDetail('Record Type', 'Demo only')}
+        </div>
+      `;
+
+      $('profileEditBtn').onclick = () => {
+        const idToEdit = state.activeMemberId;
+        closeModal('profileModal', false);
+        openEditMember(idToEdit);
+      };
+
+      openModal('profileModal');
+    }
+
+    function profileDetail(label, value) {
+      return `
+        <div class="rounded-lg bg-[#111] border border-[#2D2D2D] p-3 min-w-0">
+          <p class="text-[10px] text-neutral-500 mb-2">${escapeHTML(label)}</p>
+          <p class="text-xs font-semibold text-neutral-200 break-words">${escapeHTML(value)}</p>
+        </div>
+      `;
+    }
+
+    function openRenewal(id) {
+      const member = DemoMemberRepository.find(id);
+      if (!member) return;
+      state.activeMemberId = member.id;
+      $('renewMemberName').textContent = member.name;
+      $('renewDuration').value = '90';
+      $('renewFeeStatus').value = 'Paid';
+      openModal('renewModal');
+    }
+
+    function submitRenewal(event) {
+      event.preventDefault();
+      if (state.activeMemberId === null) return;
+
+      const duration = $('renewDuration').value;
+      const feeStatus = $('renewFeeStatus').value;
+
+      if (!['30', '90', '180', '365'].includes(duration) ||
+          !['Paid', 'Pending', 'Overdue'].includes(feeStatus)) {
+        showToast('Invalid renewal details', 'error', 'Choose a valid duration and fee status.');
+        return;
+      }
+
+      const renewed = DemoMemberRepository.renew(state.activeMemberId, duration, feeStatus);
+      if (!renewed) {
+        closeModal('renewModal');
+        showToast('Renewal unavailable', 'error', 'The member could not be found in the demo dataset.');
+        return;
+      }
+
+      closeModal('renewModal', false);
+      resetPaginationAndRender();
+      showToast('Demo membership renewed', 'success', `Temporary end date: ${formatDate(renewed.endDate)}. No real subscription or payment was changed.`);
+    }
+
+    function askDeleteMember(id) {
+      const member = DemoMemberRepository.find(id);
+      if (!member) return;
+      state.deleteMemberId = member.id;
+      $('deleteMemberName').textContent = member.name;
+      openModal('deleteModal');
+    }
+
+    function confirmDelete() {
+      if (state.deleteMemberId === null) return;
+
+      const member = DemoMemberRepository.find(state.deleteMemberId);
+      const deleted = DemoMemberRepository.remove(state.deleteMemberId);
+      closeModal('deleteModal', false);
+      state.deleteMemberId = null;
+
+      if (!deleted) {
+        showToast('Member not found', 'error', 'No record was removed.');
+        return;
+      }
+
+      resetPaginationAndRender();
+      showToast('Demo record removed', 'success', `${member?.name || 'Member'} was removed from the temporary page dataset only.`);
+      $('searchInput').focus();
+    }
+
+    function clearFilters() {
+      state.search = '';
+      state.plan = '';
+      state.subscription = '';
+      state.fee = '';
+      $('searchInput').value = '';
+      $('planFilter').value = '';
+      $('subscriptionFilter').value = '';
+      $('feeFilter').value = '';
+      resetPaginationAndRender();
+    }
+
+    function csvCell(value) {
+      return '"' + String(value ?? '').replace(/"/g, '""') + '"';
+    }
+
+    function exportCSV() {
+      const members = getFilteredMembers();
+      if (!members.length) {
+        showToast('Nothing to export', 'warning', 'No members match your current filters.');
+        return;
+      }
+
+      const headers = [
+        'Demo ID', 'Full Name', 'Age', 'Phone', 'Membership Plan',
+        'Start Date', 'End Date', 'Days Remaining', 'Attendance Days',
+        'Fee Status', 'Subscription Status'
+      ];
+
+      const rows = members.map(member => [
+        `MEM-${String(member.id).padStart(4, '0')}`,
+        member.name, member.age, member.phone, member.plan,
+        member.startDate, member.endDate, member.daysRemaining,
+        member.attendance, member.feeStatus, member.subscriptionStatus
+      ]);
+
+      const csv = '\uFEFF' + [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ironcore-demo-members-${dateToday()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast('Demo CSV exported', 'success', `${members.length} filtered demonstration records were exported. The CSV is not a live database export.`);
+    }
+
+    // Table action delegation
+    $('membersTableBody').addEventListener('click', event => {
+      const button = event.target.closest('[data-action]');
+      if (!button) return;
+
+      const action = button.dataset.action;
+      const id = Number(button.dataset.id);
+
+      if (action === 'menu') {
+        state.openMenuId = state.openMenuId === id ? null : id;
+        renderTable();
+        if (state.openMenuId !== null) {
+          const trigger = $('membersTableBody').querySelector(`[data-action="menu"][data-id="${id}"]`);
+          trigger?.focus();
+        }
+        return;
+      }
+
+      state.openMenuId = null;
+      if (action === 'view') openProfile(id);
+      else if (action === 'edit') openEditMember(id);
+      else if (action === 'renew') openRenewal(id);
+      else if (action === 'delete') askDeleteMember(id);
+
+      renderTable();
+    });
+
+    // Search and filter inputs
+    $('searchInput').addEventListener('input', event => {
+      state.search = event.target.value;
+      resetPaginationAndRender();
+    });
+
+    $('planFilter').addEventListener('change', event => {
+      state.plan = event.target.value;
+      resetPaginationAndRender();
+    });
+
+    $('subscriptionFilter').addEventListener('change', event => {
+      state.subscription = event.target.value;
+      resetPaginationAndRender();
+    });
+
+    $('feeFilter').addEventListener('change', event => {
+      state.fee = event.target.value;
+      resetPaginationAndRender();
+    });
+
+    $('clearFiltersBtn').addEventListener('click', clearFilters);
+    $('emptyClearBtn').addEventListener('click', clearFilters);
+    $('exportBtn').addEventListener('click', exportCSV);
+
+    $('pageSize').addEventListener('change', event => {
+      const size = Number(event.target.value);
+      if (![5, 10, 20, 50].includes(size)) return;
+      state.pageSize = size;
+      state.page = 1;
+      renderTable();
+    });
+
+    function setSort(key) {
+      if (state.sortKey === key) {
+        state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        state.sortKey = key;
+        state.sortDirection = 'asc';
+      }
+      state.page = 1;
+      renderTable();
+    }
+
+    $('sortPlanBtn').addEventListener('click', () => setSort('plan'));
+    $('sortDaysBtn').addEventListener('click', () => setSort('daysRemaining'));
+
+    // Form actions
+    $('addMemberBtn').addEventListener('click', openAddMember);
+    $('memberForm').addEventListener('submit', submitMemberForm);
+    $('profilePhoto').addEventListener('change', handlePhotoChange);
+    $('renewForm').addEventListener('submit', submitRenewal);
+    $('confirmDeleteBtn').addEventListener('click', confirmDelete);
+    $('startDate').addEventListener('change', updateDatePreview);
+    $('duration').addEventListener('change', updateDatePreview);
+    $('endDate').addEventListener('change', updateDatePreview);
+
+    // Inline validation feedback
+    ['fullName', 'age', 'phone', 'membershipPlan', 'feeStatus', 'startDate', 'duration', 'endDate'].forEach(field => {
+      $(field).addEventListener('input', () => {
+        $(field).removeAttribute('aria-invalid');
+        setError(field + 'Error', '');
+      });
+      $(field).addEventListener('change', () => {
+        $(field).removeAttribute('aria-invalid');
+        setError(field + 'Error', '');
+      });
+    });
+
+    // Modal close buttons
+    document.querySelectorAll('[data-close-modal]').forEach(button => {
+      button.addEventListener('click', () => closeModal(button.dataset.closeModal));
+    });
+
+    // Click outside modal closes it; clicks inside the dialog do not.
+    document.querySelectorAll('.overlay').forEach(overlay => {
+      overlay.addEventListener('mousedown', event => {
+        if (event.target === overlay) closeModal(overlay.id);
+      });
+    });
+
+    // Escape closes the topmost dialog. Tab remains inside an open modal.
+    document.addEventListener('keydown', event => {
+      const visibleModals = [...document.querySelectorAll('.overlay')].filter(modal => !modal.classList.contains('hidden'));
+      const topModal = visibleModals[visibleModals.length - 1];
+
+      if (event.key === 'Escape') {
+        if (topModal) {
+          event.preventDefault();
+          closeModal(topModal.id);
+        } else {
+          closeAllMenus();
+          closeSidebar();
+        }
+        return;
+      }
+
+      if (event.key === 'Tab' && topModal) {
+        const focusable = [...topModal.querySelectorAll(
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+        )].filter(element => element.offsetParent !== null);
+
+        if (!focusable.length) {
+          event.preventDefault();
+          topModal.focus();
+          return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+
+      if (event.key === 'Escape' || event.key === 'Tab') closeAllMenus();
+    });
+
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.action-wrap') && state.openMenuId !== null) {
+        closeAllMenus();
+      }
+    });
+
+    // Responsive navigation
+    const sidebar = $('sidebar');
+    const mobileOverlay = $('mobileOverlay');
+    const openSidebarButton = $('openSidebar');
+
+    function openSidebar() {
+      sidebar.classList.add('open');
+      mobileOverlay.classList.add('visible');
+      mobileOverlay.setAttribute('aria-hidden', 'false');
+      openSidebarButton.setAttribute('aria-expanded', 'true');
+      $('closeSidebar').focus();
+    }
+
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      mobileOverlay.classList.remove('visible');
+      mobileOverlay.setAttribute('aria-hidden', 'true');
+      openSidebarButton.setAttribute('aria-expanded', 'false');
+    }
+
+    openSidebarButton.addEventListener('click', openSidebar);
+    $('closeSidebar').addEventListener('click', () => {
+      closeSidebar();
+      openSidebarButton.focus();
+    });
+    mobileOverlay.addEventListener('click', closeSidebar);
+
+    sidebar.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth < 1024) closeSidebar();
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1024) closeSidebar();
+    });
+
+    // Initial render
+    $('footerYear').textContent = new Date().getFullYear();
+    resetMemberForm();
+    renderTable();
+    initIcons();
+  </script>
+</body>
+</html>

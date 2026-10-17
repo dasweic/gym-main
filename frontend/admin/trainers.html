@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="description" content="Manage gym trainers, specializations, qualifications, certificates and trainer profiles.">
+  <title>Trainer Management | IronCore Admin</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            base: '#0A0A0A',
+            panel: '#171717',
+            accent: '#FF6B00',
+            muted: '#A3A3A3'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Oswald', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0A0A0A;
+      --panel: #171717;
+      --border: #2A2A2A;
+      --accent: #FF6B00;
+      --muted: #A3A3A3;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    button:focus-visible, a:focus-visible, input:focus-visible,
+    select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    ::selection { background: #FF6B00; color: white; }
+
+    .display { font-family: 'Oswald', sans-serif; }
+    .muted { color: var(--muted); }
+    .border-ui { border: 1px solid var(--border); }
+    .panel { background: var(--panel); border: 1px solid var(--border); }
+
+    .sidebar {
+      width: 250px;
+      background: #111;
+      border-right: 1px solid var(--border);
+      transition: transform .25s ease;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 13px;
+      color: #A3A3A3;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background .2s, color .2s;
+      text-decoration: none;
+    }
+
+    .nav-link:hover { background: #222; color: #fff; }
+
+    .nav-link.active {
+      background: rgba(255,107,0,.12);
+      color: var(--accent);
+      border: 1px solid rgba(255,107,0,.15);
+    }
+
+    .nav-link.active svg { color: var(--accent); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: background .2s, transform .2s;
+    }
+
+    .btn-primary:hover { background: #e65f00; }
+    .btn-primary:active { transform: scale(.98); }
+
+    .btn-secondary {
+      background: #202020;
+      border: 1px solid #353535;
+      color: #e5e5e5;
+      border-radius: 8px;
+      padding: 9px 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background .2s;
+    }
+
+    .btn-secondary:hover { background: #292929; }
+
+    .btn-danger {
+      background: rgba(239,68,68,.09);
+      border: 1px solid rgba(239,68,68,.25);
+      color: #f87171;
+      border-radius: 8px;
+      padding: 9px 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .btn-danger:hover { background: rgba(239,68,68,.17); }
+
+    .stat-card {
+      padding: 20px;
+      border-radius: 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      min-width: 0;
+    }
+
+    .stat-icon {
+      height: 40px;
+      width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: rgba(255,107,0,.11);
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .form-label {
+      display: block;
+      color: #d4d4d4;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .form-control {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      background: #101010;
+      color: #fff;
+      border: 1px solid #353535;
+      border-radius: 8px;
+      padding: 11px 12px;
+      font-size: 12px;
+      transition: border .2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(255,107,0,.10);
+    }
+
+    .form-control::placeholder { color: #737373; }
+    select.form-control { cursor: pointer; }
+    textarea.form-control { resize: vertical; min-height: 76px; }
+
+    .field-error {
+      display: none;
+      color: #f87171;
+      font-size: 11px;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .field-error.visible { display: block; }
+
+    .trainer-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 19px;
+      min-width: 0;
+      transition: border-color .2s, transform .2s;
+    }
+
+    .trainer-card:hover {
+      border-color: #444;
+      transform: translateY(-2px);
+    }
+
+    .trainer-photo {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: #292929;
+      flex-shrink: 0;
+    }
+
+    .specialty-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 8px;
+      background: #242424;
+      color: #d4d4d4;
+      border: 1px solid #333;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      max-width: 100%;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .status::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status.active { color: #4ade80; background: rgba(34,197,94,.1); }
+    .status.inactive { color: #a3a3a3; background: #252525; }
+
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      color: #a3a3a3;
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 7px;
+    }
+
+    .icon-btn:hover { color: white; background: #303030; }
+    .icon-btn.danger:hover { color: #f87171; border-color: #7f1d1d; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: rgba(0,0,0,.78);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 690px;
+      max-height: calc(100dvh - 40px);
+      background: #171717;
+      border: 1px solid #353535;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0,0,0,.55);
+    }
+
+    .modal.wide { max-width: 760px; }
+    .modal.small { max-width: 440px; }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid #303030; }
+    .modal-body { padding: 22px 24px; overflow-y: auto; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #303030;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .upload-zone {
+      border: 1px dashed #444;
+      background: #111;
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .upload-zone:hover { border-color: #777; }
+    .upload-file { background: #202020; border: 1px solid #343434; border-radius: 8px; padding: 10px; }
+
+    .qualification-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #202020;
+      border: 1px solid #343434;
+      border-radius: 7px;
+      padding: 7px 9px;
+      min-width: 0;
+    }
+
+    .qualification-item span {
+      overflow-wrap: anywhere;
+      flex: 1;
+      font-size: 11px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      max-width: calc(100vw - 32px);
+      padding: 14px 17px;
+      border: 1px solid #3a3a3a;
+      background: #1b1b1b;
+      border-radius: 10px;
+      box-shadow: 0 12px 40px #0008;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      animation: toast-in .2s ease;
+    }
+
+    .toast.success svg { color: #4ade80; }
+    .toast.error svg { color: #f87171; }
+    .toast.info svg { color: var(--accent); }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 56px 20px;
+      text-align: center;
+      border: 1px dashed #383838;
+      background: #131313;
+      border-radius: 12px;
+    }
+
+    .photo-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #a3a3a3;
+      background: #242424;
+      border: 1px solid #383838;
+    }
+
+    .certificate-link {
+      color: #ff9b54;
+      overflow-wrap: anywhere;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .certificate-link:hover { color: #ffc49c; }
+
+    .demo-label {
+      font-size: 10px;
+      color: #fbbf24;
+      background: rgba(245,158,11,.09);
+      border: 1px solid rgba(245,158,11,.2);
+      border-radius: 5px;
+      padding: 4px 7px;
+      font-weight: 600;
+    }
+
+    body.modal-open { overflow: hidden; }
+
+    @media (max-width: 1023px) {
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 80;
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open { transform: translateX(0); }
+
+      .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 79;
+        background: rgba(0,0,0,.65);
+      }
+
+      .main-content { margin-left: 0 !important; }
+    }
+
+    @media (min-width: 1024px) {
+      .sidebar-backdrop { display: none !important; }
+    }
+
+    @media (max-width: 640px) {
+      .page-content { padding: 20px 15px !important; }
+      .stat-card { padding: 15px; }
+      .stat-icon { width: 35px; height: 35px; }
+      .modal { max-height: calc(100dvh - 20px); }
+      .overlay { padding: 10px; align-items: center; }
+      .modal-header { padding: 16px; }
+      .modal-body { padding: 17px 16px; }
+      .modal-footer { padding: 13px 16px; }
+      .toast { bottom: 12px; right: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="min-h-screen">
+    <div id="sidebarBackdrop" class="sidebar-backdrop hidden" aria-hidden="true"></div>
+
+    <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-50 flex flex-col" aria-label="Main navigation">
+      <div class="h-[78px] flex items-center gap-3 px-6 border-b border-[#292929] shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
+          <i data-lucide="dumbbell" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="display text-xl font-semibold tracking-wide">IRON<span class="text-accent">CORE</span></div>
+          <div class="text-[9px] tracking-[2px] text-neutral-500 uppercase">Gym Management</div>
+        </div>
+        <button id="closeSidebar" class="ml-auto lg:hidden text-neutral-400 hover:text-white" aria-label="Close navigation">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="px-4 pt-7">
+        <p class="px-3 mb-3 text-[10px] font-bold tracking-[1.7px] uppercase text-neutral-600">Workspace</p>
+        <nav class="space-y-1">
+          <a class="nav-link" href="dashboard.html"><i data-lucide="layout-dashboard" class="w-[18px] h-[18px]"></i>Dashboard</a>
+          <a class="nav-link" href="members.html"><i data-lucide="users" class="w-[18px] h-[18px]"></i>Members</a>
+          <a class="nav-link" href="payments.html"><i data-lucide="wallet" class="w-[18px] h-[18px]"></i>Payments</a>
+          <a class="nav-link" href="plans.html"><i data-lucide="layers" class="w-[18px] h-[18px]"></i>Membership Plans</a>
+          <a class="nav-link active" href="trainers.html" aria-current="page"><i data-lucide="user-round-check" class="w-[18px] h-[18px]"></i>Trainers</a>
+        </nav>
+      </div>
+
+      <div class="px-4 pt-8">
+        <p class="px-3 mb-3 text-[10px] font-bold tracking-[1.7px] uppercase text-neutral-600">Preferences</p>
+        <nav>
+          <a class="nav-link" href="settings.html"><i data-lucide="settings-2" class="w-[18px] h-[18px]"></i>Settings</a>
+        </nav>
+      </div>
+
+      <div class="mt-auto p-4">
+        <div class="rounded-xl border border-[#303030] bg-[#191919] p-4">
+          <div class="flex items-center gap-2 text-xs font-semibold text-neutral-300">
+            <i data-lucide="shield-check" class="w-4 h-4 text-accent"></i>
+            Admin Workspace
+          </div>
+          <p class="mt-2 text-[11px] leading-5 text-neutral-500">Demo mode is enabled. Changes exist only in this page's current session.</p>
+          <div class="mt-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span class="text-[10px] text-neutral-500">Local demonstration data</span>
+          </div>
+        </div>
+        <div class="mt-5 flex items-center gap-3 px-2">
+          <div class="w-9 h-9 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center">
+            <i data-lucide="user-round" class="w-4 h-4 text-neutral-300"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-semibold text-white">Gym Administrator</p>
+            <p class="text-[10px] text-neutral-500">Demo account</p>
+          </div>
+          <span class="ml-auto w-2 h-2 rounded-full bg-green-500"></span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content ml-[250px] min-h-screen flex flex-col">
+      <header class="h-[78px] sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur border-b border-[#252525] flex items-center justify-between px-5 sm:px-8 gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+          <button id="menuToggle" class="lg:hidden icon-btn shrink-0" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline text-neutral-600 text-xs">Admin</span>
+              <i data-lucide="chevron-right" class="hidden sm:block w-3 h-3 text-neutral-600"></i>
+              <span class="text-xs text-neutral-400">Trainers</span>
+            </div>
+            <p class="text-xs sm:text-sm font-semibold mt-1 truncate">Trainer Management</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="hidden md:inline-flex items-center gap-2 text-[11px] text-neutral-400">
+            <span class="w-2 h-2 bg-amber-400 rounded-full"></span>Demo environment
+          </span>
+          <div class="w-9 h-9 rounded-full border border-[#343434] bg-[#202020] flex items-center justify-center" aria-label="Administrator profile">
+            <i data-lucide="user-round" class="w-4 h-4 text-neutral-300"></i>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content p-5 sm:p-8 flex-1">
+        <section class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 mb-7">
+          <div>
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+              <span class="text-[10px] uppercase tracking-[1.8px] text-accent font-bold">People &amp; Performance</span>
+              <span class="demo-label">DEMO DATA</span>
+            </div>
+            <h1 class="display text-3xl sm:text-4xl font-semibold tracking-wide">TRAINER <span class="text-accent">MANAGEMENT</span></h1>
+            <p class="mt-2 text-xs sm:text-sm text-neutral-400">Manage your coaching team, expertise and certifications.</p>
+          </div>
+          <button id="addTrainerBtn" class="btn-primary shrink-0 self-start sm:self-auto">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Add New Trainer
+          </button>
+        </section>
+
+        <div class="panel rounded-lg px-4 py-3 mb-6 flex items-start sm:items-center gap-3">
+          <i data-lucide="info" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5 sm:mt-0"></i>
+          <p class="text-[11px] leading-5 text-neutral-400">
+            <span class="font-semibold text-neutral-200">Demonstration only.</span>
+            Summary figures and trainer records are illustrative. Add, edit and delete actions affect only in-memory page data; nothing is sent to a server or retained after a reload.
+          </p>
+        </div>
+
+        <section aria-label="Trainer summary" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          <article class="stat-card">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-xs text-neutral-400">Total Trainers</p>
+                <p id="statTotal" class="display text-3xl font-semibold mt-3">06</p>
+                <p class="text-[10px] text-neutral-500 mt-2">Illustrative team size</p>
+              </div>
+              <div class="stat-icon"><i data-lucide="users" class="w-5 h-5"></i></div>
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-xs text-neutral-400">Active Trainers</p>
+                <p id="statActive" class="display text-3xl font-semibold mt-3">05</p>
+                <p class="text-[10px] text-neutral-500 mt-2">Currently marked active</p>
+              </div>
+              <div class="stat-icon"><i data-lucide="user-check" class="w-5 h-5"></i></div>
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-xs text-neutral-400">Specializations</p>
+                <p id="statSpecialties" class="display text-3xl font-semibold mt-3">06</p>
+                <p class="text-[10px] text-neutral-500 mt-2">Unique areas of expertise</p>
+              </div>
+              <div class="stat-icon"><i data-lucide="target" class="w-5 h-5"></i></div>
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-xs text-neutral-400">Combined Experience</p>
+                <p class="display text-3xl font-semibold mt-3"><span id="statExperience">43</span><span class="text-base text-neutral-400 ml-1">yrs</span></p>
+                <p class="text-[10px] text-neutral-500 mt-2">Total years across the team</p>
+              </div>
+              <div class="stat-icon"><i data-lucide="medal" class="w-5 h-5"></i></div>
+            </div>
+          </article>
+        </section>
+
+        <section aria-labelledby="directoryHeading">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5">
+            <div>
+              <h2 id="directoryHeading" class="display text-2xl font-medium tracking-wide">TRAINER DIRECTORY</h2>
+              <p class="text-xs text-neutral-500 mt-1">Browse team profiles and manage trainer information.</p>
+            </div>
+            <p id="resultCount" class="text-xs text-neutral-400" aria-live="polite">Showing 6 trainers</p>
+          </div>
+
+          <div class="panel rounded-xl p-4 mb-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(200px,1fr)_minmax(170px,220px)_minmax(150px,190px)_auto] gap-3 items-end">
+              <div>
+                <label class="form-label" for="searchInput">Search Trainers</label>
+                <div class="relative">
+                  <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none"></i>
+                  <input id="searchInput" class="form-control pl-9" type="search" placeholder="Name or phone number..." autocomplete="off">
+                </div>
+              </div>
+              <div>
+                <label class="form-label" for="specialtyFilter">Specialization</label>
+                <select id="specialtyFilter" class="form-control">
+                  <option value="">All specializations</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label" for="statusFilter">Trainer Status</label>
+                <select id="statusFilter" class="form-control">
+                  <option value="">All statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <button id="clearFiltersBtn" class="btn-secondary w-full sm:w-auto">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>Clear Filters
+              </button>
+            </div>
+          </div>
+
+          <div id="trainerGrid" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4" aria-live="polite" aria-busy="false"></div>
+        </section>
+      </div>
+
+      <footer class="border-t border-[#252525] px-5 sm:px-8 py-5 flex flex-col sm:flex-row justify-between gap-2 text-[10px] text-neutral-600">
+        <span>IRONCORE ADMIN &copy; <span id="currentYear"></span></span>
+        <span>Trainer Management · Frontend demonstration · No backend connected</span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Add / Edit Trainer Modal -->
+  <div id="trainerModal" class="overlay hidden" role="presentation">
+    <section class="modal wide" role="dialog" aria-modal="true" aria-labelledby="trainerModalTitle" aria-describedby="trainerModalDescription">
+      <div class="modal-header flex items-start justify-between gap-4">
+        <div>
+          <p class="text-[10px] text-accent tracking-[1.6px] uppercase font-bold mb-2">Team Administration</p>
+          <h2 id="trainerModalTitle" class="display text-2xl font-semibold">ADD NEW TRAINER</h2>
+          <p id="trainerModalDescription" class="text-xs text-neutral-400 mt-1">Enter the trainer's information below.</p>
+        </div>
+        <button type="button" class="icon-btn" data-close-modal="trainerModal" aria-label="Close trainer form">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="trainerForm" novalidate class="flex flex-col min-h-0">
+        <div class="modal-body space-y-6">
+          <div id="formGeneralError" class="hidden rounded-lg border border-red-900 bg-red-950/30 px-4 py-3 text-xs text-red-300" role="alert"></div>
+
+          <section>
+            <h3 class="text-sm font-semibold mb-4">Personal Information</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="sm:col-span-2">
+                <label for="trainerName" class="form-label">Full Name <span class="text-accent">*</span></label>
+                <input id="trainerName" name="name" class="form-control" type="text" maxlength="100" autocomplete="name" placeholder="Enter full name" required>
+                <p class="field-error" id="nameError"></p>
+              </div>
+
+              <div>
+                <label for="trainerAge" class="form-label">Age <span class="text-accent">*</span></label>
+                <input id="trainerAge" name="age" class="form-control" type="number" min="18" max="100" step="1" inputmode="numeric" placeholder="e.g. 28" required>
+                <p class="field-error" id="ageError"></p>
+              </div>
+
+              <div>
+                <label for="trainerPhone" class="form-label">Phone Number <span class="text-accent">*</span></label>
+                <input id="trainerPhone" name="phone" class="form-control" type="tel" maxlength="20" autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210" required>
+                <p class="field-error" id="phoneError"></p>
+              </div>
+            </div>
+          </section>
+
+          <section class="border-t border-[#303030] pt-5">
+            <h3 class="text-sm font-semibold mb-4">Professional Information</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="trainerExperience" class="form-label">Years of Experience <span class="text-accent">*</span></label>
+                <input id="trainerExperience" name="experience" class="form-control" type="number" min="0" max="80" step="0.5" placeholder="e.g. 5" required>
+                <p class="field-error" id="experienceError"></p>
+              </div>
+
+              <div>
+                <label for="trainerSpecialty" class="form-label">Specialization <span class="text-accent">*</span></label>
+                <select id="trainerSpecialty" name="specialty" class="form-control" required>
+                  <option value="">Select specialization</option>
+                  <option>Strength Training</option>
+                  <option>Weight Loss</option>
+                  <option>Yoga &amp; Mobility</option>
+                  <option>CrossFit</option>
+                  <option>Cardio &amp; Endurance</option>
+                  <option>Nutrition Coaching</option>
+                  <option>Personal Training</option>
+                  <option>Rehabilitation &amp; Mobility</option>
+                  <option>Functional Fitness</option>
+                  <option>Other</option>
+                </select>
+                <p class="field-error" id="specialtyError"></p>
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="form-label" for="qualificationInput">Qualifications</label>
+                <p class="text-[11px] text-neutral-500 mb-3">Add qualifications individually. Each entry can be removed before saving.</p>
+                <div class="flex gap-2">
+                  <input id="qualificationInput" class="form-control" type="text" maxlength="120" placeholder="e.g. Certified Personal Trainer">
+                  <button id="addQualificationBtn" type="button" class="btn-secondary shrink-0"><i data-lucide="plus" class="w-4 h-4"></i><span class="hidden sm:inline">Add</span></button>
+                </div>
+                <p class="field-error" id="qualificationError"></p>
+                <div id="qualificationList" class="flex flex-wrap gap-2 mt-3"></div>
+              </div>
+
+              <div class="sm:col-span-2">
+                <label for="trainerStatus" class="form-label">Trainer Status <span class="text-accent">*</span></label>
+                <select id="trainerStatus" name="status" class="form-control" required>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <p class="text-[10px] text-neutral-500 mt-2">Inactive trainers remain in the directory but are marked unavailable.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="border-t border-[#303030] pt-5">
+            <h3 class="text-sm font-semibold mb-4">Profile Photo</h3>
+            <div class="flex flex-col sm:flex-row gap-4 items-start">
+              <div id="photoPreviewWrap" class="w-24 h-24 rounded-xl overflow-hidden photo-placeholder shrink-0">
+                <i data-lucide="user-round" class="w-9 h-9"></i>
+              </div>
+              <div class="flex-1 min-w-0 w-full">
+                <label for="trainerPhoto" class="form-label">Upload Profile Image</label>
+                <input id="trainerPhoto" class="form-control" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                <p class="text-[10px] text-neutral-500 mt-2 leading-5">JPEG, PNG, WebP or GIF. Maximum file size: 500 KB. Images are previewed locally in this browser; no file is uploaded to a server.</p>
+                <p class="field-error" id="photoError"></p>
+                <div id="photoFileInfo" class="text-[11px] text-neutral-400 mt-2 break-all"></div>
+                <button type="button" id="removePhotoBtn" class="hidden text-xs text-red-400 hover:text-red-300 underline mt-2">Remove selected photo</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="border-t border-[#303030] pt-5">
+            <div class="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h3 class="text-sm font-semibold">Certificates &amp; Documents</h3>
+                <p class="text-[11px] text-neutral-500 mt-1">Attach supporting certificates to this trainer's demo profile.</p>
+              </div>
+              <span class="text-[10px] text-neutral-400 whitespace-nowrap">Max 5 MB / file</span>
+            </div>
+
+            <div class="upload-zone">
+              <label for="trainerCertificates" class="flex flex-col sm:flex-row sm:items-center gap-3 cursor-pointer">
+                <div class="w-10 h-10 rounded-lg bg-[#292929] flex items-center justify-center shrink-0">
+                  <i data-lucide="file-up" class="w-5 h-5 text-accent"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="text-xs font-semibold">Choose certificate files</p>
+                  <p class="text-[10px] text-neutral-500 mt-1">PDF, JPG, JPEG, PNG or WebP · Up to 10 files, 5 MB each</p>
+                </div>
+                <span class="btn-secondary text-center">Browse files</span>
+              </label>
+              <input id="trainerCertificates" class="sr-only" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp">
+            </div>
+            <p id="certificateError" class="field-error" role="alert"></p>
+            <div id="certificateList" class="mt-3 space-y-2"></div>
+            <p class="text-[10px] text-neutral-600 mt-3 leading-5">Files remain in page memory only. For production, the backend must independently validate file content, size, type, authorization and storage permissions.</p>
+          </section>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close-modal="trainerModal">Cancel</button>
+          <button type="submit" id="saveTrainerBtn" class="btn-primary"><i data-lucide="check" class="w-4 h-4"></i><span>Save Trainer</span></button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Trainer Details Modal -->
+  <div id="detailsModal" class="overlay hidden" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle">
+      <div class="modal-header flex items-start justify-between gap-4">
+        <div>
+          <p class="text-[10px] text-accent tracking-[1.6px] uppercase font-bold mb-2">Team Profile</p>
+          <h2 id="detailsTitle" class="display text-2xl font-semibold">TRAINER DETAILS</h2>
+        </div>
+        <button type="button" class="icon-btn" data-close-modal="detailsModal" aria-label="Close trainer details"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div id="detailsContent" class="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-close-modal="detailsModal">Close</button>
+        <button type="button" id="detailsEditBtn" class="btn-primary"><i data-lucide="pencil" class="w-4 h-4"></i>Edit Trainer</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="overlay hidden" role="presentation">
+    <section class="modal small" role="dialog" aria-modal="true" aria-labelledby="deleteTitle" aria-describedby="deleteDescription">
+      <div class="modal-body">
+        <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5">
+          <i data-lucide="user-round-x" class="w-6 h-6 text-red-400"></i>
+        </div>
+        <h2 id="deleteTitle" class="display text-2xl font-semibold">REMOVE TRAINER?</h2>
+        <p id="deleteDescription" class="text-xs text-neutral-400 leading-6 mt-3">Are you sure you want to remove this trainer from the demonstration directory?</p>
+        <div class="mt-4 rounded-lg bg-[#202020] border border-[#333] p-3">
+          <p id="deleteTrainerName" class="text-sm font-semibold"></p>
+          <p id="deleteTrainerMeta" class="text-[11px] text-neutral-500 mt-1"></p>
+        </div>
+        <p class="text-[11px] text-neutral-500 leading-5 mt-4">This removes only the in-memory demo record. It does not delete a database record or remove any previously uploaded server files.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-close-modal="deleteModal">Cancel</button>
+        <button type="button" id="confirmDeleteBtn" class="btn-danger"><i data-lucide="trash-2" class="w-4 h-4"></i>Remove Trainer</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="toastRegion" class="fixed inset-0 pointer-events-none z-[100]" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    'use strict';
+
+    /*
+     * IRONCORE TRAINER MANAGEMENT — FRONTEND DEMO
+     *
+     * API integration notes:
+     * - No backend endpoints are assumed or called by this file.
+     * - All changes and selected files exist only in the current page session.
+     * - Do not use localStorage/sessionStorage for private trainer information.
+     * - A future backend must enforce authentication and per-operation authorization.
+     * - A future backend must independently validate file content, file signatures,
+     *   sizes, MIME types, extensions, permissions and safe storage paths.
+     * - Browser-side file validation is a UX feature, NOT a security boundary.
+     */
+
+    const PHOTO_MAX_BYTES = 500 * 1024;
+    const CERTIFICATE_MAX_BYTES = 5 * 1024 * 1024;
+    const MAX_CERTIFICATES = 10;
+    const MAX_QUALIFICATIONS = 20;
+    const ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const ALLOWED_CERT_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    const ALLOWED_CERT_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
+
+    const photoFallback = (name) => {
+      const initials = String(name || 'T')
+        .trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase();
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" rx="18" fill="#252525"/><circle cx="64" cy="45" r="23" fill="#515151"/><path d="M20 121c2-27 19-42 44-42s42 15 44 42" fill="#515151"/><text x="64" y="115" text-anchor="middle" fill="#FF9A50" font-family="Arial,sans-serif" font-size="12" font-weight="bold">${initials}</text></svg>`;
+      return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    };
+
+    // Synthetic names, contact numbers and profile images for demonstration only.
+    // The phone numbers below are intentionally non-dialable placeholders.
+    const trainers = [
+      {
+        id: 'demo-101', name: 'Aarav Mehta', age: 29, phone: '+91 00000 10001',
+        experience: 7, specialty: 'Strength Training',
+        qualifications: ['Certified Personal Trainer', 'Strength & Conditioning Level 2'],
+        status: 'active',
+        photo: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=240&h=240&q=75',
+        certificates: []
+      },
+      {
+        id: 'demo-102', name: 'Priya Sharma', age: 27, phone: '+91 00000 10002',
+        experience: 5, specialty: 'Yoga & Mobility',
+        qualifications: ['RYT-200 Yoga Teacher Training', 'Mobility Fundamentals'],
+        status: 'active',
+        photo: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=240&h=240&q=75',
+        certificates: []
+      },
+      {
+        id: 'demo-103', name: 'Kabir Singh', age: 34, phone: '+91 00000 10003',
+        experience: 10, specialty: 'CrossFit',
+        qualifications: ['CrossFit Level 2', 'First Aid Training'],
+        status: 'active',
+        photo: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=240&h=240&q=75',
+        certificates: []
+      },
+      {
+        id: 'demo-104', name: 'Ananya Rao', age: 26, phone: '+91 00000 10004',
+        experience: 4, specialty: 'Weight Loss',
+        qualifications: ['Fitness Coaching Certificate', 'Nutrition Fundamentals'],
+        status: 'active',
+        photo: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=240&h=240&q=75',
+        certificates: []
+      },
+      {
+        id: 'demo-105', name: 'Rohan Kapoor', age: 31, phone: '+91 00000 10005',
+        experience: 9, specialty: 'Cardio & Endurance',
+        qualifications: ['Endurance Coaching Level 1'],
+        status: 'active',
+        photo: 'https://images.unsplash.com/photo-1534258936925-c58bed479fcb?auto=format&fit=crop&w=240&h=240&q=75',
+        certificates: []
+      },
+      {
+        id: 'demo-106', name: 'Ishita Verma', age: 30, phone: '+91 00000 10006',
+        experience: 8, specialty: 'Nutrition Coaching',
+        qualifications: ['Sports Nutrition Fundamentals', 'Health Coaching Certificate'],
+        status: 'inactive',
+        photo: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=240&h=240&q=75',
+        certificates: []
+      }
+    ];
+
+    let editingId = null;
+    let selectedDetailsId = null;
+    let pendingDeleteId = null;
+    let qualifications = [];
+    let selectedPhoto = null;
+    let photoChanged = false;
+    let photoPreviewUrl = null;
+    let certificateFiles = [];
+    let previouslyFocused = null;
+    let activeModal = null;
+    let toastCounter = 0;
+
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+    function escapeHTML(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[char]);
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function formatExperience(value) {
+      return `${value} ${Number(value) === 1 ? 'year' : 'years'}`;
+    }
+
+    function getTrainer(id) {
+      return trainers.find(trainer => trainer.id === id) || null;
+    }
+
+    function getPhoto(trainer) {
+      return trainer.photo || photoFallback(trainer.name);
+    }
+
+    function statusMarkup(status) {
+      const active = status === 'active';
+      return `<span class="status ${active ? 'active' : 'inactive'}">${active ? 'Active' : 'Inactive'}</span>`;
+    }
+
+    function iconMarkup(name, className = 'w-4 h-4') {
+      return `<i data-lucide="${escapeHTML(name)}" class="${escapeHTML(className)}" aria-hidden="true"></i>`;
+    }
+
+    function refreshIcons(root = document) {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ root });
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      const region = $('#toastRegion');
+      const id = `toast-${++toastCounter}`;
+      const icon = type === 'error' ? 'alert-circle' : type === 'info' ? 'info' : 'check-circle';
+      const toast = document.createElement('div');
+      toast.id = id;
+      toast.className = `toast ${type} pointer-events-auto`;
+      toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+      toast.innerHTML = `
+        ${iconMarkup(icon, 'w-5 h-5 shrink-0 mt-0.5')}
+        <div class="text-xs leading-5 text-neutral-200">${escapeHTML(message)}</div>
+        <button type="button" class="ml-2 text-neutral-500 hover:text-white" aria-label="Dismiss notification">${iconMarkup('x', 'w-4 h-4')}</button>
+      `;
+      $('[aria-label="Dismiss notification"]', toast).addEventListener('click', () => toast.remove());
+      region.appendChild(toast);
+      refreshIcons(toast);
+      window.setTimeout(() => toast.remove(), 4200);
+    }
+
+    function updateSummary() {
+      $('#statTotal').textContent = String(trainers.length).padStart(2, '0');
+      $('#statActive').textContent = String(trainers.filter(t => t.status === 'active').length).padStart(2, '0');
+      $('#statSpecialties').textContent = String(new Set(trainers.map(t => t.specialty).filter(Boolean)).size).padStart(2, '0');
+      $('#statExperience').textContent = trainers.reduce((sum, trainer) => sum + (Number(trainer.experience) || 0), 0);
+    }
+
+    function populateSpecialtyFilter() {
+      const select = $('#specialtyFilter');
+      const previous = select.value;
+      const specialties = [...new Set(trainers.map(t => t.specialty).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      select.innerHTML = '<option value="">All specializations</option>' +
+        specialties.map(s => `<option value="${escapeHTML(s)}">${escapeHTML(s)}</option>`).join('');
+      if (specialties.includes(previous)) select.value = previous;
+    }
+
+    function renderTrainerCard(trainer) {
+      const qualificationsText = trainer.qualifications?.length
+        ? trainer.qualifications.slice(0, 2).join(' · ')
+        : 'No qualifications added';
+
+      const qualificationsExtra = (trainer.qualifications?.length || 0) > 2
+        ? ` +${trainer.qualifications.length - 2} more`
+        : '';
+
+      return `
+        <article class="trainer-card flex flex-col" aria-label="Trainer ${escapeHTML(trainer.name)}">
+          <div class="flex items-start gap-3">
+            <img
+              class="trainer-photo"
+              src="${escapeHTML(getPhoto(trainer))}"
+              alt="Profile photo for ${escapeHTML(trainer.name)}"
+              loading="lazy"
+              data-fallback="${escapeHTML(trainer.id)}"
+            >
+            <div class="min-w-0 flex-1 pt-1">
+              <div class="flex items-start justify-between gap-2">
+                <h3 class="text-sm font-semibold text-white leading-5 break-words">${escapeHTML(trainer.name)}</h3>
+                ${statusMarkup(trainer.status)}
+              </div>
+              <p class="text-[11px] text-neutral-500 mt-1">Age ${escapeHTML(trainer.age)}</p>
+              <div class="mt-2">${`<span class="specialty-tag">${escapeHTML(trainer.specialty)}</span>`}</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 py-4 my-4 border-y border-[#2B2B2B]">
+            <div class="min-w-0">
+              <p class="text-[10px] text-neutral-500 flex items-center gap-1.5">${iconMarkup('briefcase-business', 'w-3.5 h-3.5')}Experience</p>
+              <p class="text-xs font-semibold mt-2">${escapeHTML(formatExperience(trainer.experience))}</p>
+            </div>
+            <div class="min-w-0">
+              <p class="text-[10px] text-neutral-500 flex items-center gap-1.5">${iconMarkup('phone', 'w-3.5 h-3.5')}Contact</p>
+              <p class="text-[11px] font-medium text-neutral-300 mt-2 break-words">${escapeHTML(trainer.phone)}</p>
+            </div>
+          </div>
+
+          <div class="mb-4 min-w-0">
+            <p class="text-[10px] text-neutral-500 mb-2 flex items-center gap-1.5">${iconMarkup('graduation-cap', 'w-3.5 h-3.5')}Qualifications</p>
+            <p class="text-[11px] text-neutral-400 leading-5 break-words">${escapeHTML(qualificationsText)}${escapeHTML(qualificationsExtra)}</p>
+          </div>
+
+          <div class="mt-auto flex items-center justify-between gap-2 pt-2">
+            <button type="button" class="btn-secondary" data-action="view" data-id="${escapeHTML(trainer.id)}">${iconMarkup('eye', 'w-3.5 h-3.5')}View Details</button>
+            <div class="flex items-center gap-2">
+              <button type="button" class="icon-btn" data-action="edit" data-id="${escapeHTML(trainer.id)}" aria-label="Edit ${escapeHTML(trainer.name)}" title="Edit trainer">${iconMarkup('pencil')}</button>
+              <button type="button" class="icon-btn danger" data-action="delete" data-id="${escapeHTML(trainer.id)}" aria-label="Delete ${escapeHTML(trainer.name)}" title="Delete trainer">${iconMarkup('trash-2')}</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderEmptyState() {
+      return `
+        <div class="empty-state">
+          <div class="w-14 h-14 rounded-2xl bg-[#202020] border border-[#333] flex items-center justify-center mx-auto mb-4">
+            ${iconMarkup('users-round', 'w-6 h-6 text-neutral-400')}
+          </div>
+          <h3 class="display text-xl font-medium">NO TRAINERS FOUND</h3>
+          <p class="text-xs text-neutral-500 mt-2 max-w-sm mx-auto leading-5">No trainer profiles match your current search or filters. Try another search or clear your filters.</p>
+          <div class="flex justify-center flex-wrap gap-2 mt-5">
+            <button type="button" class="btn-secondary" id="emptyClearBtn">${iconMarkup('rotate-ccw')}Clear Filters</button>
+            <button type="button" class="btn-primary" id="emptyAddBtn">${iconMarkup('plus')}Add Trainer</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function applyFilters() {
+      const query = $('#searchInput').value.trim().toLocaleLowerCase();
+      const specialty = $('#specialtyFilter').value;
+      const status = $('#statusFilter').value;
+
+      const filtered = trainers.filter(trainer => {
+        const matchesQuery = !query ||
+          trainer.name.toLocaleLowerCase().includes(query) ||
+          trainer.phone.toLocaleLowerCase().includes(query);
+
+        return matchesQuery &&
+          (!specialty || trainer.specialty === specialty) &&
+          (!status || trainer.status === status);
+      });
+
+      $('#resultCount').textContent = `Showing ${filtered.length} of ${trainers.length} trainer${trainers.length === 1 ? '' : 's'}`;
+
+      const grid = $('#trainerGrid');
+      grid.setAttribute('aria-busy', 'true');
+
+      grid.innerHTML = filtered.length
+        ? filtered.map(renderTrainerCard).join('')
+        : renderEmptyState();
+
+      $$('img[data-fallback]', grid).forEach(img => {
+        img.addEventListener('error', () => {
+          if (img.dataset.fallback && !img.dataset.failed) {
+            img.dataset.failed = 'true';
+            const trainer = getTrainer(img.dataset.fallback);
+            img.src = photoFallback(trainer?.name || 'Trainer');
+          }
+        }, { once: true });
+      });
+
+      refreshIcons(grid);
+      grid.setAttribute('aria-busy', 'false');
+    }
+
+    function renderDirectory() {
+      updateSummary();
+      populateSpecialtyFilter();
+      applyFilters();
+    }
+
+    function clearFilters() {
+      $('#searchInput').value = '';
+      $('#specialtyFilter').value = '';
+      $('#statusFilter').value = '';
+      applyFilters();
+      showToast('Search and filters have been cleared.', 'info');
+    }
+
+    function setFieldError(id, message) {
+      const el = $('#' + id);
+      if (!el) return;
+      el.textContent = message;
+      el.classList.toggle('visible', Boolean(message));
+    }
+
+    function clearFieldErrors() {
+      $$('.field-error').forEach(el => {
+        el.textContent = '';
+        el.classList.remove('visible');
+      });
+      const general = $('#formGeneralError');
+      general.textContent = '';
+      general.classList.add('hidden');
+    }
+
+    function setGeneralError(message) {
+      const el = $('#formGeneralError');
+      el.textContent = message;
+      el.classList.toggle('hidden', !message);
+    }
+
+    function isValidPhone(value) {
+      const trimmed = value.trim();
+      const digits = trimmed.replace(/\D/g, '');
+      // General international-format check; use the future backend's regional rules as appropriate.
+      return /^[+]?[\d\s().-]+$/.test(trimmed) && digits.length >= 7 && digits.length <= 15;
+    }
+
+    function validateForm() {
+      clearFieldErrors();
+      let valid = true;
+      let firstInvalid = null;
+
+      const fail = (field, error, message) => {
+        setFieldError(error, message);
+        valid = false;
+        if (!firstInvalid) firstInvalid = field;
+      };
+
+      const name = $('#trainerName').value.trim();
+      const ageRaw = $('#trainerAge').value.trim();
+      const phone = $('#trainerPhone').value.trim();
+      const experienceRaw = $('#trainerExperience').value.trim();
+      const specialty = $('#trainerSpecialty').value;
+      const age = Number(ageRaw);
+      const experience = Number(experienceRaw);
+
+      if (!name || name.length < 2 || name.length > 100) {
+        fail($('#trainerName'), 'nameError', 'Enter a name between 2 and 100 characters.');
+      } else if (!/^[\p{L}\p{M}][\p{L}\p{M}\s.'’-]*$/u.test(name)) {
+        fail($('#trainerName'), 'nameError', 'Use letters, spaces, apostrophes, periods or hyphens.');
+      }
+
+      if (!ageRaw || !Number.isInteger(age) || age < 18 || age > 100) {
+        fail($('#trainerAge'), 'ageError', 'Enter a whole-number age between 18 and 100.');
+      }
+
+      if (!phone || !isValidPhone(phone)) {
+        fail($('#trainerPhone'), 'phoneError', 'Enter a valid phone number containing 7–15 digits.');
+      } else {
+        const duplicate = trainers.find(t => t.id !== editingId && t.phone.replace(/\D/g, '') === phone.replace(/\D/g, ''));
+        if (duplicate) fail($('#trainerPhone'), 'phoneError', 'This phone number is already used by another demo trainer.');
+      }
+
+      if (!experienceRaw || !Number.isFinite(experience) || experience < 0 || experience > 80) {
+        fail($('#trainerExperience'), 'experienceError', 'Enter experience between 0 and 80 years.');
+      }
+
+      if (!specialty) {
+        fail($('#trainerSpecialty'), 'specialtyError', 'Select a specialization.');
+      }
+
+      if (qualifications.length > MAX_QUALIFICATIONS) {
+        fail($('#qualificationInput'), 'qualificationError', `You can add up to ${MAX_QUALIFICATIONS} qualifications.`);
+      }
+
+      if (photoChanged && selectedPhoto) {
+        if (selectedPhoto.size > PHOTO_MAX_BYTES) {
+          fail($('#trainerPhoto'), 'photoError', 'The selected image exceeds the 500 KB limit.');
+        } else if (!ALLOWED_PHOTO_TYPES.includes(selectedPhoto.type)) {
+          fail($('#trainerPhoto'), 'photoError', 'Choose a JPEG, PNG, WebP or GIF image.');
+        }
+      }
+
+      if (certificateFiles.length > MAX_CERTIFICATES) {
+        fail($('#trainerCertificates'), 'certificateError', `Choose no more than ${MAX_CERTIFICATES} certificates.`);
+      }
+
+      if (!valid && firstInvalid) {
+        firstInvalid.focus();
+        firstInvalid.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+
+      return valid;
+    }
+
+    function revokePhotoPreview() {
+      if (photoPreviewUrl) {
+        URL.revokeObjectURL(photoPreviewUrl);
+        photoPreviewUrl = null;
+      }
+    }
+
+    function setPhotoPreview(src) {
+      const wrap = $('#photoPreviewWrap');
+      wrap.innerHTML = '';
+      if (src) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = 'Selected trainer profile preview';
+        img.className = 'w-full h-full object-cover';
+        img.onerror = () => {
+          wrap.innerHTML = '';
+          wrap.classList.add('photo-placeholder');
+          wrap.appendChild(makeUserIcon());
+        };
+        wrap.classList.remove('photo-placeholder');
+        wrap.appendChild(img);
+      } else {
+        wrap.classList.add('photo-placeholder');
+        wrap.appendChild(makeUserIcon());
+      }
+      refreshIcons(wrap);
+    }
+
+    function makeUserIcon() {
+      const icon = document.createElement('i');
+      icon.dataset.lucide = 'user-round';
+      icon.className = 'w-9 h-9';
+      icon.setAttribute('aria-hidden', 'true');
+      return icon;
+    }
+
+    function renderQualifications() {
+      const container = $('#qualificationList');
+      container.innerHTML = qualifications.map((qualification, index) => `
+        <div class="qualification-item">
+          <span>${escapeHTML(qualification)}</span>
+          <button type="button" class="text-neutral-500 hover:text-red-400 p-1 shrink-0" data-remove-qualification="${index}" aria-label="Remove qualification ${escapeHTML(qualification)}" title="Remove qualification">
+            ${iconMarkup('x', 'w-3.5 h-3.5')}
+          </button>
+        </div>
+      `).join('');
+      refreshIcons(container);
+    }
+
+    function addQualification() {
+      const input = $('#qualificationInput');
+      const value = input.value.trim();
+      setFieldError('qualificationError', '');
+
+      if (!value) {
+        setFieldError('qualificationError', 'Enter a qualification before adding it.');
+        input.focus();
+        return;
+      }
+
+      if (value.length > 120) {
+        setFieldError('qualificationError', 'Qualifications must be 120 characters or fewer.');
+        input.focus();
+        return;
+      }
+
+      if (qualifications.length >= MAX_QUALIFICATIONS) {
+        setFieldError('qualificationError', `You can add up to ${MAX_QUALIFICATIONS} qualifications.`);
+        return;
+      }
+
+      if (qualifications.some(item => item.toLocaleLowerCase() === value.toLocaleLowerCase())) {
+        setFieldError('qualificationError', 'This qualification has already been added.');
+        input.focus();
+        return;
+      }
+
+      qualifications.push(value);
+      input.value = '';
+      renderQualifications();
+      input.focus();
+    }
+
+    function renderCertificates() {
+      const container = $('#certificateList');
+      container.innerHTML = certificateFiles.map((entry, index) => `
+        <div class="upload-file flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg bg-[#292929] flex items-center justify-center shrink-0">
+            ${iconMarkup(entry.type === 'application/pdf' ? 'file-text' : 'image', 'w-4 h-4 text-neutral-300')}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs text-neutral-200 break-all">${escapeHTML(entry.name)}</p>
+            <p class="text-[10px] text-neutral-500 mt-1">${escapeHTML(formatBytes(entry.size))}${entry.existing ? ' · Existing demo attachment' : ' · Selected locally'}</p>
+            ${entry.error ? `<p class="text-[10px] text-red-400 mt-1">${escapeHTML(entry.error)}</p>` : ''}
+          </div>
+          <button type="button" class="icon-btn danger shrink-0" data-remove-certificate="${index}" aria-label="Remove certificate ${escapeHTML(entry.name)}" title="Remove selected certificate">
+            ${iconMarkup('x', 'w-4 h-4')}
+          </button>
+        </div>
+      `).join('');
+      refreshIcons(container);
+    }
+
+    function resetFormState() {
+      editingId = null;
+      qualifications = [];
+      selectedPhoto = null;
+      photoChanged = false;
+      certificateFiles = [];
+      revokePhotoPreview();
+      $('#trainerForm').reset();
+      clearFieldErrors();
+      $('#photoFileInfo').textContent = '';
+      $('#removePhotoBtn').classList.add('hidden');
+      setPhotoPreview(null);
+      renderQualifications();
+      renderCertificates();
+      $('#trainerStatus').value = 'active';
+    }
+
+    function openModal(modalId, focusSelector) {
+      const modal = $('#' + modalId);
+      if (!modal) return;
+
+      previouslyFocused = document.activeElement;
+      activeModal = modal;
+      modal.classList.remove('hidden');
+      document.body.classList.add('modal-open');
+
+      requestAnimationFrame(() => {
+        const focusTarget = focusSelector ? $(focusSelector, modal) : $('button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])', modal);
+        focusTarget?.focus();
+      });
+    }
+
+    function closeModal(modalId) {
+      const modal = $('#' + modalId);
+      if (!modal || modal.classList.contains('hidden')) return;
+      modal.classList.add('hidden');
+
+      const anyOpen = $$('.overlay').some(item => !item.classList.contains('hidden'));
+      if (!anyOpen) document.body.classList.remove('modal-open');
+
+      if (activeModal === modal) activeModal = null;
+
+      if (previouslyFocused && document.contains(previouslyFocused)) {
+        previouslyFocused.focus();
+      }
+    }
+
+    function closeAllModals() {
+      $$('.overlay').forEach(modal => modal.classList.add('hidden'));
+      document.body.classList.remove('modal-open');
+      activeModal = null;
+      if (previouslyFocused && document.contains(previouslyFocused)) previouslyFocused.focus();
+    }
+
+    function handleModalKeyboard(event) {
+      if (event.key === 'Escape') {
+        if (activeModal) {
+          event.preventDefault();
+          closeModal(activeModal.id);
+        }
+        return;
+      }
+
+      if (event.key !== 'Tab' || !activeModal) return;
+
+      const focusable = $$('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])', activeModal)
+        .filter(el => !el.closest('.hidden') && el.getClientRects().length > 0);
+
+      if (!focusable.length) {
+        event.preventDefault();
+        activeModal.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    function openAddModal() {
+      resetFormState();
+      $('#trainerModalTitle').textContent = 'ADD NEW TRAINER';
+      $('#trainerModalDescription').textContent = 'Enter the trainer information below. Changes remain in this demo session only.';
+      $('#saveTrainerBtn').querySelector('span').textContent = 'Add Trainer';
+      openModal('trainerModal', '#trainerName');
+    }
+
+    function openEditModal(id) {
+      const trainer = getTrainer(id);
+      if (!trainer) {
+        showToast('This trainer could not be found.', 'error');
+        return;
+      }
+
+      resetFormState();
+      editingId = trainer.id;
+
+      $('#trainerName').value = trainer.name;
+      $('#trainerAge').value = trainer.age;
+      $('#trainerPhone').value = trainer.phone;
+      $('#trainerExperience').value = trainer.experience;
+      $('#trainerSpecialty').value = trainer.specialty;
+      $('#trainerStatus').value = trainer.status;
+
+      qualifications = [...(trainer.qualifications || [])];
+      certificateFiles = (trainer.certificates || []).map(cert => ({ ...cert, existing: true }));
+
+      photoChanged = false;
+      selectedPhoto = null;
+      setPhotoPreview(trainer.photo || null);
+      $('#photoFileInfo').textContent = trainer.photoName || (trainer.photo ? 'Current demonstration image' : 'No profile photo selected.');
+
+      if (trainer.photo) $('#removePhotoBtn').classList.remove('hidden');
+
+      renderQualifications();
+      renderCertificates();
+
+      $('#trainerModalTitle').textContent = 'EDIT TRAINER';
+      $('#trainerModalDescription').textContent = `Editing ${trainer.name}. Changes stay in the current page session.`;
+      $('#saveTrainerBtn').querySelector('span').textContent = 'Save Changes';
+
+      openModal('trainerModal', '#trainerName');
+    }
+
+    function openDetailsModal(id) {
+      const trainer = getTrainer(id);
+      if (!trainer) {
+        showToast('This trainer could not be found.', 'error');
+        return;
+      }
+
+      selectedDetailsId = trainer.id;
+      $('#detailsTitle').textContent = trainer.name.toUpperCase();
+
+      const qualificationsHTML = trainer.qualifications?.length
+        ? `<ul class="space-y-2">${trainer.qualifications.map(item => `<li class="flex gap-2 items-start text-xs text-neutral-300">${iconMarkup('check-circle-2', 'w-4 h-4 text-accent shrink-0 mt-0.5')}<span class="break-words">${escapeHTML(item)}</span></li>`).join('')}</ul>`
+        : '<p class="text-xs text-neutral-500">No qualifications have been added.</p>';
+
+      const certificatesHTML = trainer.certificates?.length
+        ? `<div class="space-y-2">${trainer.certificates.map(cert => {
+            const safeName = escapeHTML(cert.name || 'Certificate');
+            const fileUrl = cert.url && cert.url.startsWith('blob:') ? cert.url : null;
+            const link = fileUrl
+              ? `<a class="certificate-link text-xs" href="${fileUrl}" target="_blank" rel="noopener noreferrer">${safeName}</a>`
+              : `<span class="text-xs text-neutral-300 break-all">${safeName}</span>`;
+            return `<div class="flex items-start gap-3 rounded-lg border border-[#303030] bg-[#202020] p-3">${iconMarkup('file-text', 'w-4 h-4 text-neutral-400 shrink-0 mt-0.5')}<div class="min-w-0 flex-1">${link}<p class="text-[10px] text-neutral-500 mt-1">${escapeHTML(cert.size ? formatBytes(cert.size) : 'Demo attachment')}</p></div></div>`;
+          }).join('')}</div>`
+        : '<p class="text-xs text-neutral-500">No certificates attached.</p>';
+
+      $('#detailsContent').innerHTML = `
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 pb-5 border-b border-[#303030]">
+          <img src="${escapeHTML(getPhoto(trainer))}" alt="Profile photo of ${escapeHTML(trainer.name)}" class="w-24 h-24 rounded-xl object-cover bg-[#242424]" id="detailsPhoto">
+          <div class="text-center sm:text-left min-w-0 flex-1">
+            <h3 class="text-lg font-semibold break-words">${escapeHTML(trainer.name)}</h3>
+            <div class="mt-2">${statusMarkup(trainer.status)}</div>
+            <div class="mt-3"><span class="specialty-tag">${escapeHTML(trainer.specialty || 'No specialization')}</span></div>
+            <p class="text-[11px] text-neutral-500 mt-3">Trainer ID: ${escapeHTML(trainer.id)}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 py-5">
+          <div class="rounded-lg bg-[#202020] border border-[#303030] p-3">
+            <p class="text-[10px] text-neutral-500 flex items-center gap-2">${iconMarkup('phone')}Contact Number</p>
+            <p class="text-xs mt-2 break-words">${escapeHTML(trainer.phone || 'Not provided')}</p>
+          </div>
+          <div class="rounded-lg bg-[#202020] border border-[#303030] p-3">
+            <p class="text-[10px] text-neutral-500 flex items-center gap-2">${iconMarkup('calendar-days')}Age</p>
+            <p class="text-xs mt-2">${trainer.age != null ? escapeHTML(trainer.age + ' years') : 'Not provided'}</p>
+          </div>
+          <div class="rounded-lg bg-[#202020] border border-[#303030] p-3">
+            <p class="text-[10px] text-neutral-500 flex items-center gap-2">${iconMarkup('briefcase-business')}Experience</p>
+            <p class="text-xs mt-2">${trainer.experience != null ? escapeHTML(formatExperience(trainer.experience)) : 'Not provided'}</p>
+          </div>
+          <div class="rounded-lg bg-[#202020] border border-[#303030] p-3">
+            <p class="text-[10px] text-neutral-500 flex items-center gap-2">${iconMarkup('award')}Specialization</p>
+            <p class="text-xs mt-2 break-words">${escapeHTML(trainer.specialty || 'Not provided')}</p>
+          </div>
+        </div>
+
+        <section class="mb-5">
+          <h4 class="text-xs font-semibold mb-3 flex items-center gap-2">${iconMarkup('graduation-cap', 'w-4 h-4 text-accent')}Qualifications</h4>
+          ${qualificationsHTML}
+        </section>
+
+        <section>
+          <h4 class="text-xs font-semibold mb-3 flex items-center gap-2">${iconMarkup('files', 'w-4 h-4 text-accent')}Certificates &amp; Documents</h4>
+          ${certificatesHTML}
+        </section>
+        <p class="text-[10px] text-neutral-600 mt-5 leading-5">Demo data only. Certificate links, when available, refer to files selected in this browser session; they are not server-hosted documents.</p>
+      `;
+
+      const detailsPhoto = $('#detailsPhoto');
+      detailsPhoto.addEventListener('error', () => {
+        detailsPhoto.src = photoFallback(trainer.name);
+      }, { once: true });
+
+      refreshIcons($('#detailsContent'));
+      openModal('detailsModal', '[data-close-modal="detailsModal"]');
+    }
+
+    function openDeleteModal(id) {
+      const trainer = getTrainer(id);
+      if (!trainer) return;
+
+      pendingDeleteId = id;
+      $('#deleteTrainerName').textContent = trainer.name;
+      $('#deleteTrainerMeta').textContent = `${trainer.specialty} · ${formatExperience(trainer.experience)} · ${trainer.status}`;
+      openModal('deleteModal', '#confirmDeleteBtn');
+    }
+
+    function revokeCertificateUrl(cert) {
+      if (cert?.url && cert.url.startsWith('blob:')) {
+        URL.revokeObjectURL(cert.url);
+      }
+    }
+
+    function removeTrainer(id) {
+      const index = trainers.findIndex(trainer => trainer.id === id);
+      if (index === -1) {
+        showToast('This demo trainer no longer exists.', 'error');
+        closeModal('deleteModal');
+        return;
+      }
+
+      const removed = trainers.splice(index, 1)[0];
+      (removed.certificates || []).forEach(revokeCertificateUrl);
+      revokePhotoPreview();
+
+      closeModal('deleteModal');
+      pendingDeleteId = null;
+
+      if (selectedDetailsId === id) selectedDetailsId = null;
+
+      renderDirectory();
+      showToast(`${removed.name} was removed from the in-memory demo directory.`, 'success');
+    }
+
+    function addPhotoSelection(file) {
+      clearFieldErrors();
+      revokePhotoPreview();
+
+      if (!file) {
+        selectedPhoto = null;
+        photoChanged = true;
+        setPhotoPreview(null);
+        $('#photoFileInfo').textContent = 'No profile photo selected.';
+        $('#removePhotoBtn').classList.add('hidden');
+        return;
+      }
+
+      photoChanged = true;
+      selectedPhoto = file;
+
+      if (file.size > PHOTO_MAX_BYTES) {
+        selectedPhoto = null;
+        setPhotoPreview(null);
+        $('#photoFileInfo').textContent = `${file.name} · ${formatBytes(file.size)}`;
+        $('#removePhotoBtn').classList.add('hidden');
+        setFieldError('photoError', 'This image exceeds 500 KB. Choose a smaller image.');
+        $('#trainerPhoto').value = '';
+        return;
+      }
+
+      if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+        selectedPhoto = null;
+        setPhotoPreview(null);
+        $('#photoFileInfo').textContent = file.name;
+        $('#removePhotoBtn').classList.add('hidden');
+        setFieldError('photoError', 'Unsupported image format. Use JPEG, PNG, WebP or GIF.');
+        $('#trainerPhoto').value = '';
+        return;
+      }
+
+      photoPreviewUrl = URL.createObjectURL(file);
+      setPhotoPreview(photoPreviewUrl);
+      $('#photoFileInfo').textContent = `${file.name} · ${formatBytes(file.size)}`;
+      $('#removePhotoBtn').classList.remove('hidden');
+      setFieldError('photoError', '');
+    }
+
+    function removePhotoSelection() {
+      revokePhotoPreview();
+      selectedPhoto = null;
+      photoChanged = true;
+      $('#trainerPhoto').value = '';
+      $('#photoFileInfo').textContent = 'Photo removed. A fallback avatar will be used.';
+      $('#removePhotoBtn').classList.add('hidden');
+      setPhotoPreview(null);
+      setFieldError('photoError', '');
+    }
+
+    function getExtension(filename) {
+      const parts = String(filename).toLowerCase().split('.');
+      return parts.length > 1 ? parts.pop() : '';
+    }
+
+    function validateCertificate(file) {
+      const extension = getExtension(file.name);
+      if (!ALLOWED_CERT_EXTENSIONS.includes(extension)) {
+        return 'Unsupported extension. Use PDF, JPG, JPEG, PNG or WebP.';
+      }
+      if (file.size > CERTIFICATE_MAX_BYTES) {
+        return 'File exceeds the 5 MB per-file limit.';
+      }
+      if (file.size === 0) {
+        return 'Empty files are not allowed.';
+      }
+      if (file.type && !ALLOWED_CERT_TYPES.includes(file.type)) {
+        return 'File MIME type is not supported.';
+      }
+      return '';
+    }
+
+    function addCertificateSelections(fileList) {
+      setFieldError('certificateError', '');
+      const files = Array.from(fileList || []);
+      if (!files.length) return;
+
+      const newFiles = [];
+      const errors = [];
+      let currentCount = certificateFiles.length;
+
+      for (const file of files) {
+        const error = validateCertificate(file);
+        if (error) {
+          errors.push(`${file.name}: ${error}`);
+          continue;
+        }
+
+        const duplicate = certificateFiles.some(existing =>
+          existing.name === file.name &&
+          existing.size === file.size &&
+          existing.lastModified === file.lastModified
+        ) || newFiles.some(existing => existing.name === file.name && existing.size === file.size);
+
+        if (duplicate) {
+          errors.push(`${file.name}: Already selected.`);
+          continue;
+        }
+
+        if (currentCount >= MAX_CERTIFICATES) {
+          errors.push(`Only ${MAX_CERTIFICATES} certificates can be selected.`);
+          break;
+        }
+
+        newFiles.push({
+          name: file.name,
+          size: file.size,
+          type: file.type || '',
+          lastModified: file.lastModified,
+          file,
+          existing: false,
+          url: URL.createObjectURL(file)
+        });
+        currentCount++;
+      }
+
+      certificateFiles.push(...newFiles);
+      renderCertificates();
+
+      if (errors.length) {
+        setFieldError('certificateError', errors.slice(0, 3).join(' '));
+        showToast('Some certificate files were not added. Review the validation messages.', 'error');
+      } else {
+        setFieldError('certificateError', '');
+      }
+
+      // Clear the native input so selecting the same file again can be detected.
+      $('#trainerCertificates').value = '';
+    }
+
+    function removeCertificate(index) {
+      const entry = certificateFiles[index];
+      if (!entry) return;
+
+      if (!entry.existing) revokeCertificateUrl(entry);
+      certificateFiles.splice(index, 1);
+      renderCertificates();
+      setFieldError('certificateError', '');
+    }
+
+    async function fileToDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Unable to read the selected image.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function saveTrainer(event) {
+      event.preventDefault();
+
+      if (!validateForm()) {
+        showToast('Please correct the highlighted fields.', 'error');
+        return;
+      }
+
+      const saveButton = $('#saveTrainerBtn');
+      saveButton.disabled = true;
+
+      try {
+        let existing = editingId ? getTrainer(editingId) : null;
+        if (editingId && !existing) {
+          setGeneralError('This trainer is no longer available. Close this form and refresh the directory.');
+          return;
+        }
+
+        let photo = existing?.photo || '';
+        let photoName = existing?.photoName || '';
+
+        if (photoChanged) {
+          if (selectedPhoto) {
+            photo = await fileToDataURL(selectedPhoto);
+            photoName = selectedPhoto.name;
+          } else {
+            photo = '';
+            photoName = '';
+          }
+        }
+
+        const nextCertificates = certificateFiles.map(entry => {
+          if (entry.existing) {
+            return { ...entry };
+          }
+          return {
+            name: entry.name,
+            size: entry.size,
+            type: entry.type,
+            lastModified: entry.lastModified,
+            file: entry.file,
+            url: entry.url,
+            existing: false
+          };
+        });
+
+        const nextTrainer = {
+          id: editingId || `demo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          name: $('#trainerName').value.trim(),
+          age: Number($('#trainerAge').value),
+          phone: $('#trainerPhone').value.trim(),
+          experience: Number($('#trainerExperience').value),
+          specialty: $('#trainerSpecialty').value,
+          qualifications: [...qualifications],
+          status: $('#trainerStatus').value,
+          photo,
+          photoName,
+          certificates: nextCertificates
+        };
+
+        if (existing) {
+          // Retain any existing certificate objects that were not replaced.
+          const removedCertificates = (existing.certificates || []).filter(oldCert =>
+            !nextCertificates.some(next => next.url && next.url === oldCert.url)
+          );
+          removedCertificates.forEach(revokeCertificateUrl);
+
+          const index = trainers.findIndex(t => t.id === editingId);
+          trainers[index] = nextTrainer;
+        } else {
+          trainers.unshift(nextTrainer);
+        }
+
+        const action = editingId ? 'updated' : 'added';
+        closeModal('trainerModal');
+        resetFormState();
+        renderDirectory();
+        showToast(`${nextTrainer.name} ${action} in the in-memory demo directory.`, 'success');
+      } catch (error) {
+        setGeneralError('The selected image could not be read. Please choose it again and retry.');
+        showToast('Unable to process the selected image.', 'error');
+      } finally {
+        saveButton.disabled = false;
+      }
+    }
+
+    function toggleSidebar(open) {
+      const sidebar = $('#sidebar');
+      const toggle = $('#menuToggle');
+      const backdrop = $('#sidebarBackdrop');
+      sidebar.classList.toggle('open', open);
+      backdrop.classList.toggle('hidden', !open);
+      toggle.setAttribute('aria-expanded', String(open));
+    }
+
+    // Directory actions are delegated so that re-rendering cards remains safe.
+    $('#trainerGrid').addEventListener('click', event => {
+      const actionButton = event.target.closest('[data-action]');
+      if (!actionButton) {
+        if (event.target.closest('#emptyClearBtn')) clearFilters();
+        if (event.target.closest('#emptyAddBtn')) openAddModal();
+        return;
+      }
+
+      const id = actionButton.dataset.id;
+      switch (actionButton.dataset.action) {
+        case 'view': openDetailsModal(id); break;
+        case 'edit': openEditModal(id); break;
+        case 'delete': openDeleteModal(id); break;
+      }
+    });
+
+    $('#searchInput').addEventListener('input', applyFilters);
+    $('#specialtyFilter').addEventListener('change', applyFilters);
+    $('#statusFilter').addEventListener('change', applyFilters);
+    $('#clearFiltersBtn').addEventListener('click', clearFilters);
+    $('#addTrainerBtn').addEventListener('click', openAddModal);
+
+    $('#menuToggle').addEventListener('click', () => toggleSidebar(true));
+    $('#closeSidebar').addEventListener('click', () => toggleSidebar(false));
+    $('#sidebarBackdrop').addEventListener('click', () => toggleSidebar(false));
+
+    $('#addQualificationBtn').addEventListener('click', addQualification);
+    $('#qualificationInput').addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        addQualification();
+      }
+    });
+
+    $('#qualificationList').addEventListener('click', event => {
+      const button = event.target.closest('[data-remove-qualification]');
+      if (!button) return;
+      qualifications.splice(Number(button.dataset.removeQualification), 1);
+      renderQualifications();
+      setFieldError('qualificationError', '');
+    });
+
+    $('#trainerPhoto').addEventListener('change', event => {
+      addPhotoSelection(event.target.files?.[0] || null);
+    });
+
+    $('#removePhotoBtn').addEventListener('click', removePhotoSelection);
+
+    $('#trainerCertificates').addEventListener('change', event => {
+      addCertificateSelections(event.target.files);
+    });
+
+    $('#certificateList').addEventListener('click', event => {
+      const button = event.target.closest('[data-remove-certificate]');
+      if (!button) return;
+      removeCertificate(Number(button.dataset.removeCertificate));
+    });
+
+    $('#trainerForm').addEventListener('submit', saveTrainer);
+
+    $('#confirmDeleteBtn').addEventListener('click', () => {
+      if (!pendingDeleteId) return;
+      removeTrainer(pendingDeleteId);
+    });
+
+    $('#detailsEditBtn').addEventListener('click', () => {
+      const id = selectedDetailsId;
+      closeModal('detailsModal');
+      if (id && getTrainer(id)) openEditModal(id);
+    });
+
+    $$('[data-close-modal]').forEach(button => {
+      button.addEventListener('click', () => closeModal(button.dataset.closeModal));
+    });
+
+    $$('.overlay').forEach(overlay => {
+      overlay.addEventListener('mousedown', event => {
+        if (event.target === overlay) closeModal(overlay.id);
+      });
+    });
+
+    document.addEventListener('keydown', handleModalKeyboard);
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1024) toggleSidebar(false);
+    });
+
+    window.addEventListener('beforeunload', () => {
+      revokePhotoPreview();
+      trainers.forEach(trainer => {
+        (trainer.certificates || []).forEach(revokeCertificateUrl);
+      });
+      certificateFiles.forEach(cert => {
+        if (!cert.existing) revokeCertificateUrl(cert);
+      });
+    });
+
+    $('#currentYear').textContent = new Date().getFullYear();
+
+    renderDirectory();
+    refreshIcons();
+  </script>
+</body>
+</html>

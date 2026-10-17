@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A0A0A">
+    <meta name="description" content="Your personal fitness dashboard, membership overview, workout planner, and physical profile.">
+    <title>My Profile | IRONCORE Fitness</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#FF6B00',
+                        surface: '#171717',
+                        muted: '#A3A3A3'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Oswald', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0A0A0A;
+            --surface: #171717;
+            --accent: #FF6B00;
+            --text: #FFFFFF;
+            --muted: #A3A3A3;
+            --border: rgba(255,255,255,.09);
+        }
+
+        * { box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 100px;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background:
+                linear-gradient(180deg, rgba(10,10,10,.79), rgba(10,10,10,.95) 45%, #0A0A0A),
+                url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=2400&q=85')
+                center center / cover no-repeat;
+            transform: translateZ(0);
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 80% 0%, rgba(255,107,0,.09), transparent 42%);
+        }
+
+        button, input, select { font: inherit; }
+        button { -webkit-tap-highlight-color: transparent; }
+
+        .font-display { font-family: 'Oswald', sans-serif; }
+
+        .glass {
+            background: rgba(23,23,23,.84);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .panel {
+            background: linear-gradient(145deg, rgba(28,28,28,.96), rgba(17,17,17,.92));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            transition: border-color .25s ease, transform .25s ease;
+        }
+
+        .panel:hover { border-color: rgba(255,107,0,.23); }
+
+        .accent-text {
+            color: var(--accent);
+        }
+
+        .eyebrow {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .19em;
+            color: var(--muted);
+        }
+
+        .section-heading {
+            font-family: 'Oswald', sans-serif;
+            font-size: 23px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: .025em;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 16px;
+            border-radius: 10px;
+            color: white;
+            background: var(--accent);
+            font-size: 12px;
+            font-weight: 800;
+            transition: background .2s, transform .2s, opacity .2s;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #ff8126;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.045);
+            border: 1px solid var(--border);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            transition: background .2s, border-color .2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,.09);
+            border-color: rgba(255,255,255,.2);
+        }
+
+        .workout-option {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 13px;
+            padding: 15px;
+            min-height: 112px;
+            border: 1px solid rgba(255,255,255,.085);
+            background: rgba(255,255,255,.025);
+            border-radius: 13px;
+            transition: all .2s ease;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .workout-option:hover {
+            border-color: rgba(255,107,0,.5);
+            background: rgba(255,107,0,.055);
+        }
+
+        .workout-option[aria-pressed="true"] {
+            border-color: var(--accent);
+            background: rgba(255,107,0,.12);
+            box-shadow: inset 0 0 0 1px rgba(255,107,0,.15);
+        }
+
+        .workout-option[aria-pressed="true"] .workout-icon {
+            background: var(--accent);
+            color: white;
+        }
+
+        .workout-icon {
+            display: grid;
+            place-items: center;
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.065);
+            color: #d4d4d4;
+            transition: all .2s;
+        }
+
+        .workout-check {
+            display: none;
+            color: var(--accent);
+        }
+
+        .workout-option[aria-pressed="true"] .workout-check { display: block; }
+
+        .stat-icon {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            color: var(--accent);
+            background: rgba(255,107,0,.11);
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 11px;
+            color: #D4D4D4;
+            font-weight: 700;
+        }
+
+        .field-input {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: #111;
+            color: white;
+            padding: 11px 12px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .field-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255,107,0,.1);
+        }
+
+        .field-input:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .field-input::placeholder { color: #666; }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 99px;
+            padding: 6px 10px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .03em;
+        }
+
+        .status-active {
+            color: #86efac;
+            background: rgba(34,197,94,.1);
+            border: 1px solid rgba(34,197,94,.2);
+        }
+
+        .status-warning {
+            color: #fdba74;
+            background: rgba(249,115,22,.12);
+            border: 1px solid rgba(249,115,22,.22);
+        }
+
+        .status-expired {
+            color: #fca5a5;
+            background: rgba(239,68,68,.1);
+            border: 1px solid rgba(239,68,68,.2);
+        }
+
+        .progress-track {
+            height: 5px;
+            border-radius: 99px;
+            background: rgba(255,255,255,.09);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: inherit;
+            transition: width .4s;
+        }
+
+        .avatar {
+            object-fit: cover;
+            background: #262626;
+            border: 2px solid rgba(255,107,0,.45);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 22px;
+            right: 22px;
+            z-index: 100;
+            width: min(390px, calc(100vw - 32px));
+            padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 14px;
+            background: #1b1b1b;
+            box-shadow: 0 18px 55px rgba(0,0,0,.45);
+            animation: toast-in .25s ease-out;
+        }
+
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            display: grid;
+            place-items: center;
+            padding: 16px;
+            overflow-y: auto;
+            background: rgba(0,0,0,.78);
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-card {
+            width: min(580px, 100%);
+            max-height: calc(100dvh - 32px);
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 20px;
+            background: #171717;
+            box-shadow: 0 24px 80px rgba(0,0,0,.55);
+        }
+
+        .modal-card:focus { outline: none; }
+
+        .mobile-menu {
+            display: none;
+            border-top: 1px solid var(--border);
+            background: rgba(10,10,10,.97);
+        }
+
+        .mobile-menu.open { display: block; }
+
+        .nav-link {
+            color: #a3a3a3;
+            font-size: 12px;
+            font-weight: 700;
+            transition: color .2s;
+        }
+
+        .nav-link:hover, .nav-link.active { color: white; }
+
+        .nav-link.active::after {
+            content: "";
+            display: block;
+            height: 2px;
+            margin-top: 5px;
+            background: var(--accent);
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            background:
+                linear-gradient(100deg, rgba(15,15,15,.98) 0%, rgba(15,15,15,.88) 58%, rgba(15,15,15,.58) 100%),
+                url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1500&q=80')
+                center 45% / cover;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            right: -80px;
+            bottom: -155px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,107,0,.4);
+            box-shadow: 0 0 0 35px rgba(255,107,0,.035), 0 0 0 70px rgba(255,107,0,.025);
+            pointer-events: none;
+        }
+
+        .bmi-track {
+            position: relative;
+            height: 7px;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #60a5fa 0%, #4ade80 30%, #facc15 62%, #fb923c 80%, #f87171 100%);
+        }
+
+        .bmi-marker {
+            position: absolute;
+            top: -4px;
+            left: 0;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 0 3px rgba(255,107,0,.18);
+            transform: translateX(-50%);
+            transition: left .25s;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 12px;
+            z-index: 200;
+            padding: 10px;
+            background: var(--accent);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .skip-link:focus { top: 12px; }
+
+        @media (max-width: 640px) {
+            .section-heading { font-size: 21px; }
+            .panel { border-radius: 15px; }
+            .workout-option { min-height: 105px; padding: 12px; }
+            .toast { right: 16px; bottom: 16px; }
+            .hero { background-position: 58% center; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <!-- DEMO MODE: Replace sample identity and statistics with authorized API data.
+         This page does not authenticate users or persist changes to a server. -->
+
+    <header class="fixed top-0 left-0 right-0 z-50 glass" style="background:rgba(10,10,10,.88)">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[76px] flex items-center justify-between gap-4" aria-label="Main navigation">
+            <a href="dashboard.html" class="flex items-center gap-3 shrink-0" aria-label="IRONCORE member dashboard">
+                <span class="grid place-items-center w-10 h-10 rounded-xl bg-brand text-white">
+                    <i data-lucide="dumbbell" class="w-5 h-5"></i>
+                </span>
+                <span>
+                    <span class="block font-display text-xl sm:text-2xl tracking-wider leading-none">IRON<span class="accent-text">CORE</span></span>
+                    <span class="block text-[9px] text-neutral-500 font-bold tracking-[.25em] mt-1">MEMBER CLUB</span>
+                </span>
+            </a>
+
+            <div class="hidden md:flex items-center gap-7">
+                <a class="nav-link" href="dashboard.html">Dashboard</a>
+                <a class="nav-link" href="#workout-section">My Workout</a>
+                <a class="nav-link" href="#membership-section">Membership</a>
+                <a class="nav-link active" href="profile.html" aria-current="page">My Profile</a>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:block text-right">
+                    <p id="nav-member-name" class="text-xs font-bold">Rahul Sharma</p>
+                    <p class="text-[10px] text-neutral-500 mt-1">Gym Member</p>
+                </div>
+                <img id="nav-avatar"
+                     class="avatar w-10 h-10 rounded-full"
+                     src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80"
+                     alt="Member profile photo"
+                     referrerpolicy="no-referrer">
+                <button id="logout-button" type="button" class="hidden sm:inline-flex btn-secondary" aria-label="Log out">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    <span>Logout</span>
+                </button>
+                <button id="mobile-menu-button" type="button" class="md:hidden btn-secondary !p-2.5"
+                        aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </nav>
+
+        <div id="mobile-menu" class="mobile-menu md:hidden">
+            <div class="max-w-7xl mx-auto px-5 py-4 grid grid-cols-2 gap-4">
+                <a class="nav-link" href="dashboard.html">Dashboard</a>
+                <a class="nav-link" href="#workout-section">My Workout</a>
+                <a class="nav-link" href="#membership-section">Membership</a>
+                <a class="nav-link active" href="profile.html">My Profile</a>
+                <button id="mobile-logout-button" type="button" class="btn-secondary col-span-2">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[100px] pb-12">
+
+        <!-- WELCOME -->
+        <section class="hero rounded-2xl border border-white/[.09] p-6 sm:p-9 lg:p-11 mb-6">
+            <div class="relative z-10 max-w-2xl">
+                <div class="flex flex-wrap items-center gap-2 mb-5">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.14em] text-orange-400">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>
+                        Member portal
+                    </span>
+                    <span class="text-[10px] text-neutral-400">DEMO PREVIEW</span>
+                </div>
+
+                <p class="eyebrow mb-3">YOUR FITNESS JOURNEY CONTINUES</p>
+                <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.12] uppercase">
+                    Welcome back,<br>
+                    <span id="welcome-name" class="accent-text">Rahul Sharma.</span>
+                </h1>
+                <p class="mt-4 max-w-lg text-sm text-neutral-300 leading-7">
+                    Every rep counts. Every session matters. Keep showing up, push your limits, and become stronger than yesterday.
+                </p>
+
+                <div class="flex flex-wrap items-center gap-3 mt-7">
+                    <a href="#workout-section" class="btn-primary">
+                        Plan today's workout
+                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                    </a>
+                    <div class="flex items-center gap-2 rounded-xl border border-white/10 bg-black/25 px-4 py-3">
+                        <i data-lucide="calendar-days" class="w-4 h-4 accent-text"></i>
+                        <span id="current-date" class="text-xs text-neutral-200">Loading date...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DEMO NOTICE -->
+        <div class="flex items-start gap-3 rounded-xl border border-orange-500/20 bg-orange-500/[.055] px-4 py-3.5 mb-8">
+            <i data-lucide="info" class="w-4 h-4 text-orange-400 shrink-0 mt-0.5"></i>
+            <p class="text-[11px] leading-5 text-neutral-300">
+                <strong class="text-orange-300">Demo mode:</strong>
+                Member details, attendance, workout history and membership information below are illustrative sample data. Workout and profile changes remain in this page's memory only; they are not saved to a server.
+            </p>
+        </div>
+
+        <!-- STATISTICS -->
+        <section aria-labelledby="stats-heading" class="mb-10">
+            <div class="flex flex-wrap justify-between items-end gap-3 mb-5">
+                <div>
+                    <p class="eyebrow mb-2">YOUR PERFORMANCE</p>
+                    <h2 id="stats-heading" class="section-heading">Fitness at a glance</h2>
+                </div>
+                <span class="text-[10px] text-neutral-500 border border-white/10 rounded-full px-3 py-1.5">SAMPLE STATISTICS</span>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <article class="panel p-4 sm:p-5">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="stat-icon"><i data-lucide="calendar-check" class="w-5 h-5"></i></span>
+                        <span class="text-[9px] font-bold text-neutral-500">ALL TIME</span>
+                    </div>
+                    <p id="stat-attendance" class="font-display text-4xl mt-5">86</p>
+                    <p class="text-xs text-neutral-400 mt-1">Gym attendance days</p>
+                    <p class="text-[10px] text-neutral-600 mt-3">Verified check-ins in sample data</p>
+                </article>
+
+                <article class="panel p-4 sm:p-5">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="stat-icon"><i data-lucide="biceps-flexed" class="w-5 h-5"></i></span>
+                        <span class="text-[9px] font-bold text-neutral-500">ALL TIME</span>
+                    </div>
+                    <p id="stat-workout" class="font-display text-4xl mt-5">72</p>
+                    <p class="text-xs text-neutral-400 mt-1">Workout days</p>
+                    <p class="text-[10px] text-neutral-600 mt-3">Completed sessions in sample data</p>
+                </article>
+
+                <article class="panel p-4 sm:p-5">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="stat-icon"><i data-lucide="coffee" class="w-5 h-5"></i></span>
+                        <span class="text-[9px] font-bold text-neutral-500">ESTIMATED</span>
+                    </div>
+                    <p id="stat-days-off" class="font-display text-4xl mt-5">14</p>
+                    <p class="text-xs text-neutral-400 mt-1">Days off</p>
+                    <p class="text-[10px] text-neutral-600 mt-3">Attendance days minus workout days</p>
+                </article>
+
+                <article class="panel p-4 sm:p-5">
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="stat-icon"><i data-lucide="hourglass" class="w-5 h-5"></i></span>
+                        <span class="text-[9px] font-bold text-neutral-500">MEMBERSHIP</span>
+                    </div>
+                    <p id="stat-days-remaining" class="font-display text-4xl mt-5">--</p>
+                    <p class="text-xs text-neutral-400 mt-1">Days remaining</p>
+                    <p class="text-[10px] text-neutral-600 mt-3">Calculated from expiry date</p>
+                </article>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+
+            <!-- WORKOUT PLANNER -->
+            <section id="workout-section" class="panel p-5 sm:p-6 lg:col-span-2" aria-labelledby="workout-heading">
+                <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+                    <div>
+                        <p class="eyebrow mb-2">BUILD YOUR SESSION</p>
+                        <h2 id="workout-heading" class="section-heading">Today's workout</h2>
+                        <p class="text-xs text-neutral-500 mt-2">Select one or more muscle groups to plan your session.</p>
+                    </div>
+                    <span class="rounded-lg bg-white/[.04] border border-white/[.07] px-3 py-2 text-[10px] text-neutral-400">
+                        <i data-lucide="dumbbell" class="w-3.5 h-3.5 inline-block align-middle mr-1 accent-text"></i>
+                        Personal plan
+                    </span>
+                </div>
+
+                <div id="workout-grid" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                    <button type="button" class="workout-option" data-workout="Chest" aria-pressed="false">
+                        <span class="flex w-full items-center justify-between">
+                            <span class="workout-icon"><i data-lucide="biceps-flexed" class="w-5 h-5"></i></span>
+                            <i data-lucide="check-circle-2" class="workout-check w-4 h-4"></i>
+                        </span>
+                        <span class="text-sm font-bold">Chest</span>
+                    </button>
+                    <button type="button" class="workout-option" data-workout="Triceps" aria-pressed="false">
+                        <span class="flex w-full items-center justify-between">
+                            <span class="workout-icon"><i data-lucide="dumbbell" class="w-5 h-5"></i></span>
+                            <i data-lucide="check-circle-2" class="workout-check w-4 h-4"></i>
+                        </span>
+                        <span class="text-sm font-bold">Triceps</span>
+                    </button>
+                    <button type="button" class="workout-option" data-workout="Back" aria-pressed="false">
+                        <span class="flex w-full items-center justify-between">
+                            <span class="workout-icon"><i data-lucide="activity" class="w-5 h-5"></i></span>
+                            <i data-lucide="check-circle-2" class="workout-check w-4 h-4"></i>
+                        </span>
+                        <span class="text-sm font-bold">Back</span>
+                    </button>
+                    <button type="button" class="workout-option" data-workout="Biceps" aria-pressed="false">
+                        <span class="flex w-full items-center justify-between">
+                            <span class="workout-icon"><i data-lucide="biceps-flexed" class="w-5 h-5"></i></span>
+                            <i data-lucide="check-circle-2" class="workout-check w-4 h-4"></i>
+                        </span>
+                        <span class="text-sm font-bold">Biceps</span>
+                    </button>
+                    <button type="button" class="workout-option" data-workout="Legs" aria-pressed="false">
+                        <span class="flex w-full items-center justify-between">
+                            <span class="workout-icon"><i data-lucide="footprints" class="w-5 h-5"></i></span>
+                            <i data-lucide="check-circle-2" class="workout-check w-4 h-4"></i>
+                        </span>
+                        <span class="text-sm font-bold">Legs</span>
+                    </button>
+                    <button type="button" class="workout-option" data-workout="Shoulders" aria-pressed="false">
+                        <span class="flex w-full items-center justify-between">
+                            <span class="workout-icon"><i data-lucide="move-vertical" class="w-5 h-5"></i></span>
+                            <i data-lucide="check-circle-2" class="workout-check w-4 h-4"></i>
+                        </span>
+                        <span class="text-sm font-bold">Shoulders</span>
+                    </button>
+                    <button type="button" class="workout-option" data-workout="Abs" aria-pressed="false">
+                        <span class="flex w-full items-center justify-between">
+                            <span class="workout-icon"><i data-lucide="target" class="w-5 h-5"></i></span>
+                            <i data-lucide="check-circle-2" class="workout-check w-4 h-4"></i>
+                        </span>
+                        <span class="text-sm font-bold">Abs</span>
+                    </button>
+                </div>
+
+                <div class="mt-6 p-4 rounded-xl border border-white/[.07] bg-black/20">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                        <div>
+                            <p class="text-xs font-bold">Your planned workout</p>
+                            <p class="text-[10px] text-neutral-500 mt-1">Selection only — not an attendance check-in.</p>
+                        </div>
+                        <span id="workout-count" class="text-[10px] text-neutral-400">0 selected</span>
+                    </div>
+
+                    <div id="workout-summary" aria-live="polite" class="min-h-10 flex items-center">
+                        <p class="text-xs text-neutral-500">No muscle groups selected yet. Choose your focus above.</p>
+                    </div>
+
+                    <div id="workout-feedback" role="status" aria-live="polite" class="hidden mt-3 rounded-lg px-3 py-2.5 text-xs"></div>
+
+                    <div class="flex flex-wrap gap-3 mt-5">
+                        <button id="save-workout-button" type="button" class="btn-primary">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            Save workout plan
+                        </button>
+                        <button id="clear-workout-button" type="button" class="btn-secondary">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            Clear selection
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex gap-3 text-[10px] leading-5 text-neutral-500">
+                    <i data-lucide="shield-check" class="w-4 h-4 shrink-0 accent-text mt-0.5"></i>
+                    <p>A workout plan is not a verified gym visit. Attendance must be recorded independently through an authorized check-in process.</p>
+                </div>
+            </section>
+
+            <!-- MEMBERSHIP -->
+            <section id="membership-section" class="panel p-5 sm:p-6" aria-labelledby="membership-heading">
+                <div class="flex justify-between items-start gap-2 mb-6">
+                    <div>
+                        <p class="eyebrow mb-2">YOUR SUBSCRIPTION</p>
+                        <h2 id="membership-heading" class="section-heading">Membership</h2>
+                    </div>
+                    <span class="stat-icon"><i data-lucide="crown" class="w-5 h-5"></i></span>
+                </div>
+
+                <div class="relative overflow-hidden rounded-xl p-5 mb-5 border border-orange-500/20"
+                     style="background:linear-gradient(135deg,rgba(255,107,0,.15),rgba(255,107,0,.025) 75%),#171717">
+                    <div class="absolute -right-5 -top-6 opacity-[.08]">
+                        <i data-lucide="crown" class="w-32 h-32"></i>
+                    </div>
+                    <p class="eyebrow !text-orange-300 mb-3">CURRENT PLAN</p>
+                    <h3 id="membership-plan" class="font-display text-3xl uppercase tracking-wide">Premium Annual</h3>
+                    <p class="text-[11px] text-neutral-400 mt-2">Illustrative membership details</p>
+                    <div class="mt-4">
+                        <span id="membership-status" class="status-pill status-active">
+                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span> Active
+                        </span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between gap-3">
+                        <span class="text-xs text-neutral-500">Start date</span>
+                        <span id="membership-start" class="text-xs font-semibold text-neutral-200 text-right">—</span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <span class="text-xs text-neutral-500">Expiry date</span>
+                        <span id="membership-expiry" class="text-xs font-semibold text-neutral-200 text-right">—</span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <span class="text-xs text-neutral-500">Time remaining</span>
+                        <span id="membership-remaining" class="text-xs font-bold accent-text text-right">—</span>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <div class="flex justify-between text-[10px] text-neutral-500 mb-2">
+                        <span>Membership period elapsed</span>
+                        <span id="membership-progress-label">—</span>
+                    </div>
+                    <div class="progress-track">
+                        <div id="membership-progress" class="progress-fill" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <div id="membership-notice" role="status" class="hidden mt-4 text-xs leading-5 rounded-lg p-3"></div>
+
+                <button id="renew-membership-button" type="button" class="btn-primary w-full mt-6">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    Renew membership
+                </button>
+                <p class="text-[10px] text-neutral-600 text-center mt-3">Renewal requests require backend integration.</p>
+            </section>
+        </div>
+
+        <!-- PHYSICAL PROFILE -->
+        <section id="profile-section" aria-labelledby="profile-heading" class="mb-10">
+            <div class="flex flex-wrap justify-between items-end gap-3 mb-5">
+                <div>
+                    <p class="eyebrow mb-2">YOUR PERSONAL DETAILS</p>
+                    <h2 id="profile-heading" class="section-heading">Physical profile</h2>
+                </div>
+                <button id="edit-profile-button" type="button" class="btn-secondary">
+                    <i data-lucide="square-pen" class="w-4 h-4 accent-text"></i>
+                    Edit profile
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Identity card -->
+                <article class="panel p-6 sm:p-7">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="relative mb-5">
+                            <img id="profile-avatar"
+                                 class="avatar w-28 h-28 sm:w-32 sm:h-32 rounded-full"
+                                 src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&h=400&q=85"
+                                 alt="Rahul Sharma's profile photo"
+                                 referrerpolicy="no-referrer">
+                            <span class="absolute bottom-1 right-1 grid place-items-center w-8 h-8 rounded-full bg-brand border-4 border-neutral-900">
+                                <i data-lucide="user-round" class="w-3.5 h-3.5"></i>
+                            </span>
+                        </div>
+
+                        <span class="eyebrow mb-2">GYM MEMBER</span>
+                        <h3 id="profile-full-name" class="font-display text-3xl uppercase">Rahul Sharma</h3>
+                        <p class="text-xs text-neutral-500 mt-2">Member ID: <span id="member-id" class="text-neutral-400">DEMO-001</span></p>
+
+                        <div class="w-full border-t border-white/[.08] mt-6 pt-5 grid grid-cols-2 gap-3">
+                            <div class="rounded-xl bg-white/[.035] p-3">
+                                <i data-lucide="calendar" class="w-4 h-4 text-neutral-500 mx-auto mb-2"></i>
+                                <p id="profile-age" class="font-display text-2xl">22</p>
+                                <p class="text-[10px] text-neutral-500 mt-1">Years old</p>
+                            </div>
+                            <div class="rounded-xl bg-white/[.035] p-3">
+                                <i data-lucide="ruler" class="w-4 h-4 text-neutral-500 mx-auto mb-2"></i>
+                                <p class="font-display text-2xl"><span id="profile-height">175</span><span class="text-xs text-neutral-500 ml-1">cm</span></p>
+                                <p class="text-[10px] text-neutral-500 mt-1">Height</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Body metrics -->
+                <article class="panel p-5 sm:p-6 lg:col-span-2">
+                    <div class="flex flex-wrap justify-between items-start gap-3 mb-6">
+                        <div>
+                            <p class="eyebrow mb-2">BODY METRICS</p>
+                            <h3 class="font-display text-2xl uppercase">Your measurements</h3>
+                        </div>
+                        <span class="text-[10px] text-neutral-500">SAMPLE PROFILE DATA</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                        <div class="rounded-xl border border-white/[.07] bg-black/20 p-4">
+                            <div class="flex items-center gap-2 text-neutral-500 mb-3">
+                                <i data-lucide="weight" class="w-4 h-4 accent-text"></i>
+                                <span class="text-[10px] font-bold">WEIGHT</span>
+                            </div>
+                            <p class="font-display text-3xl"><span id="profile-weight">68</span><span class="text-sm text-neutral-500 ml-1">kg</span></p>
+                        </div>
+
+                        <div class="rounded-xl border border-white/[.07] bg-black/20 p-4">
+                            <div class="flex items-center gap-2 text-neutral-500 mb-3">
+                                <i data-lucide="activity" class="w-4 h-4 accent-text"></i>
+                                <span class="text-[10px] font-bold">BMI</span>
+                            </div>
+                            <p id="profile-bmi" class="font-display text-3xl">22.2</p>
+                            <p id="profile-bmi-category" class="text-[10px] text-neutral-400 mt-1">Within standard range</p>
+                        </div>
+
+                        <div class="rounded-xl border border-white/[.07] bg-black/20 p-4 col-span-2 sm:col-span-1">
+                            <div class="flex items-center gap-2 text-neutral-500 mb-3">
+                                <i data-lucide="phone" class="w-4 h-4 accent-text"></i>
+                                <span class="text-[10px] font-bold">PHONE</span>
+                            </div>
+                            <p id="profile-phone" class="text-sm font-bold mt-1 break-words">+91 98765 43210</p>
+                            <p class="text-[10px] text-neutral-500 mt-2">Sample contact</p>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-white/[.07] bg-black/20 p-4 sm:p-5">
+                        <div class="flex justify-between items-start gap-3 mb-4">
+                            <div>
+                                <h4 class="text-xs font-bold">BMI screening indicator</h4>
+                                <p class="text-[10px] text-neutral-500 mt-1">Calculated from your height and weight</p>
+                            </div>
+                            <span id="bmi-value-badge" class="text-sm font-bold accent-text">22.2</span>
+                        </div>
+
+                        <div class="px-2 pt-2 pb-1">
+                            <div class="bmi-track">
+                                <span id="bmi-marker" class="bmi-marker" style="left:39%"></span>
+                            </div>
+                            <div class="flex justify-between text-[9px] text-neutral-500 mt-3">
+                                <span>Underweight</span>
+                                <span>Standard range</span>
+                                <span>Higher range</span>
+                            </div>
+                        </div>
+
+                        <p class="text-[10px] text-neutral-500 leading-5 mt-4">
+                            BMI is a screening metric, not a medical diagnosis. It does not distinguish muscle mass from body fat and may not fully reflect individual health.
+                        </p>
+                    </div>
+
+                    <div class="mt-5 flex items-start gap-3">
+                        <i data-lucide="lock-keyhole" class="w-4 h-4 accent-text shrink-0 mt-0.5"></i>
+                        <p class="text-[10px] leading-5 text-neutral-500">
+                            Personal profile information should be loaded only for the authenticated member. The backend must enforce authorization for every profile read and update.
+                        </p>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- WORKOUT STATUS -->
+        <section aria-labelledby="activity-heading" class="panel p-5 sm:p-6 mb-10">
+            <div class="flex flex-wrap justify-between items-start gap-3 mb-5">
+                <div>
+                    <p class="eyebrow mb-2">TRAIN WITH PURPOSE</p>
+                    <h2 id="activity-heading" class="section-heading">Today's activity</h2>
+                    <p class="text-xs text-neutral-500 mt-2">Planning your workout and checking into the gym are separate actions.</p>
+                </div>
+                <span class="rounded-lg border border-white/10 px-3 py-2 text-[10px] text-neutral-400">DEMO STATUS</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex items-start gap-4 p-4 rounded-xl bg-white/[.025] border border-white/[.06]">
+                    <span class="stat-icon shrink-0"><i data-lucide="clipboard-list" class="w-5 h-5"></i></span>
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold">Workout plan</p>
+                        <p id="activity-plan-status" class="text-xs text-neutral-400 mt-2">No plan selected</p>
+                        <p class="text-[10px] text-neutral-600 mt-2">Updates when you save a plan in demo mode.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4 p-4 rounded-xl bg-white/[.025] border border-white/[.06]">
+                    <span class="stat-icon shrink-0"><i data-lucide="map-pin-check" class="w-5 h-5"></i></span>
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold">Gym check-in</p>
+                        <p class="text-xs text-neutral-400 mt-2">Not verified on this page</p>
+                        <p class="text-[10px] text-neutral-600 mt-2">Requires a separate authorized attendance system.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="border-t border-white/[.07] pt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div class="flex items-center gap-2">
+                <i data-lucide="dumbbell" class="w-4 h-4 accent-text"></i>
+                <span class="font-display text-lg tracking-wider">IRON<span class="accent-text">CORE</span></span>
+            </div>
+            <p class="text-[10px] text-neutral-600">© <span id="footer-year"></span> IRONCORE Fitness. Member portal demo.</p>
+            <a href="dashboard.html" class="text-xs text-neutral-400 hover:text-white transition">Back to dashboard <span class="accent-text">→</span></a>
+        </footer>
+    </main>
+
+    <!-- EDIT PROFILE MODAL -->
+    <div id="profile-modal" class="modal-backdrop hidden" role="presentation">
+        <section class="modal-card p-5 sm:p-7" role="dialog" aria-modal="true"
+                 aria-labelledby="modal-title" aria-describedby="modal-description" tabindex="-1">
+            <div class="flex items-start justify-between gap-4 mb-6">
+                <div>
+                    <p class="eyebrow mb-2">ACCOUNT DETAILS</p>
+                    <h2 id="modal-title" class="font-display text-3xl uppercase">Edit profile</h2>
+                    <p id="modal-description" class="text-xs text-neutral-500 mt-2">Update your sample profile details. Changes are not sent to a server.</p>
+                </div>
+                <button id="close-modal-button" type="button" class="btn-secondary !p-2" aria-label="Close edit profile dialog">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <form id="profile-form" novalidate>
+                <div class="mb-5">
+                    <label for="photo-input" class="field-label">Profile photo <span class="text-neutral-500 font-normal">(optional)</span></label>
+                    <div class="flex items-center gap-4">
+                        <img id="photo-preview"
+                             class="avatar w-16 h-16 rounded-full shrink-0"
+                             src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&h=160&q=80"
+                             alt="Preview of selected profile photo">
+                        <div class="min-w-0 flex-1">
+                            <input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp"
+                                   class="field-input text-xs" aria-describedby="photo-help">
+                            <p id="photo-help" class="text-[10px] text-neutral-500 mt-2">JPG, PNG or WebP. Maximum 500 KB.</p>
+                            <button id="remove-photo-button" type="button" class="text-[10px] text-orange-400 hover:text-orange-300 mt-2">Remove selected photo</button>
+                        </div>
+                    </div>
+                    <p id="photo-error" class="hidden text-xs text-red-400 mt-2" role="alert"></p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="field-label" for="edit-name">Full name</label>
+                        <input id="edit-name" name="name" class="field-input" type="text"
+                               autocomplete="name" maxlength="80" required placeholder="Your full name">
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="edit-age">Age</label>
+                        <input id="edit-age" name="age" class="field-input" type="number"
+                               min="1" max="120" step="1" required inputmode="numeric">
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="edit-phone">Phone number</label>
+                        <input id="edit-phone" name="phone" class="field-input" type="tel"
+                               autocomplete="tel" maxlength="20" required placeholder="+91 98765 43210">
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="edit-height">Height (cm)</label>
+                        <input id="edit-height" name="height" class="field-input" type="number"
+                               min="50" max="272" step="0.1" required inputmode="decimal">
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="edit-weight">Weight (kg)</label>
+                        <input id="edit-weight" name="weight" class="field-input" type="number"
+                               min="10" max="500" step="0.1" required inputmode="decimal">
+                    </div>
+                </div>
+
+                <div class="mt-5 p-4 rounded-xl border border-white/[.07] bg-black/20">
+                    <div class="flex justify-between items-center gap-3">
+                        <div>
+                            <p class="text-xs font-bold">Calculated BMI</p>
+                            <p class="text-[10px] text-neutral-500 mt-1">Automatically recalculated as you edit height or weight.</p>
+                        </div>
+                        <span id="edit-bmi-value" class="font-display text-2xl accent-text">22.2</span>
+                    </div>
+                    <p id="edit-bmi-category" class="text-[10px] text-neutral-400 mt-2">Screening metric only — not a diagnosis.</p>
+                </div>
+
+                <p id="profile-form-error" class="hidden text-xs leading-5 text-red-400 mt-4" role="alert"></p>
+
+                <div class="flex flex-col-reverse sm:flex-row gap-3 mt-6">
+                    <button id="cancel-profile-button" type="button" class="btn-secondary flex-1">Cancel</button>
+                    <button id="save-profile-button" type="submit" class="btn-primary flex-1">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Save profile changes
+                    </button>
+                </div>
+                <p class="text-[10px] text-neutral-600 leading-5 mt-4">Demo only: changes remain in this page's memory. Refreshing the page restores the example data.</p>
+            </form>
+        </section>
+    </div>
+
+    <!-- LOGOUT CONFIRMATION -->
+    <div id="logout-modal" class="modal-backdrop hidden" role="presentation">
+        <section class="modal-card p-6 max-w-sm" role="dialog" aria-modal="true"
+                 aria-labelledby="logout-title" tabindex="-1">
+            <div class="w-12 h-12 rounded-xl grid place-items-center bg-orange-500/10 text-orange-400 mb-5">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </div>
+            <h2 id="logout-title" class="font-display text-2xl uppercase">Log out?</h2>
+            <p class="text-xs text-neutral-400 leading-6 mt-3">This demo has no active authentication session to terminate. You can return to the login page, or stay on this profile.</p>
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <button id="cancel-logout-button" type="button" class="btn-secondary">Stay here</button>
+                <button id="confirm-logout-button" type="button" class="btn-primary">Go to login</button>
+            </div>
+            <p class="text-[10px] text-neutral-600 leading-5 mt-4">In production, invoke your established server-side logout flow and clear authentication cookies as appropriate.</p>
+        </section>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast hidden" role="status" aria-live="polite">
+        <div class="flex items-start gap-3">
+            <span id="toast-icon" class="text-orange-400 mt-0.5"><i data-lucide="info" class="w-5 h-5"></i></span>
+            <div class="flex-1 min-w-0">
+                <p id="toast-title" class="text-sm font-bold">Notice</p>
+                <p id="toast-message" class="text-xs text-neutral-400 leading-5 mt-1"></p>
+            </div>
+            <button id="dismiss-toast-button" type="button" class="text-neutral-500 hover:text-white" aria-label="Dismiss notification">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+
+        /*
+         * ============================================================
+         * CONFIGURATION AND DEMO DATA
+         * ============================================================
+         *
+         * All values below are fictional examples, not authenticated
+         * member data. Replace this object with authorized backend data.
+         *
+         * API integration intentionally has no assumed URLs or endpoints.
+         * Inject established API operations into the adapter below once
+         * the FastAPI routes and response schemas have been defined.
+         */
+
+        const DEMO_MODE = true;
+
+        const SAMPLE_DATA = Object.freeze({
+            member: {
+                id: 'DEMO-001',
+                fullName: 'Rahul Sharma',
+                age: 22,
+                heightCm: 175,
+                weightKg: 68,
+                phone: '+91 98765 43210',
+                photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&h=400&q=85'
+            },
+            membership: {
+                plan: 'Premium Annual',
+                startDate: '2026-01-01',
+                expiryDate: '2026-12-31',
+                warningDays: 30
+            },
+            statistics: {
+                attendanceDays: 86,
+                workoutDays: 72
+            }
+        });
+
+        /*
+         * Integration contract:
+         *
+         * Define and inject real operations when backend endpoints,
+         * request bodies, response schemas, and authentication rules
+         * have been established. No endpoint is assumed here.
+         *
+         * Suggested operations:
+         * - getCurrentMember()
+         * - updateCurrentMember(profilePayload)
+         * - getMembership()
+         * - getFitnessStatistics()
+         * - saveWorkoutPlan(workoutPayload)
+         * - requestMembershipRenewal()
+         * - logout()
+         *
+         * Production functions must reject on failure, validate
+         * responses, and rely on server-side authorization.
+         */
+        const apiAdapter = Object.freeze({
+            getCurrentMember: null,
+            updateCurrentMember: null,
+            getMembership: null,
+            getFitnessStatistics: null,
+            saveWorkoutPlan: null,
+            requestMembershipRenewal: null,
+            logout: null
+        });
+
+        const state = {
+            member: { ...SAMPLE_DATA.member },
+            membership: { ...SAMPLE_DATA.membership },
+            statistics: { ...SAMPLE_DATA.statistics },
+            selectedWorkouts: new Set(),
+            savedWorkoutPlan: [],
+            photoDataUrl: null,
+            photoRemoved: false,
+            previousFocus: null,
+            toastTimer: null,
+            isSavingWorkout: false,
+            isSavingProfile: false
+        };
+
+        const $ = (selector, root = document) => root.querySelector(selector);
+        const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+        function formatDate(dateString) {
+            const date = parseDateOnly(dateString);
+            if (!date) return 'Not available';
+
+            return new Intl.DateTimeFormat('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                timeZone: 'UTC'
+            }).format(date);
+        }
+
+        function parseDateOnly(value) {
+            if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                return null;
+            }
+
+            const date = new Date(`${value}T00:00:00.000Z`);
+
+            if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+                return null;
+            }
+
+            return date;
+        }
+
+        function getTodayUtcDateOnly() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function daysBetween(start, end) {
+            const a = parseDateOnly(start);
+            const b = parseDateOnly(end);
+            if (!a || !b) return null;
+
+            return Math.round((b.getTime() - a.getTime()) / 86400000);
+        }
+
+        function getMembershipStatus(expiryDate, warningDays = 30) {
+            const remaining = daysBetween(getTodayUtcDateOnly(), expiryDate);
+
+            if (remaining === null) {
+                return { label: 'Unavailable', className: 'status-warning', daysRemaining: null };
+            }
+
+            if (remaining < 0) {
+                return { label: 'Expired', className: 'status-expired', daysRemaining: 0 };
+            }
+
+            if (remaining <= warningDays) {
+                return { label: 'Expiring Soon', className: 'status-warning', daysRemaining: remaining };
+            }
+
+            return { label: 'Active', className: 'status-active', daysRemaining: remaining };
+        }
+
+        function calculateBMI(heightCm, weightKg) {
+            const height = Number(heightCm);
+            const weight = Number(weightKg);
+
+            if (!Number.isFinite(height) || !Number.isFinite(weight) ||
+                height < 50 || height > 272 || weight < 10 || weight > 500) {
+                return null;
+            }
+
+            const heightM = height / 100;
+            const bmi = weight / (heightM * heightM);
+
+            if (!Number.isFinite(bmi) || bmi <= 0) return null;
+
+            return Math.round(bmi * 10) / 10;
+        }
+
+        function getBMICategory(bmi) {
+            if (bmi === null || !Number.isFinite(bmi)) return 'Enter valid measurements';
+
+            if (bmi < 18.5) return 'Below standard adult range';
+            if (bmi < 25) return 'Within standard adult range';
+            if (bmi < 30) return 'Above standard adult range';
+
+            return 'High adult BMI range';
+        }
+
+        function getBMIMarkerPosition(bmi) {
+            if (bmi === null) return 0;
+            return Math.max(2, Math.min(98, (bmi / 40) * 100));
+        }
+
+        function getSafeName(name) {
+            const cleaned = String(name || '').trim().replace(/\s+/g, ' ');
+            return cleaned || 'Member';
+        }
+
+        function getInitials(name) {
+            return getSafeName(name)
+                .split(' ')
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(part => part[0].toUpperCase())
+                .join('');
+        }
+
+        function setText(selector, value) {
+            const element = $(selector);
+            if (element) element.textContent = String(value ?? '');
+        }
+
+        function setImageSource(element, source, fallback) {
+            if (!element) return;
+
+            element.onerror = () => {
+                element.onerror = null;
+                element.src = fallback;
+            };
+
+            element.src = source || fallback;
+        }
+
+        function renderDate() {
+            setText('#current-date', new Intl.DateTimeFormat('en-IN', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            }).format(new Date()));
+
+            setText('#footer-year', new Date().getFullYear());
+        }
+
+        function renderMember() {
+            const member = state.member;
+            const name = getSafeName(member.fullName);
+
+            setText('#nav-member-name', name);
+            setText('#welcome-name', `${name}.`);
+            setText('#profile-full-name', name);
+            setText('#member-id', member.id || '—');
+            setText('#profile-age', member.age);
+            setText('#profile-height', member.heightCm);
+            setText('#profile-weight', member.weightKg);
+            setText('#profile-phone', member.phone || 'Not provided');
+
+            const avatarFallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(getInitials(name))}&background=262626&color=FF6B00&size=400`;
+
+            const source = state.photoRemoved
+                ? avatarFallback
+                : state.photoDataUrl || member.photoUrl || avatarFallback;
+
+            setImageSource($('#nav-avatar'), source, avatarFallback);
+            setImageSource($('#profile-avatar'), source, avatarFallback);
+
+            $('#profile-avatar').alt = `${name}'s profile photo`;
+            $('#nav-avatar').alt = `${name}'s profile photo`;
+
+            renderBMI();
+        }
+
+        function renderBMI() {
+            const bmi = calculateBMI(state.member.heightCm, state.member.weightKg);
+
+            setText('#profile-bmi', bmi === null ? '—' : bmi.toFixed(1));
+            setText('#profile-bmi-category', getBMICategory(bmi));
+            setText('#bmi-value-badge', bmi === null ? '—' : bmi.toFixed(1));
+
+            const marker = $('#bmi-marker');
+            marker.style.left = `${getBMIMarkerPosition(bmi)}%`;
+            marker.style.visibility = bmi === null ? 'hidden' : 'visible';
+        }
+
+        function renderMembership() {
+            const membership = state.membership;
+            const status = getMembershipStatus(
+                membership.expiryDate,
+                membership.warningDays
+            );
+
+            setText('#membership-plan', membership.plan || 'Membership');
+            setText('#membership-start', formatDate(membership.startDate));
+            setText('#membership-expiry', formatDate(membership.expiryDate));
+
+            const remainingText = status.daysRemaining === null
+                ? 'Unavailable'
+                : status.label === 'Expired'
+                    ? 'Expired'
+                    : `${status.daysRemaining} day${status.daysRemaining === 1 ? '' : 's'}`;
+
+            setText('#membership-remaining', remainingText);
+            setText('#stat-days-remaining', status.daysRemaining === null ? '—' : status.daysRemaining);
+
+            const badge = $('#membership-status');
+            badge.className = `status-pill ${status.className}`;
+
+            const dot = document.createElement('span');
+            dot.className = 'w-1.5 h-1.5 rounded-full bg-current';
+            badge.replaceChildren(dot, document.createTextNode(` ${status.label}`));
+
+            const start = parseDateOnly(membership.startDate);
+            const expiry = parseDateOnly(membership.expiryDate);
+            const today = parseDateOnly(getTodayUtcDateOnly());
+
+            let progress = 0;
+
+            if (start && expiry && today && expiry.getTime() > start.getTime()) {
+                const elapsed = today.getTime() - start.getTime();
+                const total = expiry.getTime() - start.getTime();
+                progress = Math.max(0, Math.min(100, elapsed / total * 100));
+            } else if (status.label === 'Expired') {
+                progress = 100;
+            }
+
+            $('#membership-progress').style.width = `${progress}%`;
+            setText('#membership-progress-label', `${Math.round(progress)}%`);
+
+            const notice = $('#membership-notice');
+            notice.classList.remove('hidden');
+            notice.className = 'mt-4 text-xs leading-5 rounded-lg p-3';
+
+            if (status.label === 'Expired') {
+                notice.classList.add('border', 'border-red-500/20', 'bg-red-500/[.06]', 'text-red-300');
+                notice.textContent = 'This sample membership has expired. Renewal requires confirmation from the membership system.';
+            } else if (status.label === 'Expiring Soon') {
+                notice.classList.add('border', 'border-orange-500/20', 'bg-orange-500/[.06]', 'text-orange-300');
+                notice.textContent = 'This sample membership is approaching its expiry date.';
+            } else {
+                notice.classList.add('border', 'border-green-500/15', 'bg-green-500/[.05]', 'text-green-300');
+                notice.textContent = 'Your sample membership is within its validity period.';
+            }
+
+            return status;
+        }
+
+        function renderStatistics() {
+            const attendance = Number(state.statistics.attendanceDays);
+            const workouts = Number(state.statistics.workoutDays);
+
+            setText('#stat-attendance', Number.isFinite(attendance) && attendance >= 0 ? attendance : '—');
+            setText('#stat-workout', Number.isFinite(workouts) && workouts >= 0 ? workouts : '—');
+
+            // Days off is an estimate, not an attendance verification.
+            const daysOff = Number.isFinite(attendance) && Number.isFinite(workouts)
+                ? Math.max(0, attendance - workouts)
+                : null;
+
+            setText('#stat-days-off', daysOff === null ? '—' : daysOff);
+        }
+
+        function renderWorkoutSelection() {
+            const selected = [...state.selectedWorkouts];
+
+            $$('.workout-option').forEach(button => {
+                const active = state.selectedWorkouts.has(button.dataset.workout);
+                button.setAttribute('aria-pressed', String(active));
+            });
+
+            setText('#workout-count', `${selected.length} selected`);
+
+            const summary = $('#workout-summary');
+            summary.replaceChildren();
+
+            if (!selected.length) {
+                const empty = document.createElement('p');
+                empty.className = 'text-xs text-neutral-500';
+                empty.textContent = 'No muscle groups selected yet. Choose your focus above.';
+                summary.append(empty);
+                return;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex flex-wrap gap-2';
+
+            selected.forEach(workout => {
+                const chip = document.createElement('span');
+                chip.className = 'inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs text-orange-200';
+
+                const icon = document.createElement('span');
+                icon.className = 'text-orange-400';
+                icon.textContent = '✓';
+
+                chip.append(icon, document.createTextNode(workout));
+                wrapper.append(chip);
+            });
+
+            summary.append(wrapper);
+        }
+
+        function renderSavedWorkout() {
+            const status = $('#activity-plan-status');
+
+            if (!state.savedWorkoutPlan.length) {
+                status.textContent = 'No plan saved in this demo session';
+                return;
+            }
+
+            status.textContent = `Demo plan saved: ${state.savedWorkoutPlan.join(', ')}`;
+        }
+
+        function showToast(title, message, type = 'info') {
+            const toast = $('#toast');
+            const iconContainer = $('#toast-icon');
+
+            const iconName = type === 'success'
+                ? 'check-circle'
+                : type === 'error'
+                    ? 'alert-circle'
+                    : 'info';
+
+            const iconColor = type === 'success'
+                ? 'text-green-400'
+                : type === 'error'
+                    ? 'text-red-400'
+                    : 'text-orange-400';
+
+            iconContainer.className = `${iconColor} mt-0.5`;
+            iconContainer.replaceChildren();
+
+            const icon = document.createElement('i');
+            icon.setAttribute('data-lucide', iconName);
+            icon.className = 'w-5 h-5';
+            iconContainer.append(icon);
+
+            setText('#toast-title', title);
+            setText('#toast-message', message);
+
+            toast.classList.remove('hidden');
+
+            if (state.toastTimer) clearTimeout(state.toastTimer);
+
+            state.toastTimer = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 4500);
+
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function hideToast() {
+            if (state.toastTimer) {
+                clearTimeout(state.toastTimer);
+                state.toastTimer = null;
+            }
+            $('#toast').classList.add('hidden');
+        }
+
+        function showWorkoutFeedback(message, type = 'info') {
+            const feedback = $('#workout-feedback');
+
+            feedback.className = 'mt-3 rounded-lg px-3 py-2.5 text-xs';
+
+            if (type === 'success') {
+                feedback.classList.add('border', 'border-green-500/20', 'bg-green-500/[.06]', 'text-green-300');
+            } else if (type === 'error') {
+                feedback.classList.add('border', 'border-red-500/20', 'bg-red-500/[.06]', 'text-red-300');
+            } else {
+                feedback.classList.add('border', 'border-white/10', 'bg-white/[.03]', 'text-neutral-300');
+            }
+
+            feedback.textContent = message;
+        }
+
+        function clearWorkoutFeedback() {
+            const feedback = $('#workout-feedback');
+            feedback.textContent = '';
+            feedback.classList.add('hidden');
+        }
+
+        async function saveWorkoutPlan() {
+            if (state.isSavingWorkout) return;
+
+            const selected = [...state.selectedWorkouts];
+
+            if (!selected.length) {
+                showWorkoutFeedback('Select at least one muscle group before saving your workout plan.', 'error');
+                return;
+            }
+
+            const button = $('#save-workout-button');
+            state.isSavingWorkout = true;
+            button.disabled = true;
+            button.textContent = 'Saving...';
+
+            showWorkoutFeedback('Saving your plan in demo mode...', 'info');
+
+            try {
+                if (!DEMO_MODE && typeof apiAdapter.saveWorkoutPlan === 'function') {
+                    await apiAdapter.saveWorkoutPlan({ muscleGroups: selected });
+                    state.savedWorkoutPlan = [...selected];
+                    showWorkoutFeedback('Workout plan saved successfully.', 'success');
+                } else {
+                    // Intentional in-memory demo operation. No network call.
+                    await Promise.resolve();
+                    state.savedWorkoutPlan = [...selected];
+                    showWorkoutFeedback('Demo plan saved in this page session only. No server request was made and no attendance was recorded.', 'success');
+                }
+
+                renderSavedWorkout();
+            } catch (error) {
+                console.error('Workout plan save failed.', error);
+                showWorkoutFeedback('Unable to save the workout plan. Please try again.', 'error');
+            } finally {
+                state.isSavingWorkout = false;
+                button.disabled = false;
+                button.replaceChildren();
+
+                const icon = document.createElement('i');
+                icon.setAttribute('data-lucide', 'save');
+                icon.className = 'w-4 h-4';
+
+                button.append(icon, document.createTextNode(' Save workout plan'));
+
+                if (window.lucide) window.lucide.createIcons();
+            }
+        }
+
+        function clearWorkoutSelection() {
+            state.selectedWorkouts.clear();
+            renderWorkoutSelection();
+            clearWorkoutFeedback();
+        }
+
+        /*
+         * ============================================================
+         * PROFILE EDITING
+         * ============================================================
+         */
+
+        function openModal(modal) {
+            const activeModal = $('.modal-backdrop:not(.hidden)');
+            if (activeModal && activeModal !== modal) closeModal(activeModal);
+
+            state.previousFocus = document.activeElement;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            const dialog = $('[role="dialog"]', modal);
+            if (dialog) dialog.focus();
+
+            const firstInput = $('input:not([type="file"]), button', modal);
+            if (firstInput) firstInput.focus({ preventScroll: true });
+        }
+
+        function closeModal(modal) {
+            modal.classList.add('hidden');
+
+            const otherOpenModal = $('.modal-backdrop:not(.hidden)');
+
+            if (!otherOpenModal) {
+                document.body.style.overflow = '';
+            }
+
+            if (state.previousFocus && typeof state.previousFocus.focus === 'function') {
+                state.previousFocus.focus({ preventScroll: true });
+            }
+
+            state.previousFocus = null;
+        }
+
+        function populateProfileForm() {
+            const member = state.member;
+
+            $('#edit-name').value = member.fullName || '';
+            $('#edit-age').value = member.age ?? '';
+            $('#edit-phone').value = member.phone || '';
+            $('#edit-height').value = member.heightCm ?? '';
+            $('#edit-weight').value = member.weightKg ?? '';
+
+            state.photoDataUrl = null;
+            state.photoRemoved = false;
+
+            $('#photo-input').value = '';
+            $('#photo-error').classList.add('hidden');
+            $('#profile-form-error').classList.add('hidden');
+
+            const previewSource = member.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(getInitials(member.fullName))}&background=262626&color=FF6B00&size=400`;
+
+            setImageSource($('#photo-preview'), previewSource, previewSource);
+            updateEditBMI();
+        }
+
+        function updateEditBMI() {
+            const height = $('#edit-height').value;
+            const weight = $('#edit-weight').value;
+
+            const bmi = calculateBMI(height, weight);
+
+            setText('#edit-bmi-value', bmi === null ? '—' : bmi.toFixed(1));
+            setText('#edit-bmi-category', `${getBMICategory(bmi)}. Screening metric only — not a diagnosis.`);
+        }
+
+        function validateProfilePayload(payload) {
+            const errors = [];
+
+            const name = getSafeName(payload.fullName);
+            if (name === 'Member' || name.length < 2 || name.length > 80) {
+                errors.push('Enter a full name between 2 and 80 characters.');
+            }
+
+            if (!Number.isInteger(Number(payload.age)) ||
+                Number(payload.age) < 1 || Number(payload.age) > 120) {
+                errors.push('Age must be a whole number between 1 and 120.');
+            }
+
+            if (!Number.isFinite(Number(payload.heightCm)) ||
+                Number(payload.heightCm) < 50 || Number(payload.heightCm) > 272) {
+                errors.push('Height must be between 50 and 272 cm.');
+            }
+
+            if (!Number.isFinite(Number(payload.weightKg)) ||
+                Number(payload.weightKg) < 10 || Number(payload.weightKg) > 500) {
+                errors.push('Weight must be between 10 and 500 kg.');
+            }
+
+            const phone = String(payload.phone || '').trim();
+            if (phone.length < 7 || phone.length > 20 ||
+                !/^[+()\d\s.-]+$/.test(phone) ||
+                phone.replace(/\D/g, '').length < 7) {
+                errors.push('Enter a valid phone number containing at least 7 digits.');
+            }
+
+            return errors;
+        }
+
+        async function handleProfileSubmit(event) {
+            event.preventDefault();
+
+            if (state.isSavingProfile) return;
+
+            const payload = {
+                fullName: $('#edit-name').value.trim().replace(/\s+/g, ' '),
+                age: Number($('#edit-age').value),
+                phone: $('#edit-phone').value.trim(),
+                heightCm: Number($('#edit-height').value),
+                weightKg: Number($('#edit-weight').value)
+            };
+
+            const errors = validateProfilePayload(payload);
+            const errorElement = $('#profile-form-error');
+
+            if (errors.length) {
+                errorElement.textContent = errors.join(' ');
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            errorElement.classList.add('hidden');
+
+            const button = $('#save-profile-button');
+            state.isSavingProfile = true;
+            button.disabled = true;
+            button.textContent = 'Saving...';
+
+            try {
+                if (!DEMO_MODE && typeof apiAdapter.updateCurrentMember === 'function') {
+                    // Send only fields permitted by the defined API contract.
+                    // Never trust client-provided member IDs for authorization.
+                    const result = await apiAdapter.updateCurrentMember({
+                        ...payload,
+                        photo: state.photoRemoved ? null : state.photoDataUrl
+                    });
+
+                    if (!result || typeof result !== 'object') {
+                        throw new Error('The profile service returned an invalid response.');
+                    }
+
+                    // Prefer the canonical server response over submitted values.
+                    state.member = { ...state.member, ...result };
+                } else {
+                    // Intentional demo-only update. Nothing is persisted.
+                    state.member = { ...state.member, ...payload };
+
+                    if (state.photoRemoved) {
+                        state.member.photoUrl = '';
+                    } else if (state.photoDataUrl) {
+                        state.member.photoUrl = state.photoDataUrl;
+                    }
+                }
+
+                renderMember();
+                closeModal($('#profile-modal'));
+
+                showToast(
+                    'Profile updated',
+                    DEMO_MODE
+                        ? 'Changes are visible in this page session only. No server request was made.'
+                        : 'Your profile was updated.',
+                    'success'
+                );
+            } catch (error) {
+                console.error('Profile update failed.', error);
+                errorElement.textContent = 'Your profile could not be updated. Please try again.';
+                errorElement.classList.remove('hidden');
+            } finally {
+                state.isSavingProfile = false;
+                button.disabled = false;
+                button.replaceChildren();
+
+                const icon = document.createElement('i');
+                icon.setAttribute('data-lucide', 'save');
+                icon.className = 'w-4 h-4';
+
+                button.append(icon, document.createTextNode(' Save profile changes'));
+
+                if (window.lucide) window.lucide.createIcons();
+            }
+        }
+
+        function handlePhotoSelection(event) {
+            const input = event.target;
+            const file = input.files && input.files[0];
+            const error = $('#photo-error');
+
+            error.classList.add('hidden');
+            error.textContent = '';
+
+            if (!file) return;
+
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+            if (!allowedTypes.includes(file.type)) {
+                input.value = '';
+                error.textContent = 'Choose a JPG, PNG or WebP image.';
+                error.classList.remove('hidden');
+                return;
+            }
+
+            if (file.size > 500 * 1024) {
+                input.value = '';
+                error.textContent = 'The selected photo exceeds the 500 KB limit.';
+                error.classList.remove('hidden');
+                return;
+            }
+
+            if (file.size === 0) {
+                input.value = '';
+                error.textContent = 'The selected file is empty.';
+                error.classList.remove('hidden');
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                if (typeof reader.result !== 'string' ||
+                    !reader.result.startsWith('data:image/')) {
+                    error.textContent = 'Unable to preview this image. Please choose another file.';
+                    error.classList.remove('hidden');
+                    input.value = '';
+                    return;
+                }
+
+                state.photoDataUrl = reader.result;
+                state.photoRemoved = false;
+
+                setImageSource($('#photo-preview'), reader.result, state.member.photoUrl);
+            };
+
+            reader.onerror = () => {
+                error.textContent = 'Unable to read this image. Please try another file.';
+                error.classList.remove('hidden');
+                input.value = '';
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function removeSelectedPhoto() {
+            state.photoDataUrl = null;
+            state.photoRemoved = true;
+
+            $('#photo-input').value = '';
+            $('#photo-error').classList.add('hidden');
+
+            const initialsUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(getInitials(state.member.fullName))}&background=262626&color=FF6B00&size=400`;
+
+            setImageSource($('#photo-preview'), initialsUrl, initialsUrl);
+        }
+
+        /*
+         * ============================================================
+         * MEMBERSHIP RENEWAL AND LOGOUT
+         * ============================================================
+         */
+
+        async function handleRenewMembership() {
+            const status = getMembershipStatus(
+                state.membership.expiryDate,
+                state.membership.warningDays
+            );
+
+            if (DEMO_MODE || typeof apiAdapter.requestMembershipRenewal !== 'function') {
+                showToast(
+                    'Renewal is a demo action',
+                    `Your sample membership is ${status.label.toLowerCase()}. No payment was taken and no renewal was requested from a server.`,
+                    'info'
+                );
+                return;
+            }
+
+            const button = $('#renew-membership-button');
+            button.disabled = true;
+
+            try {
+                await apiAdapter.requestMembershipRenewal();
+                showToast('Request submitted', 'Your renewal request was submitted.', 'success');
+            } catch (error) {
+                console.error('Membership renewal request failed.', error);
+                showToast('Renewal unavailable', 'Unable to submit your renewal request. Please try again.', 'error');
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        function openLogoutConfirmation() {
+            $('#mobile-menu').classList.remove('open');
+            $('#mobile-menu-button').setAttribute('aria-expanded', 'false');
+            openModal($('#logout-modal'));
+        }
+
+        async function handleLogout() {
+            if (DEMO_MODE || typeof apiAdapter.logout !== 'function') {
+                closeModal($('#logout-modal'));
+                window.location.href = '../public/login.html';
+                return;
+            }
+
+            const button = $('#confirm-logout-button');
+            button.disabled = true;
+
+            try {
+                await apiAdapter.logout();
+                closeModal($('#logout-modal'));
+                window.location.href = '../public/login.html';
+            } catch (error) {
+                console.error('Logout failed.', error);
+                showToast('Logout failed', 'The logout request could not be completed. Please try again.', 'error');
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        /*
+         * ============================================================
+         * ACCESSIBILITY AND NAVIGATION
+         * ============================================================
+         */
+
+        function toggleMobileMenu() {
+            const menu = $('#mobile-menu');
+            const button = $('#mobile-menu-button');
+            const isOpen = menu.classList.toggle('open');
+
+            button.setAttribute('aria-expanded', String(isOpen));
+            button.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+
+            button.replaceChildren();
+
+            const icon = document.createElement('i');
+            icon.setAttribute('data-lucide', isOpen ? 'x' : 'menu');
+            icon.className = 'w-5 h-5';
+
+            button.append(icon);
+
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function handleDialogKeyboard(event) {
+            const modal = $('.modal-backdrop:not(.hidden)');
+            if (!modal) return;
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeModal(modal);
+                return;
+            }
+
+            if (event.key !== 'Tab') return;
+
+            const focusable = $$(
+                'button:not(:disabled), input:not(:disabled), a[href], [tabindex="0"]',
+                modal
+            ).filter(element => element.getClientRects().length > 0);
+
+            if (!focusable.length) {
+                event.preventDefault();
+                return;
+            }
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        }
+
+        /*
+         * ============================================================
+         * INITIALIZATION
+         * ============================================================
+         */
+
+        function initializeDemo() {
+            renderDate();
+            renderMember();
+            renderMembership();
+            renderStatistics();
+            renderWorkoutSelection();
+            renderSavedWorkout();
+
+            $$('.workout-option').forEach(button => {
+                button.addEventListener('click', () => {
+                    const group = button.dataset.workout;
+
+                    if (state.selectedWorkouts.has(group)) {
+                        state.selectedWorkouts.delete(group);
+                    } else {
+                        state.selectedWorkouts.add(group);
+                    }
+
+                    clearWorkoutFeedback();
+                    renderWorkoutSelection();
+                });
+            });
+
+            $('#save-workout-button').addEventListener('click', saveWorkoutPlan);
+            $('#clear-workout-button').addEventListener('click', clearWorkoutSelection);
+
+            $('#edit-profile-button').addEventListener('click', () => {
+                populateProfileForm();
+                openModal($('#profile-modal'));
+            });
+
+            $('#close-modal-button').addEventListener('click', () => closeModal($('#profile-modal')));
+            $('#cancel-profile-button').addEventListener('click', () => closeModal($('#profile-modal')));
+            $('#profile-form').addEventListener('submit', handleProfileSubmit);
+            $('#photo-input').addEventListener('change', handlePhotoSelection);
+            $('#remove-photo-button').addEventListener('click', removeSelectedPhoto);
+
+            $('#edit-height').addEventListener('input', updateEditBMI);
+            $('#edit-weight').addEventListener('input', updateEditBMI);
+
+            $('#renew-membership-button').addEventListener('click', handleRenewMembership);
+
+            $('#logout-button').addEventListener('click', openLogoutConfirmation);
+            $('#mobile-logout-button').addEventListener('click', openLogoutConfirmation);
+            $('#cancel-logout-button').addEventListener('click', () => closeModal($('#logout-modal')));
+            $('#confirm-logout-button').addEventListener('click', handleLogout);
+
+            $('#mobile-menu-button').addEventListener('click', toggleMobileMenu);
+
+            $$('#mobile-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    $('#mobile-menu').classList.remove('open');
+                    $('#mobile-menu-button').setAttribute('aria-expanded', 'false');
+                });
+            });
+
+            $('#dismiss-toast-button').addEventListener('click', hideToast);
+
+            $$('.modal-backdrop').forEach(modal => {
+                modal.addEventListener('click', event => {
+                    if (event.target === modal) closeModal(modal);
+                });
+            });
+
+            document.addEventListener('keydown', handleDialogKeyboard);
+
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+
+        /*
+         * A future integration can replace the demonstration initializer
+         * with authenticated bootstrap logic. Keep all server requests
+         * inside explicitly defined adapter functions and use the
+         * authenticated member context on the server.
+         */
+        document.addEventListener('DOMContentLoaded', initializeDemo);
+    </script>
+</body>
+</html>
